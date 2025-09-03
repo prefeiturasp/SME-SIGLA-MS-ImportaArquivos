@@ -1,5 +1,6 @@
 """
-Django management command to clear all importacao arquivos.
+Django management command to clear import files data.
+Comando Django para limpar dados de importação de arquivos.
 """
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction

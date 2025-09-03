@@ -1,5 +1,6 @@
 """
-Django management command to create sample importacao arquivos.
+Django management command to create sample import files for development.
+Comando Django para criar arquivos de importação de exemplo para desenvolvimento.
 """
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
@@ -71,18 +72,18 @@ class Command(BaseCommand):
                 importacoes_para_criar = []
                 
                 for i in range(count):
-                    # Criar arquivo de exemplo com conteúdo mais realista
+                    # Criar arquivo CSV de exemplo com dados realistas para importação
                     timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
                     arquivo_content = self._generate_sample_csv(i+1)
                     arquivo = SimpleUploadedFile(
-                        f"teste_{timestamp}_{i+1}.csv",
+                        f"importacao_{timestamp}_{i+1}.csv",
                         arquivo_content.encode('utf-8'),
                         content_type="text/csv"
                     )
                     
                     # Criar importação de arquivo com nome único
-                    nome_importacao = f'Importação de Teste {i+1} - {timestamp}'
-                    descricao = f'Arquivo de teste gerado automaticamente em {timezone.now().strftime("%d/%m/%Y %H:%M:%S")}'
+                    nome_importacao = f'Dados Funcionários - Lote {i+1}'
+                    descricao = f'Arquivo CSV com dados de funcionários para importação - Gerado em {timezone.now().strftime("%d/%m/%Y %H:%M:%S")}'
                     
                     importacao = ImportacaoArquivos(
                         nome=nome_importacao,
@@ -118,11 +119,16 @@ class Command(BaseCommand):
             raise CommandError(f'Erro ao criar importações: {str(e)}')
     
     def _generate_sample_csv(self, index):
-        """Gera conteúdo CSV de exemplo mais realista"""
+        """Gera conteúdo CSV de exemplo para importação de funcionários"""
+        base_id = index * 1000
+        current_date = timezone.now().date()
+        
         lines = [
-            'id,nome,email,departamento,data_cadastro',
-            f'{index},Usuario {index},usuario{index}@exemplo.com,TI,{timezone.now().date()}',
-            f'{index+100},Usuario {index+100},usuario{index+100}@exemplo.com,RH,{timezone.now().date()}',
-            f'{index+200},Usuario {index+200},usuario{index+200}@exemplo.com,Financeiro,{timezone.now().date()}',
+            'matricula,nome_completo,email,cargo,departamento,data_admissao,salario',
+            f'{base_id+1},João Silva Santos,joao.silva{index}@prefeitura.sp.gov.br,Analista,Tecnologia da Informação,{current_date},5500.00',
+            f'{base_id+2},Maria Oliveira Costa,maria.oliveira{index}@prefeitura.sp.gov.br,Coordenadora,Recursos Humanos,{current_date},7200.00',
+            f'{base_id+3},Carlos Pereira Lima,carlos.pereira{index}@prefeitura.sp.gov.br,Técnico,Financeiro,{current_date},4800.00',
+            f'{base_id+4},Ana Paula Souza,ana.souza{index}@prefeitura.sp.gov.br,Gerente,Administração,{current_date},8500.00',
+            f'{base_id+5},Pedro Almeida Santos,pedro.almeida{index}@prefeitura.sp.gov.br,Assistente,Educação,{current_date},3200.00',
         ]
         return '\n'.join(lines) 
