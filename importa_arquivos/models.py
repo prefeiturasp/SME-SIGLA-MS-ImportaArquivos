@@ -5,7 +5,10 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
-
+import requests
+import base64
+import os
+from django.conf import settings
 
 class BaseModel(models.Model):
     """
@@ -147,10 +150,74 @@ class ImportacaoArquivos(BaseModel):
 
     def save(self, *args, **kwargs):
         """
-        Executa validação antes de salvar.
+        Executa validação antes de salvar e envia para o robust_server se validado.
         """
         self.clean()
+        
+        # Salvar primeiro no banco local
+        is_new = self.pk is None
         super().save(*args, **kwargs)
+        
+        # Se é um novo registro e está validado, enviar para o robust_server
+        if is_new and self.status == 'pendente':
+            self._enviar_para_robust_server()
+    
+    def _enviar_para_robust_server(self):
+        """
+        Envia os dados do arquivo validado para o robust_server via POST.
+        """
+
+        
+        try:
+            # URL do robust_server (configurável)
+            robust_server_url = getattr(settings, 'ROBUST_SERVER_URL', 'http://localhost:8002')
+            endpoint = f"{robust_server_url}/api/importacao-arquivos/"
+            
+            # Ler o arquivo e converter para base64
+            self.arquivo.seek(0)
+            arquivo_content = self.arquivo.read()
+            arquivo_base64 = base64.b64encode(arquivo_content).decode('utf-8')
+            
+            # Preparar dados para envio
+            payload = {
+                'uuid': str(self.uuid),
+                'nome': self.nome,
+                'descricao': self.descricao,
+                'tipo_de_layout': self.tipo_de_layout,
+                'status': self.status,
+                'arquivo': {
+                    'name': os.path.basename(self.arquivo.name),
+                    'content': arquivo_base64,
+                    'content_type': 'text/csv'
+                },
+                'metadata': {
+                    'criado_em': self.criado_em.isoformat(),
+                    'fonte': 'SME-SIGLA-MS-ImportaArquivos'
+                }
+            }
+            
+            # Enviar via POST
+            response = requests.post(
+                endpoint,
+                json=payload,
+                headers={
+                    'Content-Type': 'application/json',
+                    'User-Agent': 'SME-SIGLA-ImportaArquivos/1.0'
+                },
+                timeout=30
+            )
+            
+            if response.status_code in [200, 201]:
+                print(f"Arquivo {self.nome} enviado com sucesso para robust_server")
+                # Opcional: atualizar status para indicar que foi enviado
+                self.status = 'processando'
+                super().save(update_fields=['status', 'atualizado_em'])
+            else:
+                print(f"Erro ao enviar arquivo para robust_server: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            print(f"Erro ao enviar arquivo {self.nome} para robust_server: {str(e)}")
+            # Não falhar a operação principal por problemas de integração
 
 
 class Layout(BaseModel):
