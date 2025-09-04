@@ -1,0 +1,242 @@
+[
+    {
+        "tipo_de_layout": "HABILITADOS",
+        "dados": [
+            {
+                "tipo": "string",
+                "campo": "Inscricao",
+                "ordem": 1,
+                "tamanho": 20,
+                "regras_de_validacao": "obrigatorio,unico"
+            },
+            {
+                "tipo": "string",
+                "campo": "Nome",
+                "ordem": 2,
+                "tamanho": 200,
+                "regras_de_validacao": "obrigatorio"
+            },
+            {
+                "tipo": "date",
+                "campo": "DataNascimento",
+                "ordem": 3,
+                "tamanho": 10,
+                "regras_de_validacao": "obrigatorio,data_valida"
+            },
+            {
+                "tipo": "string",
+                "campo": "Sexo",
+                "ordem": 4,
+                "tamanho": 1,
+                "regras_de_validacao": "obrigatorio,opcoes:M,F"
+            },
+            {
+                "tipo": "string",
+                "campo": "RG",
+                "ordem": 5,
+                "tamanho": 15,
+                "regras_de_validacao": "obrigatorio"
+            },
+            {
+                "tipo": "string",
+                "campo": "CPF",
+                "ordem": 6,
+                "tamanho": 11,
+                "regras_de_validacao": "obrigatorio,cpf_valido"
+            },
+            {
+                "tipo": "string",
+                "campo": "adregistroFuncional",
+                "ordem": 7,
+                "tamanho": 20,
+                "regras_de_validacao": "opcional"
+            },
+            {
+                "tipo": "string",
+                "campo": "adNumVinculo",
+                "ordem": 8,
+                "tamanho": 20,
+                "regras_de_validacao": "opcional"
+            },
+            {
+                "tipo": "string",
+                "campo": "EndLogradouro",
+                "ordem": 9,
+                "tamanho": 200,
+                "regras_de_validacao": "obrigatorio"
+            },
+            {
+                "tipo": "string",
+                "campo": "Numero",
+                "ordem": 10,
+                "tamanho": 10,
+                "regras_de_validacao": "obrigatorio"
+            },
+            {
+                "tipo": "string",
+                "campo": "Complemento",
+                "ordem": 11,
+                "tamanho": 50,
+                "regras_de_validacao": "opcional"
+            },
+            {
+                "tipo": "string",
+                "campo": "Bairro",
+                "ordem": 12,
+                "tamanho": 100,
+                "regras_de_validacao": "obrigatorio"
+            },
+            {
+                "tipo": "string",
+                "campo": "Cep",
+                "ordem": 13,
+                "tamanho": 8,
+                "regras_de_validacao": "obrigatorio,cep_valido"
+            },
+            {
+                "tipo": "string",
+                "campo": "Cidade",
+                "ordem": 14,
+                "tamanho": 100,
+                "regras_de_validacao": "obrigatorio"
+            },
+            {
+                "tipo": "string",
+                "campo": "UF",
+                "ordem": 15,
+                "tamanho": 2,
+                "regras_de_validacao": "obrigatorio,uf_valida"
+            },
+            {
+                "tipo": "string",
+                "campo": "telefone",
+                "ordem": 16,
+                "tamanho": 15,
+                "regras_de_validacao": "opcional"
+            },
+            {
+                "tipo": "string",
+                "campo": "celular",
+                "ordem": 17,
+                "tamanho": 15,
+                "regras_de_validacao": "opcional"
+            },
+            {
+                "tipo": "integer",
+                "campo": "Classificação",
+                "ordem": 18,
+                "tamanho": 10,
+                "regras_de_validacao": "obrigatorio,maior_que_zero"
+            },
+            {
+                "tipo": "string",
+                "campo": "Email",
+                "ordem": 19,
+                "tamanho": 150,
+                "regras_de_validacao": "obrigatorio,email_valido"
+            },
+            {
+                "tipo": "decimal",
+                "campo": "Pontos",
+                "ordem": 20,
+                "tamanho": 10,
+                "regras_de_validacao": "obrigatorio,maior_ou_igual_zero"
+            },
+            {
+                "tipo": "integer",
+                "campo": "Classificação_Deficiente",
+                "ordem": 21,
+                "tamanho": 10,
+                "regras_de_validacao": "opcional,maior_ou_igual_zero"
+            },
+            {
+                "tipo": "string",
+                "campo": "Opção de Concurso",
+                "ordem": 22,
+                "tamanho": 100,
+                "regras_de_validacao": "obrigatorio"
+            },
+            {
+                "tipo": "string",
+                "campo": "Codigo_do_Cargo",
+                "ordem": 23,
+                "tamanho": 20,
+                "regras_de_validacao": "obrigatorio"
+            },
+            {
+                "tipo": "string",
+                "campo": "cota",
+                "ordem": 24,
+                "tamanho": 50,
+                "regras_de_validacao": "opcional"
+            },
+            {
+                "tipo": "string",
+                "campo": "Descrição_do_Cargo",
+                "ordem": 25,
+                "tamanho": 300,
+                "regras_de_validacao": "obrigatorio"
+            },
+            {
+                "tipo": "string",
+                "campo": "Df",
+                "ordem": 26,
+                "tamanho": 10,
+                "regras_de_validacao": "opcional"
+            },
+            {
+                "tipo": "string",
+                "campo": "classNNA",
+                "ordem": 27,
+                "tamanho": 50,
+                "regras_de_validacao": "opcional"
+            },
+            {
+                "tipo": "integer",
+                "campo": "ANO_do_Concurso",
+                "ordem": 28,
+                "tamanho": 4,
+                "regras_de_validacao": "obrigatorio,ano_valido"
+            },
+            {
+                "tipo": "text",
+                "campo": "Observacao",
+                "ordem": 29,
+                "tamanho": 1000,
+                "regras_de_validacao": "opcional"
+            }
+        ],
+        "uuid": "6676add3-46dd-4c0a-9279-c833a203f600",
+        "criado_em": "2025-09-04T11:09:28.849594-03:00",
+        "total_campos": 29
+    },
+    {
+        "uuid": "54eb3e0d-65ba-4e23-b7ee-580164ee0dc2",
+        "tipo_de_layout": "VAGAS",
+        "dados": [
+            {
+                "tipo": "string",
+                "campo": "Inscricao",
+                "ordem": 1,
+                "tamanho": 20,
+                "regras_de_validacao": "obrigatorio,unico"
+            },
+            {
+                "tipo": "string",
+                "campo": "Nome",
+                "ordem": 2,
+                "tamanho": 200,
+                "regras_de_validacao": "obrigatorio"
+            },
+            {
+                "tipo": "date",
+                "campo": "DataNascimento",
+                "ordem": 3,
+                "tamanho": 10,
+                "regras_de_validacao": "obrigatorio,data_valida"
+            }
+        ],
+        "total_campos": 3,
+        "criado_em": "2025-09-04T11:07:13.371479-03:00"
+    }
+]

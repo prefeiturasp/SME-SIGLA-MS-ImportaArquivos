@@ -23,7 +23,14 @@ SME-SIGLA-MS-ImportaArquivos/
 │   └── management/                  # Comandos customizados
 │       └── commands/
 │           ├── criar_importacoes.py
-│           └── limpar_importacoes.py
+│           ├── limpar_importacoes.py
+│           └── carregar_layouts_iniciais.py
+├── data/                           # Dados iniciais do sistema
+│   ├── layouts_iniciais.json       # Layouts padrão do sistema
+│   └── README.md                   # Documentação dos dados iniciais
+├── scripts/                        # Scripts utilitários
+│   ├── setup_inicial.sh            # Script de configuração inicial
+│   └── teste_sistema_completo.py   # Script de teste do sistema
 ├── requirements/                    # Dependências organizadas
 │   ├── base.txt                     # Dependências principais
 │   ├── local.txt                    # Desenvolvimento local
@@ -36,7 +43,7 @@ SME-SIGLA-MS-ImportaArquivos/
 
 ## 🚀 Início Rápido
 
-### 1. Configurar ambiente
+### 1. Configuração Inicial Automática
 
 ```bash
 # Clonar o repositório
@@ -47,6 +54,15 @@ cd SME-SIGLA-MS-ImportaArquivos
 cp env.example .env          # Para PostgreSQL
 # ou
 cp env.sqlite.example .env   # Para SQLite
+
+# Executar configuração inicial completa
+chmod +x scripts/setup_inicial.sh
+./scripts/setup_inicial.sh
+```
+
+### 2. Configuração Manual (alternativa)
+
+```bash
 
 # Editar variáveis de ambiente
 nano .env
@@ -126,6 +142,71 @@ docker-compose ps
 - **pgAdmin**: http://localhost:8080
   - Email: `admin@sigla.com`
   - Senha: `admin123`
+
+## 📋 Sistema de Layouts Iniciais
+
+O sistema inclui um mecanismo de carga inicial de layouts através de arquivos JSON:
+
+### Layouts Disponíveis
+
+- **VAGAS**: Layout simples com 3 campos (Inscricao, Nome, DataNascimento)
+- **HABILITADOS**: Layout completo com 29 campos para candidatos habilitados
+
+### Comando de Carga
+
+```bash
+# Primeira instalação (remove layouts existentes)
+python manage.py carregar_layouts_iniciais --clean
+
+# Atualizar layouts existentes
+python manage.py carregar_layouts_iniciais --force
+
+# Carregar de arquivo customizado
+python manage.py carregar_layouts_iniciais --file meu_layouts.json
+```
+
+### Estrutura do Arquivo JSON
+
+Os layouts são definidos em `data/layouts_iniciais.json` seguindo a estrutura:
+
+```json
+[
+    {
+        "uuid": "string",
+        "tipo_de_layout": "VAGAS",
+        "dados": [
+            {
+                "tipo": "string",
+                "campo": "Inscricao",
+                "ordem": 1,
+                "tamanho": 20,
+                "regras_de_validacao": "obrigatorio,unico"
+            }
+        ]
+    }
+]
+```
+
+📖 **Documentação completa**: Ver `data/README.md`
+
+## 🧪 Scripts de Teste
+
+### Teste Completo do Sistema
+
+```bash
+# Testar todos os componentes
+python scripts/teste_sistema_completo.py
+
+# Setup inicial completo
+./scripts/setup_inicial.sh
+```
+
+O script de teste verifica:
+- ✅ Layouts carregados corretamente
+- ✅ API funcionando
+- ✅ Robust Server disponível
+- ✅ Criação de importações
+- ✅ Integração completa
 
 ## 📊 API Endpoints
 

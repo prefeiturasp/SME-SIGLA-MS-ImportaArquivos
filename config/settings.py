@@ -97,6 +97,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Robust Server Configuration
+ROBUST_SERVER_URL = os.environ.get('ROBUST_SERVER_URL', 'http://localhost:8003')
+
 # Internationalization
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'

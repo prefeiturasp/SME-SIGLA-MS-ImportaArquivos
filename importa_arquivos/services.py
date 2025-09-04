@@ -1,174 +1,191 @@
 """
-Serviços para gerenciamento de importações de arquivos.
+Services para integração e processamento de arquivos.
 """
-from django.db import transaction
-from django.utils import timezone
-from django.core.files.uploadedfile import SimpleUploadedFile
-from .models import ImportacaoArquivos
+import base64
 import os
-import logging
+from datetime import datetime
+from typing import Dict, Any, Optional
+import requests
+import requests.exceptions
+from django.conf import settings
 
-logger = logging.getLogger(__name__)
+from .constants import RobustServerConstants, ImportacaoStatus
+from .strategies import ResponseHandlerChain, ExceptionHandler, ImportacaoUpdater
 
 
-class ImportacaoArquivosService:
-    """
-    Serviço para operações com ImportacaoArquivos.
-    """
+class PayloadBuilder:
+    """Builder para construção de payloads de integração."""
     
-    @staticmethod
-    def criar_importacao(nome, arquivo, descricao=None, status='pendente'):
-        """
-        Cria uma nova importação de arquivo.
-        
-        Args:
-            nome (str): Nome da importação
-            arquivo (File): Arquivo a ser importado
-            descricao (str, optional): Descrição da importação
-            status (str, optional): Status inicial da importação
-            
-        Returns:
-            ImportacaoArquivos: Instância criada
-        """
-        try:
-            with transaction.atomic():
-                importacao = ImportacaoArquivos.objects.create(
-                    nome=nome,
-                    descricao=descricao,
-                    arquivo=arquivo,
-                    status=status
-                )
-                logger.info(f'Importação criada: {importacao.uuid} - {importacao.nome}')
-                return importacao
-        except Exception as e:
-            logger.error(f'Erro ao criar importação: {str(e)}')
-            raise
+    def __init__(self):
+        self._payload: Dict[str, Any] = {}
     
-    @staticmethod
-    def atualizar_status(importacao_uuid, novo_status):
-        """
-        Atualiza o status de uma importação.
-        
-        Args:
-            importacao_uuid (UUID): UUID da importação
-            novo_status (str): Novo status
-            
-        Returns:
-            ImportacaoArquivos: Instância atualizada
-        """
-        try:
-            importacao = ImportacaoArquivos.objects.get(uuid=importacao_uuid)
-            status_anterior = importacao.status
-            importacao.status = novo_status
-            importacao.save(update_fields=['status', 'atualizado_em'])
-            
-            logger.info(
-                f'Status atualizado para importação {importacao_uuid}: '
-                f'{status_anterior} -> {novo_status}'
-            )
-            return importacao
-        except ImportacaoArquivos.DoesNotExist:
-            logger.error(f'Importação não encontrada: {importacao_uuid}')
-            raise
-        except Exception as e:
-            logger.error(f'Erro ao atualizar status: {str(e)}')
-            raise
+    def with_uuid(self, uuid: str) -> 'PayloadBuilder':
+        """Adiciona UUID ao payload."""
+        self._payload['uuid'] = str(uuid)
+        return self
     
-    @staticmethod
-    def listar_por_status(status):
-        """
-        Lista importações por status.
-        
-        Args:
-            status (str): Status a filtrar
-            
-        Returns:
-            QuerySet: Queryset das importações
-        """
-        return ImportacaoArquivos.objects.filter(status=status).order_by('-criado_em')
+    def with_basic_info(self, concurso: str, cargo: str, 
+                       tipo_layout: str, status: str) -> 'PayloadBuilder':
+        """Adiciona informações básicas ao payload."""
+        self._payload.update({
+            'concurso': concurso,
+            'cargo': cargo,
+            'tipo_de_layout': tipo_layout,
+            'status': status
+        })
+        return self
     
-    @staticmethod
-    def remover_importacao(importacao_uuid, remover_arquivo=False):
-        """
-        Remove uma importação.
-        
-        Args:
-            importacao_uuid (UUID): UUID da importação
-            remover_arquivo (bool): Se deve remover o arquivo físico
-            
-        Returns:
-            bool: True se removido com sucesso
-        """
-        try:
-            with transaction.atomic():
-                importacao = ImportacaoArquivos.objects.get(uuid=importacao_uuid)
-                arquivo_path = None
-                
-                if remover_arquivo and importacao.arquivo:
-                    arquivo_path = importacao.arquivo.path
-                
-                importacao.delete()
-                
-                # Remover arquivo físico se solicitado
-                if remover_arquivo and arquivo_path and os.path.exists(arquivo_path):
-                    try:
-                        os.remove(arquivo_path)
-                        logger.info(f'Arquivo físico removido: {arquivo_path}')
-                    except Exception as e:
-                        logger.warning(f'Erro ao remover arquivo físico: {str(e)}')
-                
-                logger.info(f'Importação removida: {importacao_uuid}')
-                return True
-                
-        except ImportacaoArquivos.DoesNotExist:
-            logger.error(f'Importação não encontrada: {importacao_uuid}')
-            raise
-        except Exception as e:
-            logger.error(f'Erro ao remover importação: {str(e)}')
-            raise
-    
-    @staticmethod
-    def gerar_arquivo_exemplo(nome_arquivo="exemplo.csv"):
-        """
-        Gera um arquivo de exemplo para testes.
-        
-        Args:
-            nome_arquivo (str): Nome do arquivo
-            
-        Returns:
-            SimpleUploadedFile: Arquivo de exemplo
-        """
-        timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
-        conteudo = [
-            'id,nome,email,departamento,data_cadastro',
-            f'1,João Silva,joao@exemplo.com,TI,{timezone.now().date()}',
-            f'2,Maria Santos,maria@exemplo.com,RH,{timezone.now().date()}',
-            f'3,Pedro Costa,pedro@exemplo.com,Financeiro,{timezone.now().date()}',
-        ]
-        
-        arquivo = SimpleUploadedFile(
-            f"{timestamp}_{nome_arquivo}",
-            '\n'.join(conteudo).encode('utf-8'),
-            content_type='text/csv'
-        )
-        
-        return arquivo
-    
-    @staticmethod
-    def obter_estatisticas():
-        """
-        Obtém estatísticas das importações.
-        
-        Returns:
-            dict: Estatísticas das importações
-        """
-        total = ImportacaoArquivos.objects.count()
-        stats = {
-            'total': total,
-            'pendente': ImportacaoArquivos.objects.filter(status='pendente').count(),
-            'processando': ImportacaoArquivos.objects.filter(status='processando').count(),
-            'concluido': ImportacaoArquivos.objects.filter(status='concluido').count(),
-            'erro': ImportacaoArquivos.objects.filter(status='erro').count(),
+    def with_file_info(self, nome_arquivo: str, content_base64: str, 
+                      content_type: str) -> 'PayloadBuilder':
+        """Adiciona informações do arquivo ao payload."""
+        self._payload['arquivo'] = {
+            'name': nome_arquivo,
+            'content': content_base64,
+            'content_type': content_type
         }
+        return self
+    
+    def with_metadata(self, criado_em: datetime) -> 'PayloadBuilder':
+        """Adiciona metadata ao payload."""
+        self._payload['metadata'] = {
+            'criado_em': criado_em.isoformat(),
+            'fonte': RobustServerConstants.FONTE_SISTEMA
+        }
+        return self
+    
+    def build(self) -> Dict[str, Any]:
+        """Constrói e retorna o payload final."""
+        return self._payload.copy()
+
+
+class FileEncoder:
+    """Responsável por codificação de arquivos."""
+    
+    @staticmethod
+    def encode_to_base64(file_content: bytes) -> str:
+        """Codifica conteúdo do arquivo para base64."""
+        return base64.b64encode(file_content).decode('utf-8')
+
+
+class RobustServerClient:
+    """Cliente para comunicação com robust server."""
+    
+    def __init__(self):
+        self._base_url = getattr(settings, 'ROBUST_SERVER_URL', 'http://localhost:8003')
+        self._endpoint = f"{self._base_url}{RobustServerConstants.ENDPOINT_PATH}"
+        self._headers = {
+            'Content-Type': 'application/json',
+            'User-Agent': RobustServerConstants.USER_AGENT
+        }
+    
+    def send_file(self, payload: Dict[str, Any]) -> requests.Response:
+        """Envia arquivo para o robust server."""
+        return requests.post(
+            self._endpoint,
+            json=payload,
+            headers=self._headers,
+            timeout=RobustServerConstants.TIMEOUT_SECONDS
+        )
+
+
+class RobustServerCommunicationError(Exception):
+    """Exceção para erros de comunicação com robust server."""
+    
+    def __init__(self, message: str, error_type: str = "communication_error"):
+        self.message = message
+        self.error_type = error_type
+        super().__init__(self.message)
+
+
+class RobustServerIntegrationService:
+    """Service para integração com robust server."""
+    
+    def __init__(self):
+        self._client = RobustServerClient()
+        self._response_handler = ResponseHandlerChain()
+        self._exception_handler = ExceptionHandler()
+    
+    def send_validated_file(self, importacao: ImportacaoUpdater, 
+                          file_content: bytes) -> None:
+        """
+        Envia arquivo validado para o robust server.
         
-        return stats
+        Args:
+            importacao: Objeto que implementa ImportacaoUpdater
+            file_content: Conteúdo do arquivo em bytes
+            
+        Raises:
+            RobustServerCommunicationError: Se houver erro de comunicação
+        """
+        try:
+            payload = self._build_payload(importacao, file_content)
+            response = self._client.send_file(payload)
+            self._handle_response(response.status_code, importacao)
+            
+        except requests.exceptions.ConnectionError as e:
+            raise RobustServerCommunicationError(
+                f"Erro de conexão com o servidor de processamento: {str(e)}", 
+                "connection_error"
+            )
+        except requests.exceptions.Timeout as e:
+            raise RobustServerCommunicationError(
+                f"Timeout na comunicação com o servidor de processamento: {str(e)}", 
+                "timeout_error"
+            )
+        except requests.exceptions.RequestException as e:
+            raise RobustServerCommunicationError(
+                f"Erro na requisição para o servidor de processamento: {str(e)}", 
+                "request_error"
+            )
+        except Exception as e:
+            raise RobustServerCommunicationError(
+                f"Erro inesperado na comunicação com o servidor: {str(e)}", 
+                "unexpected_error"
+            )
+    
+    def _build_payload(self, importacao: ImportacaoUpdater, 
+                      file_content: bytes) -> Dict[str, Any]:
+        """Constrói payload para envio."""
+        encoded_content = FileEncoder.encode_to_base64(file_content)
+        
+        return (PayloadBuilder()
+                .with_uuid(importacao.uuid)
+                .with_basic_info(
+                    importacao.concurso,
+                    importacao.cargo,
+                    importacao.tipo_de_layout,
+                    importacao.status
+                )
+                .with_file_info(
+                    importacao.arquivo_nome_original,
+                    encoded_content,
+                    importacao.arquivo_content_type
+                )
+                .with_metadata(importacao.criado_em)
+                .build())
+    
+    def _handle_response(self, status_code: int, importacao: ImportacaoUpdater) -> None:
+        """Processa response do robust server."""
+        self._response_handler.handle_response(status_code, importacao)
+
+
+class FileValidationService:
+    """Service para validação de arquivos CSV."""
+    
+    def __init__(self):
+        from .validators import CSVLayoutValidator  # Import local para evitar circular
+        self._validator = CSVLayoutValidator()
+    
+    def validate_file_against_layout(self, file_content: bytes, 
+                                   layout_type: str) -> None:
+        """
+        Valida arquivo contra layout específico.
+        
+        Args:
+            file_content: Conteúdo do arquivo em bytes
+            layout_type: Tipo do layout para validação
+            
+        Raises:
+            ValidationError: Se validação falhar
+        """
+        self._validator.validate(file_content, layout_type)
