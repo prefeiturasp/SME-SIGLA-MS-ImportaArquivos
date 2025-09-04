@@ -82,8 +82,16 @@ class ImportacaoArquivos(BaseModel):
         try:
             # Ler o arquivo e verificar os cabeçalhos
             arquivo_content = self.arquivo.read()
-            arquivo_text = arquivo_content.decode('utf-8')
             self.arquivo.seek(0)  # Resetar o ponteiro do arquivo
+            
+            # Tentar diferentes encodings
+            try:
+                arquivo_text = arquivo_content.decode('utf-8-sig')  # Remove BOM automaticamente
+            except UnicodeDecodeError:
+                try:
+                    arquivo_text = arquivo_content.decode('utf-8')
+                except UnicodeDecodeError:
+                    arquivo_text = arquivo_content.decode('latin-1')
             
             # Ler primeira linha (cabeçalhos)
             reader = csv.reader(io.StringIO(arquivo_text))
@@ -98,8 +106,8 @@ class ImportacaoArquivos(BaseModel):
                 if not headers:
                     raise ValidationError(f"Arquivo CSV vazio ou sem cabeçalhos.")
                 
-                headers_limpos = [h.strip() for h in headers]
-                print('\n\n\n\n headers_limpos\n\n\n',headers_limpos)
+                # Remover BOM e espaços em branco dos cabeçalhos
+                headers_limpos = [h.strip().lstrip('\ufeff') for h in headers]
                 
                 # Verificar se todos os campos obrigatórios estão presentes
                 campos_faltando = []

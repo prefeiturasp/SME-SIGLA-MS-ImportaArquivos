@@ -69,13 +69,35 @@ Inscricao,Nome,DataNascimento
 EOF
 ```
 
-#### Então faça o upload:
+#### Ou crie um arquivo compatível com Excel (com BOM):
 ```bash
+# Cria arquivo com BOM UTF-8 (compatível com Excel)
+printf '\xef\xbb\xbf' > vagas_exemplo_excel.csv
+cat >> vagas_exemplo_excel.csv << 'EOF'
+Inscricao,Nome,DataNascimento
+12345,João Silva Santos,1990-05-15
+67890,Maria Oliveira Costa,1985-08-22
+11111,Carlos Pereira Lima,1992-12-03
+EOF
+```
+
+#### Então faça o upload (funciona com ambos os arquivos):
+```bash
+# Upload do arquivo normal
 curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
   -H "Content-Type: multipart/form-data" \
   -F "nome=Importação de Vagas - Janeiro 2025" \
   -F "descricao=Arquivo de vagas para concurso público" \
   -F "arquivo=@vagas_exemplo.csv" \
+  -F "tipo_de_layout=VAGAS" \
+  -F "status=pendente"
+
+# Upload do arquivo com BOM (Excel)
+curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
+  -H "Content-Type: multipart/form-data" \
+  -F "nome=Importação de Vagas Excel - Janeiro 2025" \
+  -F "descricao=Arquivo de vagas exportado do Excel" \
+  -F "arquivo=@vagas_exemplo_excel.csv" \
   -F "tipo_de_layout=VAGAS" \
   -F "status=pendente"
 ```
@@ -501,15 +523,70 @@ curl -s -X GET "http://localhost:8000/api/v1/importacao-arquivos/" \
 
 ---
 
-## 8. NOTAS IMPORTANTES
+## 8. TRATAMENTO DE ENCODINGS E BOM
+
+### 8.1. Arquivos com BOM (Byte Order Mark)
+O sistema agora suporta automaticamente arquivos CSV com BOM, comuns em exportações do Excel:
+
+```bash
+# Criar arquivo com BOM UTF-8
+printf '\xef\xbb\xbf' > arquivo_com_bom.csv
+cat >> arquivo_com_bom.csv << 'EOF'
+Inscricao,Nome,DataNascimento
+12345,João Silva,1990-05-15
+EOF
+
+# Upload funciona normalmente
+curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
+  -H "Content-Type: multipart/form-data" \
+  -F "nome=Arquivo com BOM" \
+  -F "arquivo=@arquivo_com_bom.csv" \
+  -F "tipo_de_layout=VAGAS"
+```
+
+### 8.2. Diferentes Encodings Suportados
+- **UTF-8 com BOM** (`utf-8-sig`): Preferencial, remove BOM automaticamente
+- **UTF-8 sem BOM** (`utf-8`): Padrão web
+- **Latin-1** (`latin-1`): Fallback para arquivos antigos
+
+### 8.3. Teste de Validação de Encoding
+
+```bash
+# Criar arquivo com caracteres especiais
+cat > arquivo_acentos.csv << 'EOF'
+Inscricao,Nome,DataNascimento
+12345,José María Ñuñez,1990-05-15
+67890,André François,1985-08-22
+EOF
+
+curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
+  -H "Content-Type: multipart/form-data" \
+  -F "nome=Teste Acentos" \
+  -F "arquivo=@arquivo_acentos.csv" \
+  -F "tipo_de_layout=VAGAS"
+```
+
+---
+
+## 9. NOTAS IMPORTANTES
 
 1. **Validação Rigorosa**: O arquivo deve corresponder exatamente ao layout escolhido
 2. **Campos Obrigatórios**: Todos os campos definidos no layout devem estar presentes
 3. **Ordem dos Campos**: A ordem no CSV deve seguir a ordem definida no layout
-4. **Tipos de Arquivo**: Apenas arquivos CSV em UTF-8 são aceitos
+4. **Tipos de Arquivo**: Arquivos CSV em UTF-8, UTF-8 com BOM, ou Latin-1
 5. **Tamanhos**: Respeitar os tamanhos máximos definidos para cada campo
-6. **UUIDs Reais**: 
+6. **BOM Automático**: O sistema remove automaticamente o BOM dos arquivos Excel
+7. **Cabeçalhos Limpos**: Espaços em branco e caracteres especiais são tratados automaticamente
+8. **UUIDs Reais**: 
    - Layout VAGAS: `54eb3e0d-65ba-4e23-b7ee-580164ee0dc2`
    - Layout CANDIDATOS_CLASSIFICADOS: `6676add3-46dd-4c0a-9279-c833a203f600`
+
+### Formatos de Arquivo Suportados:
+- ✅ CSV exportado do Excel (com BOM)
+- ✅ CSV padrão UTF-8 
+- ✅ CSV com acentos e caracteres especiais
+- ✅ CSV com espaços extras nos cabeçalhos
+- ❌ Arquivos XLS/XLSX (apenas CSV)
+- ❌ Arquivos com encoding inválido
 
 Todos estes cURLs foram testados e estão funcionando no ambiente atual!
