@@ -156,15 +156,15 @@ class ImportacaoArquivos(BaseModel):
         
         # Salvar primeiro no banco local
         is_new = self.pk is None
-        super().save(*args, **kwargs)
+        #super().save(*args, **kwargs)
         
         # Se é um novo registro e está validado, enviar para o robust_server
         if is_new and self.status == 'pendente':
-            self._enviar_para_robust_server()
+            self._enviar_para_o_ms_de_arquivos()
     
-    def _enviar_para_robust_server(self):
+    def _enviar_para_o_ms_de_arquivos(self):
         """
-        Envia os dados do arquivo validado para o robust_server via POST.
+        Envia os dados do arquivo validado para o ms de arquivos via POST.
         """
 
         
