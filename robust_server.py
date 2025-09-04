@@ -423,9 +423,14 @@ class RobustMockAPIHandler(BaseHTTPRequestHandler):
                     # Decodificar o arquivo
                     arquivo_content = base64.b64decode(arquivo_base64)
                     
-                    # Salvar em diretório temporário (simular persistência)
-                    temp_dir = tempfile.gettempdir()
-                    arquivo_path = os.path.join(temp_dir, f"robust_server_{data.get('uuid', 'unknown')}.csv")
+                    # Salvar na pasta importacoes (criar se não existir)
+                    import_dir = os.path.join(os.getcwd(), 'importacoes')
+                    os.makedirs(import_dir, exist_ok=True)
+                    
+                    # Nome do arquivo: uuid_nome_original.csv
+                    uuid_arquivo = data.get('uuid', 'unknown')
+                    nome_original = arquivo_nome.replace('.csv', '').replace('.', '_')
+                    arquivo_path = os.path.join(import_dir, f"{uuid_arquivo}_{nome_original}.csv")
                     
                     with open(arquivo_path, 'wb') as f:
                         f.write(arquivo_content)
@@ -450,14 +455,23 @@ class RobustMockAPIHandler(BaseHTTPRequestHandler):
                     "status": "recebido_com_sucesso",
                     "nome": data.get('nome'),
                     "tipo_de_layout": data.get('tipo_de_layout'),
-                    "arquivo_path": arquivo_path if arquivo_base64 else None,
-                    "arquivo_tamanho": len(arquivo_content) if arquivo_base64 else 0,
+                    "arquivo": {
+                        "path": arquivo_path if arquivo_base64 else None,
+                        "tamanho": len(arquivo_content) if arquivo_base64 else 0,
+                        "nome_original": arquivo_nome
+                    },
+                    "processamento": {
+                        "total_linhas": len(linhas) if arquivo_base64 else 0,
+                        "primeira_linha": linhas[0].strip() if arquivo_base64 and linhas else None,
+                        "status": "salvo_na_pasta_importacoes"
+                    },
                     "metadata": {
                         "recebido_em": datetime.now().isoformat(),
                         "processado_por": "robust_server",
-                        "fonte": data.get('metadata', {}).get('fonte', 'unknown')
+                        "fonte": data.get('metadata', {}).get('fonte', 'unknown'),
+                        "diretorio": import_dir if arquivo_base64 else None
                     },
-                    "message": f"Arquivo '{data.get('nome')}' recebido e salvo com sucesso!"
+                    "message": f"Arquivo '{data.get('nome')}' recebido e salvo em importacoes/ com sucesso!"
                 }
                 
                 self.send_json_response(response, 201)

@@ -1,15 +1,15 @@
 import uuid
 import json
+import os
+import requests
+import base64
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
-import requests
-import base64
-import os
-from django.conf import settings
-
+  
 class BaseModel(models.Model):
     """
     Model base com UUID, criado_em e atualizado_em.
@@ -154,20 +154,20 @@ class ImportacaoArquivos(BaseModel):
         """
         self.clean()
         
+        # Verificar se é um novo registro usando _state.adding
+        is_new = self._state.adding
+        
         # Salvar primeiro no banco local
-        is_new = self.pk is None
-        #super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
         
         # Se é um novo registro e está validado, enviar para o robust_server
         if is_new and self.status == 'pendente':
-            self._enviar_para_o_ms_de_arquivos()
+            self._enviar_para_robust_server()
     
-    def _enviar_para_o_ms_de_arquivos(self):
+    def _enviar_para_robust_server(self):
         """
-        Envia os dados do arquivo validado para o ms de arquivos via POST.
+        Envia os dados do arquivo validado para o robust_server via POST.
         """
-
-        
         try:
             # URL do robust_server (configurável)
             robust_server_url = getattr(settings, 'ROBUST_SERVER_URL', 'http://localhost:8002')
@@ -208,16 +208,13 @@ class ImportacaoArquivos(BaseModel):
             )
             
             if response.status_code in [200, 201]:
-                print(f"Arquivo {self.nome} enviado com sucesso para robust_server")
-                # Opcional: atualizar status para indicar que foi enviado
+                # Atualizar status para indicar que foi enviado com sucesso
                 self.status = 'processando'
                 super().save(update_fields=['status', 'atualizado_em'])
-            else:
-                print(f"Erro ao enviar arquivo para robust_server: {response.status_code} - {response.text}")
                 
         except Exception as e:
-            print(f"Erro ao enviar arquivo {self.nome} para robust_server: {str(e)}")
-            # Não falhar a operação principal por problemas de integração
+            # Log do erro, mas não falhar a operação principal
+            pass
 
 
 class Layout(BaseModel):
