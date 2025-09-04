@@ -8,7 +8,7 @@ class ImportacaoArquivosSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = ImportacaoArquivos
-        fields = ['uuid', 'nome', 'descricao', 'arquivo', 'status', 'criado_em', 'atualizado_em']
+        fields = ['uuid', 'nome', 'descricao', 'arquivo', 'tipo_de_layout', 'status', 'criado_em', 'atualizado_em']
         read_only_fields = ['uuid', 'criado_em', 'atualizado_em']
 
 
@@ -18,7 +18,7 @@ class ImportacaoArquivosListSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = ImportacaoArquivos
-        fields = ['uuid', 'nome', 'status', 'criado_em']
+        fields = ['uuid', 'nome', 'tipo_de_layout', 'status', 'criado_em']
 
 
 class ImportacaoArquivosSelectSerializer(serializers.ModelSerializer):
@@ -30,7 +30,7 @@ class ImportacaoArquivosSelectSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ImportacaoArquivos
-        fields = ['value', 'label', 'status']
+        fields = ['value', 'label', 'tipo_de_layout', 'status']
 
 
 class LayoutSerializer(serializers.ModelSerializer):

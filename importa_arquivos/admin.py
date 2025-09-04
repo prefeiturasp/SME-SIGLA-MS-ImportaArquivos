@@ -12,15 +12,15 @@ class ImportacaoArquivosAdmin(admin.ModelAdmin):
     """
     Admin para o modelo ImportacaoArquivos.
     """
-    list_display = ['nome', 'status', 'uuid', 'criado_em', 'atualizado_em']
-    list_filter = ['status', 'criado_em', 'atualizado_em']
+    list_display = ['nome', 'tipo_de_layout', 'status', 'uuid', 'criado_em', 'atualizado_em']
+    list_filter = ['tipo_de_layout', 'status', 'criado_em', 'atualizado_em']
     search_fields = ['nome', 'descricao']
     readonly_fields = ['uuid', 'criado_em', 'atualizado_em']
     ordering = ['-criado_em']
     
     fieldsets = (
         ('Informações Básicas', {
-            'fields': ('nome', 'descricao', 'arquivo', 'status')
+            'fields': ('nome', 'descricao', 'arquivo', 'tipo_de_layout', 'status')
         }),
         ('Metadados', {
             'fields': ('uuid', 'criado_em', 'atualizado_em'),

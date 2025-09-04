@@ -24,7 +24,7 @@ class ImportacaoArquivosViewSet(viewsets.ModelViewSet):
     serializer_class = ImportacaoArquivosSerializer
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['nome', 'status']
+    filterset_fields = ['nome', 'tipo_de_layout', 'status']
     search_fields = ['nome', 'descricao']
     ordering_fields = ['nome', 'status', 'criado_em']
     ordering = ['-criado_em']
