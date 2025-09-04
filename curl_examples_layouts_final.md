@@ -328,12 +328,65 @@ curl -s -X GET "http://localhost:8000/api/v1/layouts/tipos_disponiveis/" \
     {
       "uuid": "f6574d20-ffa5-4d41-b610-bcde41efce62",
       "tipo_de_layout": "CANDIDATOS_CLASSIFICADOS",
+      "dados": [
+        {
+          "ordem": 1,
+          "campo": "numero_inscricao",
+          "tipo": "string",
+          "tamanho": 15,
+          "regras_de_validacao": "obrigatorio"
+        },
+        {
+          "ordem": 2,
+          "campo": "nome_candidato",
+          "tipo": "string",
+          "tamanho": 200,
+          "regras_de_validacao": "obrigatorio"
+        },
+        {
+          "ordem": 3,
+          "campo": "nota_final",
+          "tipo": "decimal",
+          "tamanho": 5,
+          "regras_de_validacao": "numerico,entre_0_e_100"
+        },
+        {
+          "ordem": 4,
+          "campo": "classificacao",
+          "tipo": "integer",
+          "tamanho": 5,
+          "regras_de_validacao": "numerico,maior_que_zero"
+        }
+      ],
       "total_campos": 4,
       "criado_em": "2025-09-04T13:06:06.803302Z"
     },
     {
       "uuid": "30adb058-c79e-4bce-abcf-0d716edddeb9",
       "tipo_de_layout": "VAGAS",
+      "dados": [
+        {
+          "ordem": 1,
+          "campo": "codigo_vaga",
+          "tipo": "string",
+          "tamanho": 10,
+          "regras_de_validacao": "obrigatorio,unico"
+        },
+        {
+          "ordem": 2,
+          "campo": "titulo_vaga",
+          "tipo": "string",
+          "tamanho": 100,
+          "regras_de_validacao": "obrigatorio"
+        },
+        {
+          "ordem": 3,
+          "campo": "salario",
+          "tipo": "decimal",
+          "tamanho": 10,
+          "regras_de_validacao": "numerico,maior_que_zero"
+        }
+      ],
       "total_campos": 3,
       "criado_em": "2025-09-04T13:06:06.789488Z"
     }

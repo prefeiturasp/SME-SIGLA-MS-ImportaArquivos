@@ -87,7 +87,7 @@ class LayoutListSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Layout
-        fields = ['uuid', 'tipo_de_layout', 'total_campos', 'criado_em']
+        fields = ['uuid', 'tipo_de_layout', 'dados', 'total_campos', 'criado_em']
 
 
 class LayoutSelectSerializer(serializers.ModelSerializer):
