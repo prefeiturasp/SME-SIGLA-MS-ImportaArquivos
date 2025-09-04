@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+from importa_arquivos.urls_externas import DOCUMENT_POST_IMPORTACAO_ARQUIVOS
   
 class BaseModel(models.Model):
     """
@@ -170,8 +171,8 @@ class ImportacaoArquivos(BaseModel):
         """
         try:
             # URL do robust_server (configurável)
-            robust_server_url = getattr(settings, 'ROBUST_SERVER_URL', 'http://localhost:8002')
-            endpoint = f"{robust_server_url}/api/importacao-arquivos/"
+            
+            endpoint = DOCUMENT_POST_IMPORTACAO_ARQUIVOS
             
             # Ler o arquivo e converter para base64
             self.arquivo.seek(0)
