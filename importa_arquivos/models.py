@@ -2,11 +2,13 @@ import uuid
 import json
 import os
 import requests
+import requests.exceptions
 import base64
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from rest_framework import status
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from importa_arquivos.urls_externas import DOCUMENT_POST_IMPORTACAO_ARQUIVOS
@@ -224,14 +226,42 @@ class ImportacaoArquivos(BaseModel):
                 timeout=30
             )
             
-            if response.status_code in [200, 201]:
-                # Atualizar status para indicar que foi enviado com sucesso
+            # Tratar diferentes status codes do robust_server
+            if response.status_code == status.HTTP_201_CREATED:  # Created - arquivo salvo com sucesso
                 self.status = 'processando'
                 super().save(update_fields=['status', 'atualizado_em'])
+            elif response.status_code == status.HTTP_200_OK:  # OK - processado com sucesso
+                self.status = 'processando'
+                super().save(update_fields=['status', 'atualizado_em'])
+            elif response.status_code == status.HTTP_400_BAD_REQUEST:  # Bad Request - dados inválidos
+                self.status = 'erro'
+                super().save(update_fields=['status', 'atualizado_em'])
+            elif response.status_code == status.HTTP_409_CONFLICT:  # Conflict - arquivo já existe
+                self.status = 'erro'
+                super().save(update_fields=['status', 'atualizado_em'])
+            elif response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:  # Unprocessable Entity - validação falhou
+                self.status = 'erro'
+                super().save(update_fields=['status', 'atualizado_em'])
+            elif response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:  # Internal Server Error
+                self.status = 'erro'
+                super().save(update_fields=['status', 'atualizado_em'])
+            else:
+                # Status codes não esperados
+                self.status = 'erro'
+                super().save(update_fields=['status', 'atualizado_em'])
                 
+        except requests.exceptions.ConnectionError:
+            # Robust server não está disponível
+            self.status = 'erro'
+            super().save(update_fields=['status', 'atualizado_em'])
+        except requests.exceptions.Timeout:
+            # Timeout na comunicação
+            self.status = 'erro'
+            super().save(update_fields=['status', 'atualizado_em'])
         except Exception as e:
-            # Log do erro silencioso, mas não falhar a operação principal
-            pass
+            # Outros erros na integração
+            self.status = 'erro'
+            super().save(update_fields=['status', 'atualizado_em'])
 
 
 class Layout(BaseModel):

@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
-from importa_arquivos.models import ImportacaoArquivos
+from importa_arquivos.models import ImportacaoArquivos, Layout
 import uuid
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -18,17 +18,33 @@ def api_client():
  
 
 @pytest.fixture
+def layout_vagas():
+    """
+    Fixture para criar um layout VAGAS.
+    """
+    return Layout.objects.create(
+        tipo_de_layout='VAGAS',
+        dados=[
+            {"ordem": 1, "campo": "Inscricao", "tipo": "string", "tamanho": 20, "regras_de_validacao": "obrigatorio,unico"},
+            {"ordem": 2, "campo": "Nome", "tipo": "string", "tamanho": 200, "regras_de_validacao": "obrigatorio"},
+            {"ordem": 3, "campo": "DataNascimento", "tipo": "date", "tamanho": 10, "regras_de_validacao": "obrigatorio,data_valida"}
+        ]
+    )
+
+@pytest.fixture
 def importacao_arquivo_pendente():
     """
     Fixture para criar uma importação de arquivo pendente.
     """
     arquivo = SimpleUploadedFile("teste.csv", b"conteudo,do,arquivo", content_type="text/csv")
-    return ImportacaoArquivos.objects.create(
+    importacao = ImportacaoArquivos(
         nome='Arquivo de Teste',
         descricao='Descrição do arquivo de teste',
-        arquivo=arquivo,
         status='pendente'
     )
+    importacao.set_arquivo_temporario(arquivo)
+    importacao.save()
+    return importacao
 
 
 @pytest.fixture
@@ -37,12 +53,14 @@ def importacao_arquivo_processando():
     Fixture para criar uma importação de arquivo em processamento.
     """
     arquivo = SimpleUploadedFile("processando.csv", b"conteudo,processando", content_type="text/csv")
-    return ImportacaoArquivos.objects.create(
+    importacao = ImportacaoArquivos(
         nome='Arquivo Processando',
         descricao='Arquivo em processamento',
-        arquivo=arquivo,
         status='processando'
     )
+    importacao.set_arquivo_temporario(arquivo)
+    importacao.save()
+    return importacao
 
 
 @pytest.fixture
@@ -51,12 +69,14 @@ def importacao_arquivo_concluido():
     Fixture para criar uma importação de arquivo concluída.
     """
     arquivo = SimpleUploadedFile("concluido.csv", b"conteudo,concluido", content_type="text/csv")
-    return ImportacaoArquivos.objects.create(
+    importacao = ImportacaoArquivos(
         nome='Arquivo Concluído',
         descricao='Arquivo processado com sucesso',
-        arquivo=arquivo,
         status='concluido'
     )
+    importacao.set_arquivo_temporario(arquivo)
+    importacao.save()
+    return importacao
 
 
 @pytest.fixture

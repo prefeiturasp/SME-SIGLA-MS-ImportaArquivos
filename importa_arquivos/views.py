@@ -7,6 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
+from django.core.exceptions import ValidationError
 from .models import ImportacaoArquivos, Layout
 from .serializers import (
     ImportacaoArquivosSerializer, 
@@ -36,6 +37,87 @@ class ImportacaoArquivosViewSet(viewsets.ModelViewSet):
                 return ImportacaoArquivosSelectSerializer
             return ImportacaoArquivosListSerializer
         return ImportacaoArquivosSerializer
+    
+    def create(self, request, *args, **kwargs):
+        """
+        Criar nova importação com tratamento de erros e status codes apropriados.
+        """
+        try:
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid():
+                self.perform_create(serializer)
+                headers = self.get_success_headers(serializer.data)
+                return Response(
+                    serializer.data, 
+                    status=status.HTTP_201_CREATED, 
+                    headers=headers
+                )
+            else:
+                return Response(
+                    serializer.errors, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except ValidationError as e:
+            return Response(
+                {"validation_errors": e.messages if hasattr(e, 'messages') else [str(e)]}, 
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY
+            )
+        except Exception as e:
+            return Response(
+                {"error": "Erro interno do servidor", "details": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def update(self, request, *args, **kwargs):
+        """
+        Atualizar importação com status codes apropriados.
+        """
+        try:
+            partial = kwargs.pop('partial', False)
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            if serializer.is_valid():
+                self.perform_update(serializer)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    serializer.errors, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except ImportacaoArquivos.DoesNotExist:
+            return Response(
+                {"error": "Importação não encontrada"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except ValidationError as e:
+            return Response(
+                {"validation_errors": e.messages if hasattr(e, 'messages') else [str(e)]}, 
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY
+            )
+        except Exception as e:
+            return Response(
+                {"error": "Erro interno do servidor", "details": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def destroy(self, request, *args, **kwargs):
+        """
+        Deletar importação com status codes apropriados.
+        """
+        try:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ImportacaoArquivos.DoesNotExist:
+            return Response(
+                {"error": "Importação não encontrada"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": "Erro interno do servidor", "details": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class LayoutViewSet(viewsets.ModelViewSet):
@@ -64,20 +146,37 @@ class LayoutViewSet(viewsets.ModelViewSet):
         """
         Retorna os campos do layout ordenados pela ordem.
         """
-        layout = self.get_object()
-        campos = layout.get_campos_ordenados()
-        return Response({
-            'uuid': layout.uuid,
-            'tipo_de_layout': layout.tipo_de_layout,
-            'total_campos': layout.total_campos,
-            'campos': campos
-        })
+        try:
+            layout = self.get_object()
+            campos = layout.get_campos_ordenados()
+            return Response({
+                'uuid': layout.uuid,
+                'tipo_de_layout': layout.tipo_de_layout,
+                'total_campos': layout.total_campos,
+                'campos': campos
+            }, status=status.HTTP_200_OK)
+        except Layout.DoesNotExist:
+            return Response(
+                {"error": "Layout não encontrado"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": "Erro interno do servidor", "details": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=['get'])
     def tipos_disponiveis(self, request):
         """
         Retorna os tipos de layout disponíveis.
         """
-        tipos = [{'value': choice[0], 'label': choice[1]} for choice in Layout.TIPO_LAYOUT_CHOICES]
-        return Response(tipos)
+        try:
+            tipos = [{'value': choice[0], 'label': choice[1]} for choice in Layout.TIPO_LAYOUT_CHOICES]
+            return Response(tipos, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": "Erro interno do servidor", "details": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
  

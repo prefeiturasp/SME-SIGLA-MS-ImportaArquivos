@@ -13,6 +13,18 @@ from datetime import datetime, timedelta
 import random
 import sys
 
+# HTTP Status Constants
+class HTTPStatus:
+    OK = 200
+    CREATED = 201
+    NO_CONTENT = 204
+    BAD_REQUEST = 400
+    NOT_FOUND = 404
+    CONFLICT = 409
+    PAYLOAD_TOO_LARGE = 413
+    UNPROCESSABLE_ENTITY = 422
+    INTERNAL_SERVER_ERROR = 500
+
 fake = Faker('pt_BR')  # Usar locale brasileiro
 
 class RobustMockAPIHandler(BaseHTTPRequestHandler):
@@ -401,89 +413,123 @@ class RobustMockAPIHandler(BaseHTTPRequestHandler):
         """Handle POST /api/importacao-arquivos/ - Recebe arquivo validado do sistema principal"""
         try:
             content_length = int(self.headers.get('Content-Length', 0))
-            if content_length > 0:
-                post_data = self.rfile.read(content_length)
-                data = json.loads(post_data.decode('utf-8'))
+            if content_length == 0:
+                self.send_error(HTTPStatus.BAD_REQUEST, "Content-Length requerido")
+                return
                 
-                print(f"📥 Recebendo arquivo: {data.get('nome', 'Sem nome')}")
-                print(f"   UUID: {data.get('uuid')}")
-                print(f"   Tipo: {data.get('tipo_de_layout')}")
-                print(f"   Status: {data.get('status')}")
+            if content_length > 50 * 1024 * 1024:  # 50MB limite
+                self.send_error(HTTPStatus.PAYLOAD_TOO_LARGE, "Arquivo muito grande (máximo 50MB)")
+                return
                 
-                # Simular salvamento do arquivo
-                import base64
-                import os
-                import tempfile
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            # Validações obrigatórias
+            required_fields = ['uuid', 'nome', 'tipo_de_layout', 'arquivo']
+            missing_fields = [field for field in required_fields if not data.get(field)]
+            if missing_fields:
+                self.send_error(HTTPStatus.BAD_REQUEST, f"Campos obrigatórios faltando: {', '.join(missing_fields)}")
+                return
+            
+            arquivo_info = data.get('arquivo', {})
+            if not arquivo_info.get('content'):
+                self.send_error(HTTPStatus.BAD_REQUEST, "Conteúdo do arquivo é obrigatório")
+                return
                 
-                arquivo_info = data.get('arquivo', {})
-                arquivo_nome = arquivo_info.get('name', 'arquivo.csv')
-                arquivo_base64 = arquivo_info.get('content', '')
+            print(f"📥 Recebendo arquivo: {data.get('nome', 'Sem nome')}")
+            print(f"   UUID: {data.get('uuid')}")
+            print(f"   Tipo: {data.get('tipo_de_layout')}")
+            print(f"   Status: {data.get('status')}")
                 
-                if arquivo_base64:
-                    # Decodificar o arquivo
-                    arquivo_content = base64.b64decode(arquivo_base64)
-                    
-                    # Salvar na pasta importacoes (criar se não existir)
-                    import_dir = os.path.join(os.getcwd(), 'importacoes')
-                    os.makedirs(import_dir, exist_ok=True)
-                    
-                    # Nome do arquivo: uuid_nome_original.csv
-                    uuid_arquivo = data.get('uuid', 'unknown')
-                    nome_original = arquivo_nome.replace('.csv', '').replace('.', '_')
-                    arquivo_path = os.path.join(import_dir, f"{uuid_arquivo}_{nome_original}.csv")
-                    
-                    with open(arquivo_path, 'wb') as f:
-                        f.write(arquivo_content)
-                    
-                    print(f"📁 Arquivo salvo em: {arquivo_path}")
-                    print(f"   Tamanho: {len(arquivo_content)} bytes")
-                    
-                    # Simular processamento do arquivo
-                    try:
-                        # Ler algumas linhas para log
-                        with open(arquivo_path, 'r', encoding='utf-8-sig') as f:
-                            linhas = f.readlines()[:5]  # Primeiras 5 linhas
-                            print(f"   Primeiras linhas do arquivo:")
-                            for i, linha in enumerate(linhas):
-                                print(f"     {i+1}: {linha.strip()}")
-                    except Exception as e:
-                        print(f"   Erro ao ler arquivo: {e}")
+            # Processar arquivo
+            import base64
+            import os
+            import tempfile
+            
+            arquivo_info = data.get('arquivo', {})
+            arquivo_nome = arquivo_info.get('name', 'arquivo.csv')
+            arquivo_base64 = arquivo_info.get('content', '')
+            
+            try:
+                # Decodificar o arquivo
+                arquivo_content = base64.b64decode(arquivo_base64)
+            except Exception as e:
+                self.send_error(HTTPStatus.BAD_REQUEST, f"Erro ao decodificar arquivo base64: {str(e)}")
+                return
                 
-                # Resposta de sucesso
-                response = {
-                    "uuid": data.get('uuid'),
-                    "status": "recebido_com_sucesso",
-                    "nome": data.get('nome'),
-                    "tipo_de_layout": data.get('tipo_de_layout'),
-                    "arquivo": {
-                        "path": arquivo_path if arquivo_base64 else None,
-                        "tamanho": len(arquivo_content) if arquivo_base64 else 0,
-                        "nome_original": arquivo_nome
-                    },
-                    "processamento": {
-                        "total_linhas": len(linhas) if arquivo_base64 else 0,
-                        "primeira_linha": linhas[0].strip() if arquivo_base64 and linhas else None,
-                        "status": "salvo_na_pasta_importacoes"
-                    },
-                    "metadata": {
-                        "recebido_em": datetime.now().isoformat(),
-                        "processado_por": "robust_server",
-                        "fonte": data.get('metadata', {}).get('fonte', 'unknown'),
-                        "diretorio": import_dir if arquivo_base64 else None
-                    },
-                    "message": f"Arquivo '{data.get('nome')}' recebido e salvo em importacoes/ com sucesso!"
-                }
+            # Salvar na pasta importacoes (criar se não existir)
+            import_dir = os.path.join(os.getcwd(), 'importacoes')
+            os.makedirs(import_dir, exist_ok=True)
+            
+            # Nome do arquivo: uuid_nome_original.csv
+            uuid_arquivo = data.get('uuid', 'unknown')
+            nome_original = arquivo_nome.replace('.csv', '').replace('.', '_')
+            arquivo_path = os.path.join(import_dir, f"{uuid_arquivo}_{nome_original}.csv")
+            
+            # Verificar se arquivo já existe (conflito)
+            if os.path.exists(arquivo_path):
+                self.send_error(HTTPStatus.CONFLICT, f"Arquivo já existe: {os.path.basename(arquivo_path)}")
+                return
+            
+            # Tentar salvar o arquivo
+            try:
+                with open(arquivo_path, 'wb') as f:
+                    f.write(arquivo_content)
                 
-                self.send_json_response(response, 201)
+                print(f"📁 Arquivo salvo em: {arquivo_path}")
+                print(f"   Tamanho: {len(arquivo_content)} bytes")
+            except IOError as e:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, f"Erro ao salvar arquivo: {str(e)}")
+                return
+            except OSError as e:
+                self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, f"Erro do sistema ao salvar arquivo: {str(e)}")
+                return
+            
+            # Processar arquivo salvo (ler algumas linhas para log)
+            linhas = []
+            try:
+                with open(arquivo_path, 'r', encoding='utf-8-sig') as f:
+                    linhas = f.readlines()[:5]  # Primeiras 5 linhas
+                    print(f"   Primeiras linhas do arquivo:")
+                    for i, linha in enumerate(linhas):
+                        print(f"     {i+1}: {linha.strip()}")
+            except Exception as e:
+                print(f"   Erro ao ler arquivo: {e}")
+                # Não falhar por causa de erro de leitura
                 
-            else:
-                self.send_error(400, "Dados inválidos - corpo da requisição vazio")
+            # Resposta de sucesso
+            response = {
+                "uuid": data.get('uuid'),
+                "status": "recebido_com_sucesso",
+                "nome": data.get('nome'),
+                "tipo_de_layout": data.get('tipo_de_layout'),
+                "arquivo": {
+                    "path": arquivo_path,
+                    "tamanho": len(arquivo_content),
+                    "nome_original": arquivo_nome
+                },
+                "processamento": {
+                    "total_linhas": len(linhas),
+                    "primeira_linha": linhas[0].strip() if linhas else None,
+                    "status": "salvo_na_pasta_importacoes"
+                },
+                "metadata": {
+                    "recebido_em": datetime.now().isoformat(),
+                    "processado_por": "robust_server",
+                    "fonte": data.get('metadata', {}).get('fonte', 'unknown'),
+                    "diretorio": import_dir
+                },
+                "message": f"Arquivo '{data.get('nome')}' recebido e salvo em importacoes/ com sucesso!"
+            }
+            
+            # Status 201 Created - arquivo criado com sucesso
+            self.send_json_response(response, HTTPStatus.CREATED)
                 
         except json.JSONDecodeError:
-            self.send_error(400, "JSON inválido")
+            self.send_error(HTTPStatus.BAD_REQUEST, "JSON inválido")
         except Exception as e:
             print(f"Erro ao receber arquivo: {e}")
-            self.send_error(500, f"Erro interno: {str(e)}")
+            self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, f"Erro interno: {str(e)}")
 
 
 def run_server(port=8002):
