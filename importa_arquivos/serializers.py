@@ -6,10 +6,19 @@ class ImportacaoArquivosSerializer(serializers.ModelSerializer):
     """
     Serializer para o modelo ImportacaoArquivos.
     """
+    arquivo = serializers.FileField(write_only=True, required=True)
+    
     class Meta:
         model = ImportacaoArquivos
-        fields = ['uuid', 'nome', 'descricao', 'arquivo', 'tipo_de_layout', 'status', 'criado_em', 'atualizado_em']
-        read_only_fields = ['uuid', 'criado_em', 'atualizado_em']
+        fields = ['uuid', 'nome', 'descricao', 'arquivo', 'arquivo_nome_original', 'arquivo_tamanho', 'arquivo_content_type', 'tipo_de_layout', 'status', 'criado_em', 'atualizado_em']
+        read_only_fields = ['uuid', 'arquivo_nome_original', 'arquivo_tamanho', 'arquivo_content_type', 'criado_em', 'atualizado_em']
+    
+    def create(self, validated_data):
+        arquivo = validated_data.pop('arquivo')
+        importacao = ImportacaoArquivos(**validated_data)
+        importacao.set_arquivo_temporario(arquivo)
+        importacao.save()
+        return importacao
 
 
 class ImportacaoArquivosListSerializer(serializers.ModelSerializer):
@@ -18,7 +27,7 @@ class ImportacaoArquivosListSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = ImportacaoArquivos
-        fields = ['uuid', 'nome', 'tipo_de_layout', 'status', 'criado_em']
+        fields = ['uuid', 'nome', 'arquivo_nome_original', 'arquivo_tamanho', 'tipo_de_layout', 'status', 'criado_em']
 
 
 class ImportacaoArquivosSelectSerializer(serializers.ModelSerializer):
@@ -30,7 +39,7 @@ class ImportacaoArquivosSelectSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ImportacaoArquivos
-        fields = ['value', 'label', 'tipo_de_layout', 'status']
+        fields = ['value', 'label', 'arquivo_nome_original', 'tipo_de_layout', 'status']
 
 
 class LayoutSerializer(serializers.ModelSerializer):

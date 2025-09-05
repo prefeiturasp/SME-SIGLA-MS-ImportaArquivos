@@ -39,7 +39,13 @@ class ImportacaoArquivos(BaseModel):
     history = AuditlogHistoryField()
     nome = models.CharField(max_length=200, verbose_name="Nome do Arquivo")
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
-    arquivo = models.FileField(upload_to='importacoes/', verbose_name="Arquivo")
+    arquivo_nome_original = models.CharField(max_length=255, default='arquivo.csv', verbose_name="Nome do Arquivo Original")
+    arquivo_tamanho = models.PositiveIntegerField(default=0, verbose_name="Tamanho do Arquivo (bytes)")
+    arquivo_content_type = models.CharField(max_length=100, default='text/csv', verbose_name="Tipo do Arquivo")
+    
+    # Campo temporário para validação (não salvo no banco)
+    _arquivo_content = None
+    
     tipo_de_layout = models.CharField(
         max_length=30,
         choices=TIPO_LAYOUT_CHOICES,
@@ -67,13 +73,23 @@ class ImportacaoArquivos(BaseModel):
 
     def __str__(self):
         return self.nome
+    
+    def set_arquivo_temporario(self, arquivo_uploaded):
+        """
+        Define o arquivo temporário para validação e envio (não salva no disco).
+        """
+        if arquivo_uploaded:
+            self._arquivo_content = arquivo_uploaded.read()
+            self.arquivo_nome_original = arquivo_uploaded.name
+            self.arquivo_tamanho = len(self._arquivo_content)
+            self.arquivo_content_type = arquivo_uploaded.content_type or 'text/csv'
 
     def clean(self):
         """
         Valida se o arquivo e o tipo de layout são correspondentes.
         """
         super().clean()
-        if self.arquivo and self.tipo_de_layout:
+        if self._arquivo_content and self.tipo_de_layout:
             self._validar_arquivo_tipo_layout()
 
     def _validar_arquivo_tipo_layout(self):
@@ -84,9 +100,8 @@ class ImportacaoArquivos(BaseModel):
         import io
         
         try:
-            # Ler o arquivo e verificar os cabeçalhos
-            arquivo_content = self.arquivo.read()
-            self.arquivo.seek(0)  # Resetar o ponteiro do arquivo
+            # Usar o conteúdo temporário do arquivo
+            arquivo_content = self._arquivo_content
             
             # Tentar diferentes encodings
             try:
@@ -162,7 +177,7 @@ class ImportacaoArquivos(BaseModel):
         super().save(*args, **kwargs)
         
         # Se é um novo registro e está validado, enviar para o robust_server
-        if is_new and self.status == 'pendente':
+        if is_new and self.status == 'pendente' and self._arquivo_content:
             self._enviar_para_robust_server()
     
     def _enviar_para_robust_server(self):
@@ -170,13 +185,14 @@ class ImportacaoArquivos(BaseModel):
         Envia os dados do arquivo validado para o robust_server via POST.
         """
         try:
+
+            #TODO MELHORAR OS STATUS CODE DE RESPONSE
             # URL do robust_server (configurável)
+            robust_server_url = DOCUMENT_POST_IMPORTACAO_ARQUIVOS
+            endpoint = f"{robust_server_url}/api/importacao-arquivos/"
             
-            endpoint = DOCUMENT_POST_IMPORTACAO_ARQUIVOS
-            
-            # Ler o arquivo e converter para base64
-            self.arquivo.seek(0)
-            arquivo_content = self.arquivo.read()
+            # Usar o conteúdo temporário do arquivo e converter para base64
+            arquivo_content = self._arquivo_content
             arquivo_base64 = base64.b64encode(arquivo_content).decode('utf-8')
             
             # Preparar dados para envio
@@ -187,9 +203,9 @@ class ImportacaoArquivos(BaseModel):
                 'tipo_de_layout': self.tipo_de_layout,
                 'status': self.status,
                 'arquivo': {
-                    'name': os.path.basename(self.arquivo.name),
+                    'name': self.arquivo_nome_original,
                     'content': arquivo_base64,
-                    'content_type': 'text/csv'
+                    'content_type': self.arquivo_content_type
                 },
                 'metadata': {
                     'criado_em': self.criado_em.isoformat(),
@@ -214,7 +230,7 @@ class ImportacaoArquivos(BaseModel):
                 super().save(update_fields=['status', 'atualizado_em'])
                 
         except Exception as e:
-            # Log do erro, mas não falhar a operação principal
+            # Log do erro silencioso, mas não falhar a operação principal
             pass
 
 
