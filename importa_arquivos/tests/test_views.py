@@ -242,7 +242,7 @@ def test_delete_not_found_returns_404(api_client):
     
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
-@patch('importa_arquivos.models.requests.post')
+@patch('importa_arquivos.services.requests.post')
 def test_create_importacao_robust_server_success(mock_post, api_client, layout_vagas):
     """Testa se a integração com robust_server funciona corretamente."""
     # Mock da resposta do robust_server
@@ -276,7 +276,7 @@ def test_create_importacao_robust_server_success(mock_post, api_client, layout_v
     # Verificar se o requests.post foi chamado
     assert mock_post.called
 
-@patch('importa_arquivos.models.requests.post')
+@patch('importa_arquivos.services.requests.post')
 def test_create_importacao_robust_server_error(mock_post, api_client, layout_vagas):
     """Testa se erro no robust_server atualiza status para erro."""
     # Mock da resposta de erro do robust_server
@@ -304,7 +304,7 @@ def test_create_importacao_robust_server_error(mock_post, api_client, layout_vag
     importacao = ImportacaoArquivos.objects.get(nome='Teste Erro Robust Server')
     assert importacao.status == 'erro'
 
-@patch('importa_arquivos.models.requests.post')
+@patch('importa_arquivos.services.requests.post')
 def test_create_importacao_robust_server_connection_error(mock_post, api_client, layout_vagas):
     """Testa se erro de conexão com robust_server atualiza status para erro."""
     # Mock de erro de conexão

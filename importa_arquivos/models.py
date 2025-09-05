@@ -1,17 +1,12 @@
 import uuid
-import json
-import os
-import requests
-import requests.exceptions
-import base64
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.conf import settings
-from rest_framework import status
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
-from importa_arquivos.urls_externas import DOCUMENT_POST_IMPORTACAO_ARQUIVOS
+
+from .constants import ImportacaoStatus, TipoLayout, FileValidationConstants
+from .services import RobustServerIntegrationService, FileValidationService
   
 class BaseModel(models.Model):
     """
@@ -31,41 +26,44 @@ class BaseModel(models.Model):
 class ImportacaoArquivos(BaseModel):
     """
     Model para importação de arquivos.
+    Implementa o protocol ImportacaoUpdater para integração com services.
     """
-    
-    TIPO_LAYOUT_CHOICES = [
-        ('VAGAS', 'Vagas'),
-        ('CANDIDATOS_CLASSIFICADOS', 'Candidatos Classificados'),
-    ]
     
     history = AuditlogHistoryField()
     nome = models.CharField(max_length=200, verbose_name="Nome do Arquivo")
     descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
-    arquivo_nome_original = models.CharField(max_length=255, default='arquivo.csv', verbose_name="Nome do Arquivo Original")
+    arquivo_nome_original = models.CharField(
+        max_length=255, 
+        default=FileValidationConstants.DEFAULT_FILENAME, 
+        verbose_name="Nome do Arquivo Original"
+    )
     arquivo_tamanho = models.PositiveIntegerField(default=0, verbose_name="Tamanho do Arquivo (bytes)")
-    arquivo_content_type = models.CharField(max_length=100, default='text/csv', verbose_name="Tipo do Arquivo")
+    arquivo_content_type = models.CharField(
+        max_length=100, 
+        default=FileValidationConstants.CSV_CONTENT_TYPE, 
+        verbose_name="Tipo do Arquivo"
+    )
     
     # Campo temporário para validação (não salvo no banco)
     _arquivo_content = None
     
     tipo_de_layout = models.CharField(
         max_length=30,
-        choices=TIPO_LAYOUT_CHOICES,
-        default='VAGAS',
+        choices=TipoLayout.choices(),
+        default=TipoLayout.VAGAS.value,
         verbose_name="Tipo de Layout",
         help_text="Tipo de layout que define a estrutura dos dados do arquivo"
     )
     status = models.CharField(
         max_length=20,
-        choices=[
-            ('pendente', 'Pendente'),
-            ('processando', 'Processando'),
-            ('concluido', 'Concluído'),
-            ('erro', 'Erro'),
-        ],
-        default='pendente',
+        choices=ImportacaoStatus.choices(),
+        default=ImportacaoStatus.PENDENTE.value,
         verbose_name="Status"
     )
+    
+    # Services injetados
+    _validation_service = None
+    _integration_service = None
 
     class Meta:
         db_table = 'importacao_arquivos'
@@ -76,192 +74,93 @@ class ImportacaoArquivos(BaseModel):
     def __str__(self):
         return self.nome
     
-    def set_arquivo_temporario(self, arquivo_uploaded):
+    @property
+    def validation_service(self) -> FileValidationService:
+        """Lazy loading do serviço de validação."""
+        if self._validation_service is None:
+            self._validation_service = FileValidationService()
+        return self._validation_service
+    
+    @property
+    def integration_service(self) -> RobustServerIntegrationService:
+        """Lazy loading do serviço de integração."""
+        if self._integration_service is None:
+            self._integration_service = RobustServerIntegrationService()
+        return self._integration_service
+    
+    def set_arquivo_temporario(self, arquivo_uploaded) -> None:
         """
         Define o arquivo temporário para validação e envio (não salva no disco).
+        
+        Args:
+            arquivo_uploaded: Arquivo enviado via upload
         """
-        if arquivo_uploaded:
-            self._arquivo_content = arquivo_uploaded.read()
-            self.arquivo_nome_original = arquivo_uploaded.name
-            self.arquivo_tamanho = len(self._arquivo_content)
-            self.arquivo_content_type = arquivo_uploaded.content_type or 'text/csv'
+        if not arquivo_uploaded:
+            return
+            
+        self._arquivo_content = arquivo_uploaded.read()
+        self.arquivo_nome_original = arquivo_uploaded.name
+        self.arquivo_tamanho = len(self._arquivo_content)
+        self.arquivo_content_type = arquivo_uploaded.content_type or FileValidationConstants.CSV_CONTENT_TYPE
 
-    def clean(self):
-        """
-        Valida se o arquivo e o tipo de layout são correspondentes.
-        """
+    def clean(self) -> None:
+        """Valida se o arquivo e o tipo de layout são correspondentes."""
         super().clean()
         if self._arquivo_content and self.tipo_de_layout:
-            self._validar_arquivo_tipo_layout()
-
-    def _validar_arquivo_tipo_layout(self):
+            self._validate_file_against_layout()
+    
+    def update_status(self, new_status: ImportacaoStatus) -> None:
         """
-        Valida se o arquivo está no formato correto para o tipo de layout.
-        """
-        import csv
-        import io
+        Atualiza o status da importação (implementa ImportacaoUpdater protocol).
         
-        try:
-            # Usar o conteúdo temporário do arquivo
-            arquivo_content = self._arquivo_content
-            
-            # Tentar diferentes encodings
-            try:
-                arquivo_text = arquivo_content.decode('utf-8-sig')  # Remove BOM automaticamente
-            except UnicodeDecodeError:
-                try:
-                    arquivo_text = arquivo_content.decode('utf-8')
-                except UnicodeDecodeError:
-                    arquivo_text = arquivo_content.decode('latin-1')
-            
-            # Ler primeira linha (cabeçalhos)
-            reader = csv.reader(io.StringIO(arquivo_text))
-            headers = next(reader, [])
-            
-            # Obter o layout correspondente ao tipo
-            try:
-                layout = Layout.objects.get(tipo_de_layout=self.tipo_de_layout)
-                campos_esperados = [campo['campo'] for campo in layout.get_campos_ordenados()]
-                
-                # Verificar se os cabeçalhos do arquivo correspondem aos campos do layout
-                if not headers:
-                    raise ValidationError(f"Arquivo CSV vazio ou sem cabeçalhos.")
-                
-                # Remover BOM e espaços em branco dos cabeçalhos
-                headers_limpos = [h.strip().lstrip('\ufeff') for h in headers]
-                
-                # Verificar se todos os campos obrigatórios estão presentes
-                campos_faltando = []
-                for campo in campos_esperados:
-                    if campo not in headers_limpos:
-                        campos_faltando.append(campo)
-                
-                if campos_faltando:
-                    raise ValidationError(
-                        f"O arquivo não corresponde ao layout {self.tipo_de_layout}. "
-                        f"Campos obrigatórios faltando: {', '.join(campos_faltando)}. "
-                        f"Campos esperados: {', '.join(campos_esperados)}"
-                    )
-                
-                # Verificar se há campos extras no arquivo
-                campos_extras = []
-                for header in headers_limpos:
-                    if header not in campos_esperados:
-                        campos_extras.append(header)
-                
-                if campos_extras:
-                    raise ValidationError(
-                        f"O arquivo contém campos não esperados para o layout {self.tipo_de_layout}: "
-                        f"{', '.join(campos_extras)}. "
-                        f"Campos permitidos: {', '.join(campos_esperados)}"
-                    )
-                        
-            except Layout.DoesNotExist:
-                raise ValidationError(f"Layout não encontrado para o tipo: {self.tipo_de_layout}")
-                
-        except UnicodeDecodeError:
-            raise ValidationError("Arquivo deve estar em formato UTF-8.")
-        except csv.Error as e:
-            raise ValidationError(f"Erro ao processar arquivo CSV: {str(e)}")
-        except Exception as e:
-            raise ValidationError(f"Erro ao validar arquivo: {str(e)}")
+        Args:
+            new_status: Novo status para a importação
+        """
+        self.status = new_status.value
+        super().save(update_fields=['status', 'atualizado_em'])
 
-    def save(self, *args, **kwargs):
+    def _validate_file_against_layout(self) -> None:
+        """Valida arquivo contra layout usando o serviço de validação."""
+        self.validation_service.validate_file_against_layout(
+            self._arquivo_content, 
+            self.tipo_de_layout
+        )
+
+    def save(self, *args, **kwargs) -> None:
         """
         Executa validação antes de salvar e envia para o robust_server se validado.
         """
         self.clean()
         
-        # Verificar se é um novo registro usando _state.adding
-        is_new = self._state.adding
+        # Verificar se é um novo registro
+        is_new_record = self._state.adding
         
         # Salvar primeiro no banco local
         super().save(*args, **kwargs)
         
-        # Se é um novo registro e está validado, enviar para o robust_server
-        if is_new and self.status == 'pendente' and self._arquivo_content:
-            self._enviar_para_robust_server()
+        # Se é um novo registro validado, enviar para o robust_server
+        if self._should_send_to_robust_server(is_new_record):
+            self._send_to_robust_server()
     
-    def _enviar_para_robust_server(self):
+    def _should_send_to_robust_server(self, is_new_record: bool) -> bool:
         """
-        Envia os dados do arquivo validado para o robust_server via POST.
+        Verifica se deve enviar arquivo para o robust server.
+        
+        Args:
+            is_new_record: Se é um novo registro
+            
+        Returns:
+            True se deve enviar, False caso contrário
         """
-        try:
-
-            #TODO MELHORAR OS STATUS CODE DE RESPONSE
-            # URL do robust_server (configurável)
-            robust_server_url = DOCUMENT_POST_IMPORTACAO_ARQUIVOS
-            endpoint = f"{robust_server_url}/api/importacao-arquivos/"
-            
-            # Usar o conteúdo temporário do arquivo e converter para base64
-            arquivo_content = self._arquivo_content
-            arquivo_base64 = base64.b64encode(arquivo_content).decode('utf-8')
-            
-            # Preparar dados para envio
-            payload = {
-                'uuid': str(self.uuid),
-                'nome': self.nome,
-                'descricao': self.descricao,
-                'tipo_de_layout': self.tipo_de_layout,
-                'status': self.status,
-                'arquivo': {
-                    'name': self.arquivo_nome_original,
-                    'content': arquivo_base64,
-                    'content_type': self.arquivo_content_type
-                },
-                'metadata': {
-                    'criado_em': self.criado_em.isoformat(),
-                    'fonte': 'SME-SIGLA-MS-ImportaArquivos'
-                }
-            }
-            
-            # Enviar via POST
-            response = requests.post(
-                endpoint,
-                json=payload,
-                headers={
-                    'Content-Type': 'application/json',
-                    'User-Agent': 'SME-SIGLA-ImportaArquivos/1.0'
-                },
-                timeout=30
-            )
-            
-            # Tratar diferentes status codes do robust_server
-            if response.status_code == status.HTTP_201_CREATED:  # Created - arquivo salvo com sucesso
-                self.status = 'processando'
-                super().save(update_fields=['status', 'atualizado_em'])
-            elif response.status_code == status.HTTP_200_OK:  # OK - processado com sucesso
-                self.status = 'processando'
-                super().save(update_fields=['status', 'atualizado_em'])
-            elif response.status_code == status.HTTP_400_BAD_REQUEST:  # Bad Request - dados inválidos
-                self.status = 'erro'
-                super().save(update_fields=['status', 'atualizado_em'])
-            elif response.status_code == status.HTTP_409_CONFLICT:  # Conflict - arquivo já existe
-                self.status = 'erro'
-                super().save(update_fields=['status', 'atualizado_em'])
-            elif response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY:  # Unprocessable Entity - validação falhou
-                self.status = 'erro'
-                super().save(update_fields=['status', 'atualizado_em'])
-            elif response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:  # Internal Server Error
-                self.status = 'erro'
-                super().save(update_fields=['status', 'atualizado_em'])
-            else:
-                # Status codes não esperados
-                self.status = 'erro'
-                super().save(update_fields=['status', 'atualizado_em'])
-                
-        except requests.exceptions.ConnectionError:
-            # Robust server não está disponível
-            self.status = 'erro'
-            super().save(update_fields=['status', 'atualizado_em'])
-        except requests.exceptions.Timeout:
-            # Timeout na comunicação
-            self.status = 'erro'
-            super().save(update_fields=['status', 'atualizado_em'])
-        except Exception as e:
-            # Outros erros na integração
-            self.status = 'erro'
-            super().save(update_fields=['status', 'atualizado_em'])
+        return (
+            is_new_record and 
+            self.status == ImportacaoStatus.PENDENTE.value and 
+            self._arquivo_content is not None
+        )
+    
+    def _send_to_robust_server(self) -> None:
+        """Envia arquivo para o robust server usando o serviço de integração."""
+        self.integration_service.send_validated_file(self, self._arquivo_content)
 
 
 class Layout(BaseModel):
@@ -269,15 +168,10 @@ class Layout(BaseModel):
     Model para layouts de importação.
     """
     
-    TIPO_LAYOUT_CHOICES = [
-        ('VAGAS', 'Vagas'),
-        ('CANDIDATOS_CLASSIFICADOS', 'Candidatos Classificados'),
-    ]
-    
     history = AuditlogHistoryField()
     tipo_de_layout = models.CharField(
         max_length=30,
-        choices=TIPO_LAYOUT_CHOICES,
+        choices=TipoLayout.choices(),
         verbose_name="Tipo de Layout"
     )
     dados = models.JSONField(
