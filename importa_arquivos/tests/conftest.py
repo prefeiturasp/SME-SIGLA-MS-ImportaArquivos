@@ -32,15 +32,17 @@ def layout_vagas():
     )
 
 @pytest.fixture
-def importacao_arquivo_pendente():
+def importacao_arquivo_pendente(layout_vagas):
     """
     Fixture para criar uma importação de arquivo pendente.
     """
-    arquivo = SimpleUploadedFile("teste.csv", b"conteudo,do,arquivo", content_type="text/csv")
+    # Arquivo que corresponde ao layout VAGAS
+    arquivo = SimpleUploadedFile("teste.csv", b"Inscricao,Nome,DataNascimento\n12345,Teste,1990-01-01", content_type="text/csv")
     importacao = ImportacaoArquivos(
         nome='Arquivo de Teste',
         descricao='Descrição do arquivo de teste',
-        status='pendente'
+        status='pendente',
+        tipo_de_layout='VAGAS'
     )
     importacao.set_arquivo_temporario(arquivo)
     importacao.save()
@@ -48,15 +50,16 @@ def importacao_arquivo_pendente():
 
 
 @pytest.fixture
-def importacao_arquivo_processando():
+def importacao_arquivo_processando(layout_vagas):
     """
     Fixture para criar uma importação de arquivo em processamento.
     """
-    arquivo = SimpleUploadedFile("processando.csv", b"conteudo,processando", content_type="text/csv")
+    arquivo = SimpleUploadedFile("processando.csv", b"Inscricao,Nome,DataNascimento\n67890,Processando,1985-05-15", content_type="text/csv")
     importacao = ImportacaoArquivos(
         nome='Arquivo Processando',
         descricao='Arquivo em processamento',
-        status='processando'
+        status='processando',
+        tipo_de_layout='VAGAS'
     )
     importacao.set_arquivo_temporario(arquivo)
     importacao.save()
@@ -64,15 +67,16 @@ def importacao_arquivo_processando():
 
 
 @pytest.fixture
-def importacao_arquivo_concluido():
+def importacao_arquivo_concluido(layout_vagas):
     """
     Fixture para criar uma importação de arquivo concluída.
     """
-    arquivo = SimpleUploadedFile("concluido.csv", b"conteudo,concluido", content_type="text/csv")
+    arquivo = SimpleUploadedFile("concluido.csv", b"Inscricao,Nome,DataNascimento\n11111,Concluido,1990-12-25", content_type="text/csv")
     importacao = ImportacaoArquivos(
         nome='Arquivo Concluído',
         descricao='Arquivo processado com sucesso',
-        status='concluido'
+        status='concluido',
+        tipo_de_layout='VAGAS'
     )
     importacao.set_arquivo_temporario(arquivo)
     importacao.save()
@@ -110,18 +114,29 @@ def fake_uuid():
 
 
 @pytest.fixture
-def multiple_importacoes_arquivos():
+def importacao_sem_validacao():
+    """
+    Fixture para criar importação sem validação de arquivo.
+    """
+    return ImportacaoArquivos.objects.create(
+        nome='Importação Sem Validação',
+        descricao='Para testes simples',
+        status='pendente',
+        tipo_de_layout='VAGAS'
+    )
+
+@pytest.fixture
+def multiple_importacoes_arquivos(layout_vagas):
     """
     Fixture para criar múltiplas importações de arquivos para testes de paginação.
     """
     importacoes = []
     for i in range(25):
-        arquivo = SimpleUploadedFile(f"arquivo_{i}.csv", f"conteudo,{i}".encode(), content_type="text/csv")
         importacao = ImportacaoArquivos.objects.create(
             nome=f'Importação Teste {i}',
             descricao=f'Descrição {i}',
-            arquivo=arquivo,
-            status='pendente'
+            status='pendente',
+            tipo_de_layout='VAGAS'
         )
         importacoes.append(importacao)
     return importacoes

@@ -1,5 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
+from django.http import Http404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -84,7 +85,7 @@ class ImportacaoArquivosViewSet(viewsets.ModelViewSet):
                     serializer.errors, 
                     status=status.HTTP_400_BAD_REQUEST
                 )
-        except ImportacaoArquivos.DoesNotExist:
+        except (ImportacaoArquivos.DoesNotExist, Http404):
             return Response(
                 {"error": "Importação não encontrada"}, 
                 status=status.HTTP_404_NOT_FOUND
@@ -108,7 +109,7 @@ class ImportacaoArquivosViewSet(viewsets.ModelViewSet):
             instance = self.get_object()
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except ImportacaoArquivos.DoesNotExist:
+        except (ImportacaoArquivos.DoesNotExist, Http404):
             return Response(
                 {"error": "Importação não encontrada"}, 
                 status=status.HTTP_404_NOT_FOUND

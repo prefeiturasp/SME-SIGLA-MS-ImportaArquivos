@@ -34,14 +34,21 @@ def test_list_importacoes_arquivos_empty(api_client):
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data['results']) == 0
 
-def test_create_importacao_arquivo_success(api_client):
+@patch('importa_arquivos.services.requests.post')
+def test_create_importacao_arquivo_success(mock_post, api_client, layout_vagas):
     """Testa se a criação de importação de arquivo funciona corretamente."""
-    arquivo = SimpleUploadedFile("novo_arquivo.csv", b"conteudo,novo", content_type="text/csv")
+    # Mock da resposta do robust_server
+    mock_response = Mock()
+    mock_response.status_code = status.HTTP_201_CREATED
+    mock_post.return_value = mock_response
+    
+    arquivo = SimpleUploadedFile("novo_arquivo.csv", b"Inscricao,Nome,DataNascimento\n99999,Novo,2000-01-01", content_type="text/csv")
     data = {
         'nome': 'Novo Arquivo de Teste',
         'descricao': 'Descrição do novo arquivo',
         'arquivo': arquivo,
-        'status': 'pendente'
+        'status': 'pendente',
+        'tipo_de_layout': 'VAGAS'
     }
     
     url = reverse('importacao-arquivo-list')
@@ -55,7 +62,7 @@ def test_create_importacao_arquivo_success(api_client):
     assert nova_importacao.uuid is not None
     assert nova_importacao.criado_em is not None
     assert nova_importacao.atualizado_em is not None
-    assert nova_importacao.status == 'pendente'
+    assert nova_importacao.status == 'processando'  # Status atualizado pelo robust_server
     assert nova_importacao.descricao == 'Descrição do novo arquivo'
 
 def test_create_importacao_arquivo_without_nome(api_client):
@@ -107,7 +114,7 @@ def test_retrieve_importacao_arquivo_success(api_client, importacao_arquivo_pend
     
     assert response.status_code == status.HTTP_200_OK
     assert response.data['nome'] == 'Arquivo de Teste'
-    assert response.data['status'] == 'pendente'
+    assert response.data['status'] == 'processando'  # Status foi atualizado para 'processando'
     assert response.data['uuid'] == str(importacao_arquivo_pendente.uuid)
     assert response.data['descricao'] == 'Descrição do arquivo de teste'
 
@@ -120,12 +127,13 @@ def test_retrieve_importacao_arquivo_not_found(api_client, fake_uuid):
 
 def test_update_importacao_arquivo_success(api_client, importacao_arquivo_pendente):
     """Testa se a atualização de importação de arquivo funciona corretamente."""
-    arquivo = SimpleUploadedFile("arquivo_atualizado.csv", b"conteudo,atualizado", content_type="text/csv")
+    arquivo = SimpleUploadedFile("arquivo_atualizado.csv", b"Inscricao,Nome,DataNascimento\n88888,Atualizado,1995-06-15", content_type="text/csv")
     data = {
         'nome': 'Arquivo Atualizado',
         'descricao': 'Descrição atualizada',
         'arquivo': arquivo,
-        'status': 'processando'
+        'status': 'processando',
+        'tipo_de_layout': 'VAGAS'
     }
     
     url = reverse('importacao-arquivo-detail', kwargs={'pk': importacao_arquivo_pendente.uuid})
@@ -226,7 +234,7 @@ def test_retrieve_not_found_returns_404(api_client):
 def test_update_not_found_returns_404(api_client):
     """Testa se atualização de recurso inexistente retorna 404."""
     fake_uuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
-    data = {'nome': 'Teste'}
+    data = {'nome': 'Teste', 'tipo_de_layout': 'VAGAS'}  # Só metadados, sem arquivo
     
     url = reverse('importacao-arquivo-detail', kwargs={'pk': fake_uuid})
     response = api_client.patch(url, data)
@@ -355,18 +363,18 @@ def test_create_importacao_arquivo_metadata_fields(api_client, layout_vagas):
     assert response.data['arquivo_tamanho'] > 0
     assert response.data['arquivo_content_type'] == 'text/csv'
 
-def test_layouts_endpoint_status_codes(api_client):
+def test_layouts_endpoint_status_codes(api_client, layout_vagas):
     """Testa se endpoints de layout retornam status codes corretos."""
     # Testar GET /layouts/
     url = reverse('layout-list')
     response = api_client.get(url)
     assert response.status_code == status.HTTP_200_OK
     
-    # Testar GET /layouts/tipos_disponiveis/
-    url = reverse('layout-tipos-disponiveis')
+    # Testar GET /layouts/{uuid}/campos_ordenados/
+    url = reverse('layout-campos-ordenados', kwargs={'pk': layout_vagas.uuid})
     response = api_client.get(url)
     assert response.status_code == status.HTTP_200_OK
-    assert isinstance(response.data, list)
+    assert 'campos' in response.data
 
 def test_error_handling_in_views(api_client):
     """Testa tratamento de erros nos views."""
