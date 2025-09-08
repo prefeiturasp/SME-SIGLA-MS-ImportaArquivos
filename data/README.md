@@ -1,39 +1,80 @@
-# Sistema de Carga Inicial de Layouts
+# Sistema de Gerenciamento de Layouts
 
-Este diretório contém os dados iniciais para configuração do sistema de importação de arquivos.
+Este diretório contém os dados de configuração do sistema de importação de arquivos.
 
-## Arquivo de Layouts Iniciais
+## Arquivo de Layouts
 
-O arquivo `layouts_iniciais.json` contém a definição dos layouts padrão do sistema:
+O arquivo `layouts.json` contém a definição dos layouts do sistema, armazenados em JSON ao invés do banco de dados:
 
 - **VAGAS**: Layout simples com 3 campos (Inscricao, Nome, DataNascimento)
 - **CANDIDATOS_CLASSIFICADOS**: Layout completo com 29 campos para candidatos classificados
 
 ## Como Usar
 
-### Comando de Carga Inicial
+### Comando de Gerenciamento
 
-Use o comando Django de management para carregar os layouts:
+Use o comando Django de management para gerenciar os layouts:
 
 ```bash
-# Carregar layouts pela primeira vez (limpa dados existentes)
-python manage.py carregar_layouts_iniciais --clean
+# Carregar layouts de arquivo JSON
+python manage.py gerenciar_layouts carregar --clean
 
-# Carregar layouts sem remover existentes
-python manage.py carregar_layouts_iniciais
+# Listar layouts existentes
+python manage.py gerenciar_layouts listar
 
-# Forçar atualização de layouts existentes
-python manage.py carregar_layouts_iniciais --force
+# Criar backup dos layouts
+python manage.py gerenciar_layouts backup
 
-# Usar arquivo customizado
-python manage.py carregar_layouts_iniciais --file meu_arquivo.json
+# Restaurar layouts de backup
+python manage.py gerenciar_layouts restaurar backup_file.json
+
+# Remover layout por UUID
+python manage.py gerenciar_layouts remover <uuid>
+
+# Exportar layouts para arquivo
+python manage.py gerenciar_layouts exportar --output meus_layouts.json
 ```
 
-### Opções Disponíveis
+### API REST
 
-- `--clean`: Remove todos os layouts existentes antes de carregar os novos
-- `--force`: Força a atualização de layouts existentes (baseado no UUID)
-- `--file`: Especifica um arquivo JSON customizado (padrão: `data/layouts_iniciais.json`)
+Os layouts também podem ser gerenciados via API REST:
+
+```bash
+# Listar layouts (retorna resumo sem campo 'dados')
+GET /api/v1/layouts/
+
+# Buscar layout por UUID (retorna dados completos incluindo 'dados')
+GET /api/v1/layouts/{uuid}/
+
+# Criar novo layout (aceita apenas 'tipo_de_layout' e 'dados')
+POST /api/v1/layouts/
+{
+  "tipo_de_layout": "NOVO_LAYOUT",
+  "dados": [
+    {
+      "tipo": "string",
+      "campo": "Nome",
+      "ordem": 1,
+      "tamanho": 100,
+      "regras_de_validacao": "obrigatorio"
+    }
+  ]
+}
+
+# Atualizar layout (aceita apenas 'tipo_de_layout' e 'dados')
+PUT /api/v1/layouts/{uuid}/
+
+# Remover layout
+DELETE /api/v1/layouts/{uuid}/
+```
+
+#### Estrutura da API
+
+**POST/PUT**: Aceita apenas os campos `tipo_de_layout` e `dados`. Campos como `uuid`, `total_campos` e `criado_em` são ignorados e gerados automaticamente.
+
+**GET individual**: Retorna todos os campos incluindo o array `dados` completo com todos os subcampos.
+
+**GET lista**: Retorna apenas campos de resumo (`uuid`, `tipo_de_layout`, `total_campos`, `criado_em`).
 
 ## Estrutura do Arquivo JSON
 
@@ -87,10 +128,10 @@ O arquivo deve conter uma lista de objetos JSON com a seguinte estrutura:
 ```bash
 # Configuração inicial do ambiente
 python manage.py migrate
-python manage.py carregar_layouts_iniciais --clean
+python manage.py gerenciar_layouts carregar --clean
 
 # Durante desenvolvimento, para resetar layouts
-python manage.py carregar_layouts_iniciais --clean --force
+python manage.py gerenciar_layouts carregar --clean --force
 ```
 
 ## Logs e Feedback
@@ -120,5 +161,5 @@ Este comando pode ser integrado ao processo de deploy:
 ```bash
 # No deploy
 python manage.py migrate
-python manage.py carregar_layouts_iniciais  # Não remove existentes
+python manage.py gerenciar_layouts carregar  # Não remove existentes
 ```

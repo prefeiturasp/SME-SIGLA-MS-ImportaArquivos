@@ -2,7 +2,8 @@ import pytest
 from unittest.mock import patch, Mock
 from django.urls import reverse
 from rest_framework import status
-from importa_arquivos.models import ImportacaoArquivos, Layout
+from importa_arquivos.models import ImportacaoArquivos
+from importa_arquivos.layout_service import LayoutService
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.exceptions import ValidationError
 

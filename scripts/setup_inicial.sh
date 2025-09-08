@@ -21,7 +21,7 @@ check_success "Migrações aplicadas"
 
 # 2. Carregar layouts iniciais
 echo "📋 Carregando layouts iniciais..."
-python manage.py carregar_layouts_iniciais --clean
+python manage.py gerenciar_layouts carregar --clean
 check_success "Layouts iniciais carregados"
 
 # 3. Verificar se existe superusuário
@@ -62,7 +62,9 @@ echo "   3. Acessar admin: http://localhost:8000/admin/"
 echo "   4. Acessar API: http://localhost:8000/api/v1/"
 echo ""
 echo "🔧 Comandos úteis:"
-echo "   - Recarregar layouts: python manage.py carregar_layouts_iniciais --force"
+echo "   - Recarregar layouts: python manage.py gerenciar_layouts carregar --force"
+echo "   - Listar layouts: python manage.py gerenciar_layouts listar"
+echo "   - Backup layouts: python manage.py gerenciar_layouts backup"
 echo "   - Criar importações teste: python manage.py criar_importacoes --count 5"
 echo "   - Limpar importações: python manage.py limpar_importacoes --confirm"
 echo "   - Teste sistema: python scripts/teste_sistema_completo.py"

@@ -15,28 +15,31 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 django.setup()
 
-from importa_arquivos.models import Layout, ImportacaoArquivos
+from importa_arquivos.models import ImportacaoArquivos
+from importa_arquivos.layout_service import LayoutService
 
 
 def testar_layouts():
     """Testa se os layouts foram carregados corretamente."""
     print("🧪 Testando layouts...")
     
-    layouts = Layout.objects.all()
-    print(f"   📊 Total de layouts: {layouts.count()}")
+    layouts = LayoutService.list_layouts()
+    print(f"   📊 Total de layouts: {len(layouts)}")
     
     # Verificar layouts específicos
-    layout_vagas = Layout.objects.filter(tipo_de_layout='VAGAS').first()
-    layout_candidatos = Layout.objects.filter(tipo_de_layout='CANDIDATOS_CLASSIFICADOS').first()
+    layout_vagas = LayoutService.get_layout_by_tipo('VAGAS')
+    layout_candidatos = LayoutService.get_layout_by_tipo('CANDIDATOS_CLASSIFICADOS')
     
     if layout_vagas:
-        print(f"   ✅ Layout VAGAS encontrado: {layout_vagas.total_campos} campos")
+        total_campos = len(layout_vagas.get('dados', []))
+        print(f"   ✅ Layout VAGAS encontrado: {total_campos} campos")
     else:
         print("   ❌ Layout VAGAS não encontrado")
         return False
     
     if layout_candidatos:
-        print(f"   ✅ Layout CANDIDATOS_CLASSIFICADOS encontrado: {layout_candidatos.total_campos} campos")
+        total_campos = len(layout_candidatos.get('dados', []))
+        print(f"   ✅ Layout CANDIDATOS_CLASSIFICADOS encontrado: {total_campos} campos")
     else:
         print("   ❌ Layout CANDIDATOS_CLASSIFICADOS não encontrado")
         return False

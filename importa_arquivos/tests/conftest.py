@@ -1,7 +1,8 @@
 import pytest
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
-from importa_arquivos.models import ImportacaoArquivos, Layout
+from importa_arquivos.models import ImportacaoArquivos
+from importa_arquivos.layout_service import LayoutService
 import uuid
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -20,16 +21,26 @@ def api_client():
 @pytest.fixture
 def layout_vagas():
     """
-    Fixture para criar um layout VAGAS.
+    Fixture para garantir que existe um layout VAGAS.
     """
-    return Layout.objects.create(
-        tipo_de_layout='VAGAS',
-        dados=[
+    layout_data = {
+        'uuid': '54eb3e0d-65ba-4e23-b7ee-580164ee0dc2',
+        'tipo_de_layout': 'VAGAS',
+        'dados': [
             {"ordem": 1, "campo": "Inscricao", "tipo": "string", "tamanho": 20, "regras_de_validacao": "obrigatorio,unico"},
             {"ordem": 2, "campo": "Nome", "tipo": "string", "tamanho": 200, "regras_de_validacao": "obrigatorio"},
             {"ordem": 3, "campo": "DataNascimento", "tipo": "date", "tamanho": 10, "regras_de_validacao": "obrigatorio,data_valida"}
-        ]
-    )
+        ],
+        'total_campos': 3,
+        'criado_em': '2025-09-04T11:07:13.371479-03:00'
+    }
+    
+    # Verificar se já existe, se não, criar
+    existing = LayoutService.get_layout_by_tipo('VAGAS')
+    if not existing:
+        LayoutService.create_layout(layout_data)
+    
+    return LayoutService.get_layout_by_tipo('VAGAS')
 
 @pytest.fixture
 def importacao_arquivo_pendente(layout_vagas):

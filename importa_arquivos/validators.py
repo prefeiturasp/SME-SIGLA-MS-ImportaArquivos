@@ -71,11 +71,18 @@ class LayoutProvider:
             ValidationError: Se layout não for encontrado
         """
         try:
-            from .models import Layout  # Import local para evitar circular
-            layout = Layout.objects.get(tipo_de_layout=layout_type)
-            return [campo['campo'] for campo in layout.get_campos_ordenados()]
-        except Layout.DoesNotExist:
-            raise ValidationError(ValidationMessages.layout_nao_encontrado(layout_type))
+            from .layout_service import LayoutService  # Import local para evitar circular
+            layout = LayoutService.get_layout_by_tipo(layout_type)
+            if not layout:
+                raise ValidationError(ValidationMessages.layout_nao_encontrado(layout_type))
+            
+            dados = layout.get('dados', [])
+            campos_ordenados = sorted(dados, key=lambda x: x.get('ordem', 0))
+            return [campo['campo'] for campo in campos_ordenados]
+        except ValidationError:
+            raise
+        except Exception as e:
+            raise ValidationError(f"Erro ao carregar layout {layout_type}: {e}")
 
 
 class FieldValidator:

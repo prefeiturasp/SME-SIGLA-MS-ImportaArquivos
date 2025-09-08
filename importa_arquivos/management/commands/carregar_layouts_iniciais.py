@@ -7,7 +7,7 @@ import os
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from django.db import transaction
-from importa_arquivos.models import Layout
+from importa_arquivos.layout_service import LayoutService
 from django.utils.dateparse import parse_datetime
 import uuid
 
