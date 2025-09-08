@@ -437,6 +437,7 @@ class RobustMockAPIHandler(BaseHTTPRequestHandler):
                 return
                 
             print(f"📥 Recebendo arquivo:")
+            
             print(f"   UUID: {data.get('uuid')}")
             print(f"   Concurso: {data.get('concurso', 'Não informado')}")
             print(f"   Cargo: {data.get('cargo', 'Não informado')}")
