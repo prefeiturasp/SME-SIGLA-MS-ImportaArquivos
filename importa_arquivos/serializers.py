@@ -10,8 +10,8 @@ class ImportacaoArquivosSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ImportacaoArquivos
-        fields = ['uuid', 'nome', 'descricao', 'arquivo', 'arquivo_nome_original', 'arquivo_tamanho', 'arquivo_content_type', 'tipo_de_layout', 'status', 'criado_em', 'atualizado_em']
-        read_only_fields = ['uuid', 'arquivo_nome_original', 'arquivo_tamanho', 'arquivo_content_type', 'criado_em', 'atualizado_em']
+        fields = ['uuid', 'concurso', 'cargo', 'arquivo', 'arquivo_nome_original', 'arquivo_tamanho', 'arquivo_content_type', 'tipo_de_layout', 'status', 'criado_em', 'atualizado_em']
+        read_only_fields = ['uuid', 'arquivo_nome_original', 'arquivo_tamanho', 'arquivo_content_type', 'status', 'criado_em', 'atualizado_em']
     
     def create(self, validated_data):
         arquivo = validated_data.pop('arquivo')
@@ -27,7 +27,7 @@ class ImportacaoArquivosListSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = ImportacaoArquivos
-        fields = ['uuid', 'nome', 'arquivo_nome_original', 'arquivo_tamanho', 'tipo_de_layout', 'status', 'criado_em']
+        fields = ['uuid', 'concurso', 'cargo', 'arquivo_nome_original', 'arquivo_tamanho', 'tipo_de_layout', 'status', 'criado_em']
 
 
 class ImportacaoArquivosSelectSerializer(serializers.ModelSerializer):
@@ -35,11 +35,14 @@ class ImportacaoArquivosSelectSerializer(serializers.ModelSerializer):
     Serializer para selects/dropdowns no frontend.
     """
     value = serializers.UUIDField(source='uuid')
-    label = serializers.CharField(source='nome')
+    label = serializers.SerializerMethodField()
     
     class Meta:
         model = ImportacaoArquivos
         fields = ['value', 'label', 'arquivo_nome_original', 'tipo_de_layout', 'status']
+    
+    def get_label(self, obj):
+        return f"{obj.concurso} - {obj.cargo}"
 
 
 class LayoutSerializer(serializers.ModelSerializer):

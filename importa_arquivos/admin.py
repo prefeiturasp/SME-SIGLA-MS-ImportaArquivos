@@ -12,22 +12,22 @@ class ImportacaoArquivosAdmin(admin.ModelAdmin):
     """
     Admin para o modelo ImportacaoArquivos.
     """
-    list_display = ['nome', 'arquivo_nome_original', 'arquivo_tamanho_mb', 'tipo_de_layout', 'status', 'criado_em']
+    list_display = ['concurso', 'cargo', 'arquivo_nome_original', 'arquivo_tamanho_mb', 'tipo_de_layout', 'status', 'criado_em']
     list_filter = ['tipo_de_layout', 'status', 'arquivo_content_type', 'criado_em', 'atualizado_em']
-    search_fields = ['nome', 'arquivo_nome_original', 'descricao']
-    readonly_fields = ['uuid', 'arquivo_nome_original', 'arquivo_tamanho', 'arquivo_content_type', 'criado_em', 'atualizado_em']
+    search_fields = ['concurso', 'cargo', 'arquivo_nome_original']
+    readonly_fields = ['uuid', 'arquivo_nome_original', 'arquivo_tamanho', 'arquivo_content_type', 'status', 'criado_em', 'atualizado_em']
     ordering = ['-criado_em']
     
     fieldsets = (
         ('Informações Básicas', {
-            'fields': ('nome', 'descricao', 'tipo_de_layout', 'status')
+            'fields': ('concurso', 'cargo', 'tipo_de_layout')
         }),
         ('Informações do Arquivo', {
             'fields': ('arquivo_nome_original', 'arquivo_tamanho', 'arquivo_content_type'),
             'classes': ('collapse',)
         }),
-        ('Metadados', {
-            'fields': ('uuid', 'criado_em', 'atualizado_em'),
+        ('Status e Metadados', {
+            'fields': ('status', 'uuid', 'criado_em', 'atualizado_em'),
             'classes': ('collapse',)
         }),
     )

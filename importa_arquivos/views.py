@@ -26,9 +26,9 @@ class ImportacaoArquivosViewSet(viewsets.ModelViewSet):
     serializer_class = ImportacaoArquivosSerializer
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['nome', 'tipo_de_layout', 'status']
-    search_fields = ['nome', 'descricao']
-    ordering_fields = ['nome', 'status', 'criado_em']
+    filterset_fields = ['concurso', 'cargo', 'tipo_de_layout', 'status']
+    search_fields = ['concurso', 'cargo']
+    ordering_fields = ['concurso', 'cargo', 'status', 'criado_em']
     ordering = ['-criado_em']
     pagination_class = CustomPagination
 
@@ -43,6 +43,8 @@ class ImportacaoArquivosViewSet(viewsets.ModelViewSet):
         """
         Criar nova importação com tratamento de erros e status codes apropriados.
         """
+        from .services import RobustServerCommunicationError
+        
         try:
             serializer = self.get_serializer(data=request.data)
             if serializer.is_valid():
@@ -58,6 +60,17 @@ class ImportacaoArquivosViewSet(viewsets.ModelViewSet):
                     serializer.errors, 
                     status=status.HTTP_400_BAD_REQUEST
                 )
+        except RobustServerCommunicationError as e:
+            # Erro de comunicação com robust server - retornar 503 Service Unavailable
+            return Response(
+                {
+                    'error': 'Serviço temporariamente indisponível',
+                    'message': e.message,
+                    'error_type': e.error_type,
+                    'details': 'O servidor de processamento não está acessível. Tente novamente mais tarde.'
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
         except ValidationError as e:
             return Response(
                 {"validation_errors": e.messages if hasattr(e, 'messages') else [str(e)]}, 

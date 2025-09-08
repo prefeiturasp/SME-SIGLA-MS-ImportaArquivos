@@ -425,7 +425,7 @@ class RobustMockAPIHandler(BaseHTTPRequestHandler):
             data = json.loads(post_data.decode('utf-8'))
             
             # Validações obrigatórias
-            required_fields = ['uuid', 'nome', 'tipo_de_layout', 'arquivo']
+            required_fields = ['uuid', 'concurso', 'cargo', 'tipo_de_layout', 'arquivo']
             missing_fields = [field for field in required_fields if not data.get(field)]
             if missing_fields:
                 self.send_error(HTTPStatus.BAD_REQUEST, f"Campos obrigatórios faltando: {', '.join(missing_fields)}")
@@ -436,8 +436,10 @@ class RobustMockAPIHandler(BaseHTTPRequestHandler):
                 self.send_error(HTTPStatus.BAD_REQUEST, "Conteúdo do arquivo é obrigatório")
                 return
                 
-            print(f"📥 Recebendo arquivo: {data.get('nome', 'Sem nome')}")
+            print(f"📥 Recebendo arquivo:")
             print(f"   UUID: {data.get('uuid')}")
+            print(f"   Concurso: {data.get('concurso', 'Não informado')}")
+            print(f"   Cargo: {data.get('cargo', 'Não informado')}")
             print(f"   Tipo: {data.get('tipo_de_layout')}")
             print(f"   Status: {data.get('status')}")
                 
@@ -461,10 +463,11 @@ class RobustMockAPIHandler(BaseHTTPRequestHandler):
             import_dir = os.path.join(os.getcwd(), 'importacoes')
             os.makedirs(import_dir, exist_ok=True)
             
-            # Nome do arquivo: uuid_nome_original.csv
+            # Nome do arquivo: uuid_concurso_cargo.csv
             uuid_arquivo = data.get('uuid', 'unknown')
-            nome_original = arquivo_nome.replace('.csv', '').replace('.', '_')
-            arquivo_path = os.path.join(import_dir, f"{uuid_arquivo}_{nome_original}.csv")
+            concurso_safe = data.get('concurso', 'concurso').replace(' ', '_').replace('/', '_')[:30]
+            cargo_safe = data.get('cargo', 'cargo').replace(' ', '_').replace('/', '_')[:30]
+            arquivo_path = os.path.join(import_dir, f"{uuid_arquivo}_{concurso_safe}_{cargo_safe}.csv")
             
             # Verificar se arquivo já existe (conflito)
             if os.path.exists(arquivo_path):
@@ -501,7 +504,8 @@ class RobustMockAPIHandler(BaseHTTPRequestHandler):
             response = {
                 "uuid": data.get('uuid'),
                 "status": "recebido_com_sucesso",
-                "nome": data.get('nome'),
+                "concurso": data.get('concurso'),
+                "cargo": data.get('cargo'),
                 "tipo_de_layout": data.get('tipo_de_layout'),
                 "arquivo": {
                     "path": arquivo_path,

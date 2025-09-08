@@ -30,8 +30,6 @@ class ImportacaoArquivos(BaseModel):
     """
     
     history = AuditlogHistoryField()
-    nome = models.CharField(max_length=200, verbose_name="Nome do Arquivo")
-    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
     arquivo_nome_original = models.CharField(
         max_length=255, 
         default=FileValidationConstants.DEFAULT_FILENAME, 
@@ -54,6 +52,12 @@ class ImportacaoArquivos(BaseModel):
         verbose_name="Tipo de Layout",
         help_text="Tipo de layout que define a estrutura dos dados do arquivo"
     )
+    
+    # Novos campos
+    concurso = models.CharField(max_length=255, verbose_name="Concurso", default="")
+    cargo = models.CharField(max_length=255, verbose_name="Cargo", default="")
+    
+    # Status interno (não recebido via payload)
     status = models.CharField(
         max_length=20,
         choices=ImportacaoStatus.choices(),
@@ -72,7 +76,7 @@ class ImportacaoArquivos(BaseModel):
         ordering = ['-criado_em']
 
     def __str__(self):
-        return self.nome
+        return f"{self.concurso} - {self.cargo} ({self.arquivo_nome_original})"
     
     @property
     def validation_service(self) -> FileValidationService:
@@ -128,19 +132,41 @@ class ImportacaoArquivos(BaseModel):
 
     def save(self, *args, **kwargs) -> None:
         """
-        Executa validação antes de salvar e envia para o robust_server se validado.
+        Executa validação e tenta enviar para robust_server antes de salvar.
+        Só salva no banco se a comunicação com o robust_server for bem-sucedida.
         """
+        from .services import RobustServerCommunicationError
+        
         self.clean()
         
         # Verificar se é um novo registro
         is_new_record = self._state.adding
         
-        # Salvar primeiro no banco local
-        super().save(*args, **kwargs)
-        
-        # Se é um novo registro validado, enviar para o robust_server
+        # Se é um novo registro com arquivo, tentar enviar primeiro para o robust_server
         if self._should_send_to_robust_server(is_new_record):
-            self._send_to_robust_server()
+            try:
+                # Definir um UUID temporário se ainda não foi salvo
+                if not self.uuid:
+                    import uuid
+                    self.uuid = uuid.uuid4()
+                
+                # Definir criado_em temporariamente se não foi definido
+                if not self.criado_em:
+                    from django.utils import timezone
+                    self.criado_em = timezone.now()
+                
+                # Tentar enviar para o robust server primeiro
+                self._send_to_robust_server()
+                
+                # Se chegou aqui, a comunicação foi bem-sucedida, salvar no banco
+                super().save(*args, **kwargs)
+                
+            except RobustServerCommunicationError as e:
+                # Re-lançar a exceção para que seja tratada no serializer/view
+                raise e
+        else:
+            # Para registros que não precisam ser enviados (updates, etc), salvar normalmente
+            super().save(*args, **kwargs)
     
     def _should_send_to_robust_server(self, is_new_record: bool) -> bool:
         """

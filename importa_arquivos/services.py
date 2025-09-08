@@ -24,12 +24,12 @@ class PayloadBuilder:
         self._payload['uuid'] = str(uuid)
         return self
     
-    def with_basic_info(self, nome: str, descricao: Optional[str], 
+    def with_basic_info(self, concurso: str, cargo: str, 
                        tipo_layout: str, status: str) -> 'PayloadBuilder':
         """Adiciona informações básicas ao payload."""
         self._payload.update({
-            'nome': nome,
-            'descricao': descricao,
+            'concurso': concurso,
+            'cargo': cargo,
             'tipo_de_layout': tipo_layout,
             'status': status
         })
@@ -88,6 +88,15 @@ class RobustServerClient:
         )
 
 
+class RobustServerCommunicationError(Exception):
+    """Exceção para erros de comunicação com robust server."""
+    
+    def __init__(self, message: str, error_type: str = "communication_error"):
+        self.message = message
+        self.error_type = error_type
+        super().__init__(self.message)
+
+
 class RobustServerIntegrationService:
     """Service para integração com robust server."""
     
@@ -104,18 +113,35 @@ class RobustServerIntegrationService:
         Args:
             importacao: Objeto que implementa ImportacaoUpdater
             file_content: Conteúdo do arquivo em bytes
+            
+        Raises:
+            RobustServerCommunicationError: Se houver erro de comunicação
         """
         try:
             payload = self._build_payload(importacao, file_content)
             response = self._client.send_file(payload)
             self._handle_response(response.status_code, importacao)
             
-        except requests.exceptions.ConnectionError:
-            self._exception_handler.handle_connection_error(importacao)
-        except requests.exceptions.Timeout:
-            self._exception_handler.handle_timeout_error(importacao)
-        except Exception:
-            self._exception_handler.handle_generic_error(importacao)
+        except requests.exceptions.ConnectionError as e:
+            raise RobustServerCommunicationError(
+                f"Erro de conexão com o servidor de processamento: {str(e)}", 
+                "connection_error"
+            )
+        except requests.exceptions.Timeout as e:
+            raise RobustServerCommunicationError(
+                f"Timeout na comunicação com o servidor de processamento: {str(e)}", 
+                "timeout_error"
+            )
+        except requests.exceptions.RequestException as e:
+            raise RobustServerCommunicationError(
+                f"Erro na requisição para o servidor de processamento: {str(e)}", 
+                "request_error"
+            )
+        except Exception as e:
+            raise RobustServerCommunicationError(
+                f"Erro inesperado na comunicação com o servidor: {str(e)}", 
+                "unexpected_error"
+            )
     
     def _build_payload(self, importacao: ImportacaoUpdater, 
                       file_content: bytes) -> Dict[str, Any]:
@@ -125,8 +151,8 @@ class RobustServerIntegrationService:
         return (PayloadBuilder()
                 .with_uuid(importacao.uuid)
                 .with_basic_info(
-                    importacao.nome,
-                    importacao.descricao,
+                    importacao.concurso,
+                    importacao.cargo,
                     importacao.tipo_de_layout,
                     importacao.status
                 )

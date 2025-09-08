@@ -6,7 +6,6 @@ from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from django.db import transaction
 from importa_arquivos.models import ImportacaoArquivos
-from importa_arquivos.services import ImportacaoArquivosService
 from django.core.files.uploadedfile import SimpleUploadedFile
 import uuid
 import random
@@ -81,18 +80,19 @@ class Command(BaseCommand):
                         content_type="text/csv"
                     )
                     
-                    # Criar importação de arquivo com nome único
-                    nome_importacao = f'Dados Funcionários - Lote {i+1}'
-                    descricao = f'Arquivo CSV com dados de funcionários para importação - Gerado em {timezone.now().strftime("%d/%m/%Y %H:%M:%S")}'
+                    # Criar importação de arquivo com dados únicos
+                    concurso_nome = f'Concurso Público {2024 + (i % 3)}'
+                    cargo_nome = f'Cargo Exemplo {["Analista", "Técnico", "Assistente"][i % 3]} - Lote {i+1}'
                     
                     importacao = ImportacaoArquivos(
-                        nome=nome_importacao,
-                        descricao=descricao,
-                        arquivo=arquivo,
-                        status=status
+                        concurso=concurso_nome,
+                        cargo=cargo_nome,
+                        status=status,
+                        tipo_de_layout='VAGAS'
                     )
+                    importacao.set_arquivo_temporario(arquivo)
                     
-                    # Salvar individualmente devido ao FileField
+                    # Salvar
                     importacao.save()
                     importacoes_criadas.append(importacao)
                     
@@ -119,16 +119,15 @@ class Command(BaseCommand):
             raise CommandError(f'Erro ao criar importações: {str(e)}')
     
     def _generate_sample_csv(self, index):
-        """Gera conteúdo CSV de exemplo para importação de funcionários"""
+        """Gera conteúdo CSV de exemplo para layout VAGAS"""
         base_id = index * 1000
-        current_date = timezone.now().date()
         
         lines = [
-            'matricula,nome_completo,email,cargo,departamento,data_admissao,salario',
-            f'{base_id+1},João Silva Santos,joao.silva{index}@prefeitura.sp.gov.br,Analista,Tecnologia da Informação,{current_date},5500.00',
-            f'{base_id+2},Maria Oliveira Costa,maria.oliveira{index}@prefeitura.sp.gov.br,Coordenadora,Recursos Humanos,{current_date},7200.00',
-            f'{base_id+3},Carlos Pereira Lima,carlos.pereira{index}@prefeitura.sp.gov.br,Técnico,Financeiro,{current_date},4800.00',
-            f'{base_id+4},Ana Paula Souza,ana.souza{index}@prefeitura.sp.gov.br,Gerente,Administração,{current_date},8500.00',
-            f'{base_id+5},Pedro Almeida Santos,pedro.almeida{index}@prefeitura.sp.gov.br,Assistente,Educação,{current_date},3200.00',
+            'Inscricao,Nome,DataNascimento',
+            f'{base_id+1},João Silva Santos,1990-01-15',
+            f'{base_id+2},Maria Oliveira Costa,1985-05-20',
+            f'{base_id+3},Carlos Pereira Lima,1992-08-10',
+            f'{base_id+4},Ana Paula Souza,1988-12-03',
+            f'{base_id+5},Pedro Almeida Santos,1995-03-25',
         ]
         return '\n'.join(lines) 

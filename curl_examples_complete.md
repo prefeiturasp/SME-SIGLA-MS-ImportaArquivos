@@ -86,20 +86,18 @@ EOF
 # Upload do arquivo normal
 curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
   -H "Content-Type: multipart/form-data" \
-  -F "nome=Importação de Vagas - Janeiro 2025" \
-  -F "descricao=Arquivo de vagas para concurso público" \
+  -F "concurso=Concurso Público Municipal 2025" \
+  -F "cargo=Analista Administrativo" \
   -F "arquivo=@vagas_exemplo.csv" \
-  -F "tipo_de_layout=VAGAS" \
-  -F "status=pendente"
+  -F "tipo_de_layout=VAGAS"
 
 # Upload do arquivo com BOM (Excel)
 curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
   -H "Content-Type: multipart/form-data" \
-  -F "nome=Importação de Vagas Excel - Janeiro 2025" \
-  -F "descricao=Arquivo de vagas exportado do Excel" \
+  -F "concurso=Concurso Público Estadual 2025" \
+  -F "cargo=Técnico em Informática" \
   -F "arquivo=@vagas_exemplo_excel.csv" \
-  -F "tipo_de_layout=VAGAS" \
-  -F "status=pendente"
+  -F "tipo_de_layout=VAGAS"
 ```
 
 ### 2.3. Criar importação com arquivo CANDIDATOS_CLASSIFICADOS
@@ -117,11 +115,10 @@ EOF
 ```bash
 curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
   -H "Content-Type: multipart/form-data" \
-  -F "nome=Importação de Candidatos Classificados - Janeiro 2025" \
-  -F "descricao=Lista final de candidatos aprovados no concurso" \
+  -F "concurso=Concurso Público Federal 2025" \
+  -F "cargo=Auditor Fiscal" \
   -F "arquivo=@candidatos_exemplo.csv" \
-  -F "tipo_de_layout=CANDIDATOS_CLASSIFICADOS" \
-  -F "status=pendente"
+  -F "tipo_de_layout=CANDIDATOS_CLASSIFICADOS"
 ```
 
 ### 2.4. Buscar importação específica
@@ -257,7 +254,46 @@ curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
 
 ---
 
-## 4. LAYOUTS - Gestão Avançada
+## 4. CÓDIGOS DE STATUS E TRATAMENTO DE ERROS
+
+### 4.1. Códigos de status possíveis na criação de importações
+
+- **201 Created**: Importação criada com sucesso
+- **400 Bad Request**: Dados inválidos (campos obrigatórios ausentes, formato incorreto)
+- **422 Unprocessable Entity**: Arquivo não corresponde ao layout especificado
+- **503 Service Unavailable**: Servidor de processamento indisponível (erro de comunicação)
+- **500 Internal Server Error**: Erro interno do servidor
+
+### 4.2. Exemplo de erro de comunicação com servidor de processamento
+
+```bash
+# Resposta HTTP 503 Service Unavailable
+{
+  "error": "Serviço temporariamente indisponível",
+  "message": "Erro de conexão com o servidor de processamento: Connection refused",
+  "error_type": "connection_error",
+  "details": "O servidor de processamento não está acessível. Tente novamente mais tarde."
+}
+```
+
+### 4.3. Exemplo de erro de validação (422)
+
+```bash
+# Resposta HTTP 422 Unprocessable Entity
+{
+  "validation_errors": [
+    "O arquivo não corresponde ao layout VAGAS. Campos obrigatórios faltando: Inscricao, Nome, DataNascimento"
+  ]
+}
+```
+
+### 4.4. Comportamento importante sobre salvamento
+
+⚠️ **IMPORTANTE**: Se houver erro de comunicação com o servidor de processamento (códigos 503), **NENHUM dado será salvo** no banco de dados local. Apenas quando a comunicação for bem-sucedida os dados serão persistidos.
+
+---
+
+## 5. LAYOUTS - Gestão Avançada
 
 ### 4.1. Criar novo layout customizado
 

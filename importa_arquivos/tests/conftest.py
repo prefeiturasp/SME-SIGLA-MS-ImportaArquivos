@@ -39,8 +39,8 @@ def importacao_arquivo_pendente(layout_vagas):
     # Arquivo que corresponde ao layout VAGAS
     arquivo = SimpleUploadedFile("teste.csv", b"Inscricao,Nome,DataNascimento\n12345,Teste,1990-01-01", content_type="text/csv")
     importacao = ImportacaoArquivos(
-        nome='Arquivo de Teste',
-        descricao='Descrição do arquivo de teste',
+        concurso='Concurso Teste',
+        cargo='Cargo Teste',
         status='pendente',
         tipo_de_layout='VAGAS'
     )
@@ -56,8 +56,8 @@ def importacao_arquivo_processando(layout_vagas):
     """
     arquivo = SimpleUploadedFile("processando.csv", b"Inscricao,Nome,DataNascimento\n67890,Processando,1985-05-15", content_type="text/csv")
     importacao = ImportacaoArquivos(
-        nome='Arquivo Processando',
-        descricao='Arquivo em processamento',
+        concurso='Concurso Processando',
+        cargo='Cargo Processando',
         status='processando',
         tipo_de_layout='VAGAS'
     )
@@ -73,8 +73,8 @@ def importacao_arquivo_concluido(layout_vagas):
     """
     arquivo = SimpleUploadedFile("concluido.csv", b"Inscricao,Nome,DataNascimento\n11111,Concluido,1990-12-25", content_type="text/csv")
     importacao = ImportacaoArquivos(
-        nome='Arquivo Concluído',
-        descricao='Arquivo processado com sucesso',
+        concurso='Concurso Concluído',
+        cargo='Cargo Concluído',
         status='concluido',
         tipo_de_layout='VAGAS'
     )
@@ -98,10 +98,9 @@ def importacao_arquivo_data():
     """
     arquivo = SimpleUploadedFile("novo_arquivo.csv", b"conteudo,novo", content_type="text/csv")
     return {
-        'nome': 'Novo Arquivo de Teste',
-        'descricao': 'Descrição do novo arquivo',
-        'arquivo': arquivo,
-        'status': 'pendente'
+        'concurso': 'Novo Concurso de Teste',
+        'cargo': 'Novo Cargo de Teste',
+        'arquivo': arquivo
     }
 
 
@@ -119,8 +118,8 @@ def importacao_sem_validacao():
     Fixture para criar importação sem validação de arquivo.
     """
     return ImportacaoArquivos.objects.create(
-        nome='Importação Sem Validação',
-        descricao='Para testes simples',
+        concurso='Concurso Sem Validação',
+        cargo='Cargo Sem Validação',
         status='pendente',
         tipo_de_layout='VAGAS'
     )
@@ -133,8 +132,8 @@ def multiple_importacoes_arquivos(layout_vagas):
     importacoes = []
     for i in range(25):
         importacao = ImportacaoArquivos.objects.create(
-            nome=f'Importação Teste {i}',
-            descricao=f'Descrição {i}',
+            concurso=f'Concurso Teste {i}',
+            cargo=f'Cargo Teste {i}',
             status='pendente',
             tipo_de_layout='VAGAS'
         )

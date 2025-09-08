@@ -21,10 +21,8 @@ def test_list_importacoes_arquivos_success(api_client, importacoes_arquivos):
     
     # Verificar se os dados estão corretos
     importacoes_data = response.data['results']
-    importacao_nomes = [importacao['nome'] for importacao in importacoes_data]
-    assert 'Arquivo de Teste' in importacao_nomes
-    assert 'Arquivo Processando' in importacao_nomes
-    assert 'Arquivo Concluído' in importacao_nomes
+    concurso_cargo_list = [f"{importacao['concurso']} - {importacao['cargo']}" for importacao in importacoes_data]
+    assert 'Concurso Teste - Cargo Teste' in concurso_cargo_list
  
 def test_list_importacoes_arquivos_empty(api_client):
     """Testa listagem quando não há importações."""
@@ -44,10 +42,9 @@ def test_create_importacao_arquivo_success(mock_post, api_client, layout_vagas):
     
     arquivo = SimpleUploadedFile("novo_arquivo.csv", b"Inscricao,Nome,DataNascimento\n99999,Novo,2000-01-01", content_type="text/csv")
     data = {
-        'nome': 'Novo Arquivo de Teste',
-        'descricao': 'Descrição do novo arquivo',
+        'concurso': 'Novo Concurso',
+        'cargo': 'Novo Cargo',
         'arquivo': arquivo,
-        'status': 'pendente',
         'tipo_de_layout': 'VAGAS'
     }
     
@@ -58,32 +55,32 @@ def test_create_importacao_arquivo_success(mock_post, api_client, layout_vagas):
     assert ImportacaoArquivos.objects.count() == 1
     
     # Verificar se a importação foi criada corretamente
-    nova_importacao = ImportacaoArquivos.objects.get(nome='Novo Arquivo de Teste')
+    nova_importacao = ImportacaoArquivos.objects.get(concurso='Novo Concurso')
     assert nova_importacao.uuid is not None
     assert nova_importacao.criado_em is not None
     assert nova_importacao.atualizado_em is not None
     assert nova_importacao.status == 'processando'  # Status atualizado pelo robust_server
-    assert nova_importacao.descricao == 'Descrição do novo arquivo'
+    assert nova_importacao.cargo == 'Novo Cargo'
 
-def test_create_importacao_arquivo_without_nome(api_client):
-    """Testa se a criação sem nome retorna erro."""
+def test_create_importacao_arquivo_without_concurso(api_client):
+    """Testa se a criação sem concurso retorna erro."""
     arquivo = SimpleUploadedFile("arquivo.csv", b"conteudo", content_type="text/csv")
     data = {
         'arquivo': arquivo,
-        'status': 'pendente'
+        'cargo': 'Teste Cargo'
     }
     
     url = reverse('importacao-arquivo-list')
     response = api_client.post(url, data, format='multipart')
     
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert 'nome' in response.data
+    assert 'concurso' in response.data
 
 def test_create_importacao_arquivo_without_arquivo(api_client):
     """Testa se a criação sem arquivo retorna erro."""
     data = {
-        'nome': 'Teste sem arquivo',
-        'status': 'pendente'
+        'concurso': 'Teste sem arquivo',
+        'cargo': 'Cargo Teste'
     }
     
     url = reverse('importacao-arquivo-list')
@@ -92,20 +89,19 @@ def test_create_importacao_arquivo_without_arquivo(api_client):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'arquivo' in response.data
 
-def test_create_importacao_arquivo_invalid_status(api_client):
-    """Testa se a criação com status inválido retorna erro."""
+def test_create_importacao_arquivo_without_cargo(api_client):
+    """Testa se a criação sem cargo retorna erro."""
     arquivo = SimpleUploadedFile("arquivo.csv", b"conteudo", content_type="text/csv")
     data = {
-        'nome': 'Teste',
-        'arquivo': arquivo,
-        'status': 'status_invalido'
+        'concurso': 'Teste Concurso',
+        'arquivo': arquivo
     }
     
     url = reverse('importacao-arquivo-list')
     response = api_client.post(url, data, format='multipart')
     
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert 'status' in response.data
+    assert 'cargo' in response.data
 
 def test_retrieve_importacao_arquivo_success(api_client, importacao_arquivo_pendente):
     """Testa se a recuperação de importação de arquivo funciona corretamente."""
@@ -113,10 +109,10 @@ def test_retrieve_importacao_arquivo_success(api_client, importacao_arquivo_pend
     response = api_client.get(url)
     
     assert response.status_code == status.HTTP_200_OK
-    assert response.data['nome'] == 'Arquivo de Teste'
+    assert response.data['concurso'] == 'Concurso Teste'
+    assert response.data['cargo'] == 'Cargo Teste'
     assert response.data['status'] == 'processando'  # Status foi atualizado para 'processando'
     assert response.data['uuid'] == str(importacao_arquivo_pendente.uuid)
-    assert response.data['descricao'] == 'Descrição do arquivo de teste'
 
 def test_retrieve_importacao_arquivo_not_found(api_client, fake_uuid):
     """Testa se retorna 404 para importação de arquivo inexistente."""
@@ -129,10 +125,9 @@ def test_update_importacao_arquivo_success(api_client, importacao_arquivo_penden
     """Testa se a atualização de importação de arquivo funciona corretamente."""
     arquivo = SimpleUploadedFile("arquivo_atualizado.csv", b"Inscricao,Nome,DataNascimento\n88888,Atualizado,1995-06-15", content_type="text/csv")
     data = {
-        'nome': 'Arquivo Atualizado',
-        'descricao': 'Descrição atualizada',
+        'concurso': 'Concurso Atualizado',
+        'cargo': 'Cargo Atualizado',
         'arquivo': arquivo,
-        'status': 'processando',
         'tipo_de_layout': 'VAGAS'
     }
     
@@ -140,37 +135,33 @@ def test_update_importacao_arquivo_success(api_client, importacao_arquivo_penden
     response = api_client.put(url, data, format='multipart')
     
     assert response.status_code == status.HTTP_200_OK
-    assert response.data['nome'] == 'Arquivo Atualizado'
-    assert response.data['status'] == 'processando'
-    assert response.data['descricao'] == 'Descrição atualizada'
+    assert response.data['concurso'] == 'Concurso Atualizado'
+    assert response.data['cargo'] == 'Cargo Atualizado'
+    # Status é interno e não deve ser alterado via API
     
     # Verificar se foi atualizado no banco
     importacao_arquivo_pendente.refresh_from_db()
-    assert importacao_arquivo_pendente.nome == 'Arquivo Atualizado'
-    assert importacao_arquivo_pendente.status == 'processando'
-    assert importacao_arquivo_pendente.descricao == 'Descrição atualizada'
+    assert importacao_arquivo_pendente.concurso == 'Concurso Atualizado'
+    assert importacao_arquivo_pendente.cargo == 'Cargo Atualizado'
 
 def test_partial_update_importacao_arquivo_success(api_client, importacao_arquivo_pendente):
     """Testa se a atualização parcial funciona corretamente."""
     data = {
-        'status': 'processando',
-        'descricao': 'Nova descrição'
+        'cargo': 'Cargo Atualizado Parcial'
     }
     
     url = reverse('importacao-arquivo-detail', kwargs={'pk': importacao_arquivo_pendente.uuid})
     response = api_client.patch(url, data)
     
     assert response.status_code == status.HTTP_200_OK
-    assert response.data['status'] == 'processando'
-    assert response.data['descricao'] == 'Nova descrição'
-    # Nome deve permanecer o mesmo
-    assert response.data['nome'] == 'Arquivo de Teste'
+    assert response.data['cargo'] == 'Cargo Atualizado Parcial'
+    # Concurso deve permanecer o mesmo
+    assert response.data['concurso'] == 'Concurso Teste'
     
     # Verificar se foi atualizado no banco
     importacao_arquivo_pendente.refresh_from_db()
-    assert importacao_arquivo_pendente.status == 'processando'
-    assert importacao_arquivo_pendente.descricao == 'Nova descrição'
-    assert importacao_arquivo_pendente.nome == 'Arquivo de Teste'
+    assert importacao_arquivo_pendente.cargo == 'Cargo Atualizado Parcial'
+    assert importacao_arquivo_pendente.concurso == 'Concurso Teste'
 
 def test_delete_importacao_arquivo_success(api_client, importacao_arquivo_pendente):
     """Testa se a exclusão de importação de arquivo funciona corretamente."""
@@ -195,11 +186,10 @@ def test_create_importacao_validation_error_returns_422(api_client, layout_vagas
     arquivo = SimpleUploadedFile("teste_erro.csv", csv_content, content_type="text/csv")
     
     data = {
-        'nome': 'Teste Validação Erro',
-        'descricao': 'Teste que deve falhar na validação',
+        'concurso': 'Concurso Validação Erro',
+        'cargo': 'Cargo Validação Erro',
         'arquivo': arquivo,
-        'tipo_de_layout': 'VAGAS',
-        'status': 'pendente'
+        'tipo_de_layout': 'VAGAS'
     }
     
     url = reverse('importacao-arquivo-list')
@@ -212,8 +202,8 @@ def test_create_importacao_validation_error_returns_422(api_client, layout_vagas
 def test_create_importacao_bad_request_returns_400(api_client):
     """Testa se dados inválidos retornam status 400."""
     data = {
-        'nome': '',  # Nome vazio deve gerar erro 400
-        'status': 'pendente'
+        'concurso': '',  # Concurso vazio deve gerar erro 400
+        'cargo': 'Cargo Teste'
     }
     
     url = reverse('importacao-arquivo-list')
@@ -234,7 +224,7 @@ def test_retrieve_not_found_returns_404(api_client):
 def test_update_not_found_returns_404(api_client):
     """Testa se atualização de recurso inexistente retorna 404."""
     fake_uuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
-    data = {'nome': 'Teste', 'tipo_de_layout': 'VAGAS'}  # Só metadados, sem arquivo
+    data = {'concurso': 'Teste', 'cargo': 'Teste', 'tipo_de_layout': 'VAGAS'}  # Só metadados, sem arquivo
     
     url = reverse('importacao-arquivo-detail', kwargs={'pk': fake_uuid})
     response = api_client.patch(url, data)
@@ -263,11 +253,10 @@ def test_create_importacao_robust_server_success(mock_post, api_client, layout_v
     arquivo = SimpleUploadedFile("vagas_teste.csv", csv_content, content_type="text/csv")
     
     data = {
-        'nome': 'Teste Integração Robust Server',
-        'descricao': 'Teste da integração',
+        'concurso': 'Concurso Integração',
+        'cargo': 'Cargo Integração',
         'arquivo': arquivo,
-        'tipo_de_layout': 'VAGAS',
-        'status': 'pendente'
+        'tipo_de_layout': 'VAGAS'
     }
     
     url = reverse('importacao-arquivo-list')
@@ -276,7 +265,7 @@ def test_create_importacao_robust_server_success(mock_post, api_client, layout_v
     assert response.status_code == status.HTTP_201_CREATED
     
     # Verificar se o arquivo foi criado no banco
-    importacao = ImportacaoArquivos.objects.get(nome='Teste Integração Robust Server')
+    importacao = ImportacaoArquivos.objects.get(concurso='Concurso Integração')
     assert importacao.status == 'processando'  # Status deve ter sido atualizado
     assert importacao.arquivo_nome_original == 'vagas_teste.csv'
     assert importacao.arquivo_tamanho > 0
@@ -286,7 +275,7 @@ def test_create_importacao_robust_server_success(mock_post, api_client, layout_v
 
 @patch('importa_arquivos.services.requests.post')
 def test_create_importacao_robust_server_error(mock_post, api_client, layout_vagas):
-    """Testa se erro no robust_server atualiza status para erro."""
+    """Testa se erro no robust_server atualiza status para erro mas ainda salva o registro."""
     # Mock da resposta de erro do robust_server
     mock_response = Mock()
     mock_response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -297,10 +286,10 @@ def test_create_importacao_robust_server_error(mock_post, api_client, layout_vag
     arquivo = SimpleUploadedFile("vagas_erro.csv", csv_content, content_type="text/csv")
     
     data = {
-        'nome': 'Teste Erro Robust Server',
+        'concurso': 'Concurso Erro',
+        'cargo': 'Cargo Erro',
         'arquivo': arquivo,
-        'tipo_de_layout': 'VAGAS',
-        'status': 'pendente'
+        'tipo_de_layout': 'VAGAS'
     }
     
     url = reverse('importacao-arquivo-list')
@@ -308,13 +297,13 @@ def test_create_importacao_robust_server_error(mock_post, api_client, layout_vag
     
     assert response.status_code == status.HTTP_201_CREATED
     
-    # Verificar se o status foi atualizado para erro
-    importacao = ImportacaoArquivos.objects.get(nome='Teste Erro Robust Server')
+    # Verificar se o status foi atualizado para erro (comunicação estabelecida, mas server retornou erro)
+    importacao = ImportacaoArquivos.objects.get(concurso='Concurso Erro')
     assert importacao.status == 'erro'
 
 @patch('importa_arquivos.services.requests.post')
 def test_create_importacao_robust_server_connection_error(mock_post, api_client, layout_vagas):
-    """Testa se erro de conexão com robust_server atualiza status para erro."""
+    """Testa se erro de conexão com robust_server retorna 503 e não salva dados."""
     # Mock de erro de conexão
     from requests.exceptions import ConnectionError
     mock_post.side_effect = ConnectionError("Connection refused")
@@ -324,20 +313,88 @@ def test_create_importacao_robust_server_connection_error(mock_post, api_client,
     arquivo = SimpleUploadedFile("vagas_conexao_erro.csv", csv_content, content_type="text/csv")
     
     data = {
-        'nome': 'Teste Erro Conexão',
+        'concurso': 'Concurso Conexão',
+        'cargo': 'Cargo Conexão',
         'arquivo': arquivo,
-        'tipo_de_layout': 'VAGAS',
-        'status': 'pendente'
+        'tipo_de_layout': 'VAGAS'
     }
     
     url = reverse('importacao-arquivo-list')
     response = api_client.post(url, data, format='multipart')
     
-    assert response.status_code == status.HTTP_201_CREATED
+    # Deve retornar 503 Service Unavailable
+    assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+    assert 'error' in response.data
+    assert 'Serviço temporariamente indisponível' in response.data['error']
+    assert 'error_type' in response.data
+    assert response.data['error_type'] == 'connection_error'
     
-    # Verificar se o status foi atualizado para erro devido ao erro de conexão
-    importacao = ImportacaoArquivos.objects.get(nome='Teste Erro Conexão')
-    assert importacao.status == 'erro'
+    # Verificar que NENHUM registro foi salvo no banco
+    assert ImportacaoArquivos.objects.filter(concurso='Concurso Conexão').count() == 0
+
+
+@patch('importa_arquivos.services.requests.post')
+def test_create_importacao_robust_server_timeout_error(mock_post, api_client, layout_vagas):
+    """Testa se erro de timeout com robust_server retorna 503 e não salva dados."""
+    # Mock de erro de timeout
+    from requests.exceptions import Timeout
+    mock_post.side_effect = Timeout("Request timed out")
+    
+    # Arquivo com headers corretos para layout VAGAS
+    csv_content = b"Inscricao,Nome,DataNascimento\n12345,Teste,1990-01-01"
+    arquivo = SimpleUploadedFile("vagas_timeout_erro.csv", csv_content, content_type="text/csv")
+    
+    data = {
+        'concurso': 'Concurso Timeout',
+        'cargo': 'Cargo Timeout',
+        'arquivo': arquivo,
+        'tipo_de_layout': 'VAGAS'
+    }
+    
+    url = reverse('importacao-arquivo-list')
+    response = api_client.post(url, data, format='multipart')
+    
+    # Deve retornar 503 Service Unavailable
+    assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+    assert 'error' in response.data
+    assert 'Serviço temporariamente indisponível' in response.data['error']
+    assert 'error_type' in response.data
+    assert response.data['error_type'] == 'timeout_error'
+    
+    # Verificar que NENHUM registro foi salvo no banco
+    assert ImportacaoArquivos.objects.filter(concurso='Concurso Timeout').count() == 0
+
+
+@patch('importa_arquivos.services.requests.post')
+def test_create_importacao_robust_server_request_error(mock_post, api_client, layout_vagas):
+    """Testa se erro de requisição com robust_server retorna 503 e não salva dados."""
+    # Mock de erro de requisição
+    from requests.exceptions import RequestException
+    mock_post.side_effect = RequestException("Request failed")
+    
+    # Arquivo com headers corretos para layout VAGAS
+    csv_content = b"Inscricao,Nome,DataNascimento\n12345,Teste,1990-01-01"
+    arquivo = SimpleUploadedFile("vagas_request_erro.csv", csv_content, content_type="text/csv")
+    
+    data = {
+        'concurso': 'Concurso Request',
+        'cargo': 'Cargo Request',
+        'arquivo': arquivo,
+        'tipo_de_layout': 'VAGAS'
+    }
+    
+    url = reverse('importacao-arquivo-list')
+    response = api_client.post(url, data, format='multipart')
+    
+    # Deve retornar 503 Service Unavailable
+    assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+    assert 'error' in response.data
+    assert 'Serviço temporariamente indisponível' in response.data['error']
+    assert 'error_type' in response.data
+    assert response.data['error_type'] == 'request_error'
+    
+    # Verificar que NENHUM registro foi salvo no banco
+    assert ImportacaoArquivos.objects.filter(concurso='Concurso Request').count() == 0
 
 def test_create_importacao_arquivo_metadata_fields(api_client, layout_vagas):
     """Testa se os campos de metadata são preenchidos corretamente."""
@@ -345,7 +402,8 @@ def test_create_importacao_arquivo_metadata_fields(api_client, layout_vagas):
     arquivo = SimpleUploadedFile("metadata_test.csv", csv_content, content_type="text/csv")
     
     data = {
-        'nome': 'Teste Metadata',
+        'concurso': 'Concurso Metadata',
+        'cargo': 'Cargo Metadata',
         'arquivo': arquivo,
         'tipo_de_layout': 'VAGAS'
     }
@@ -384,7 +442,8 @@ def test_error_handling_in_views(api_client):
         
         arquivo = SimpleUploadedFile("erro_interno.csv", b"test", content_type="text/csv")
         data = {
-            'nome': 'Teste Erro Interno',
+            'concurso': 'Concurso Erro',
+            'cargo': 'Cargo Erro',
             'arquivo': arquivo
         }
         
