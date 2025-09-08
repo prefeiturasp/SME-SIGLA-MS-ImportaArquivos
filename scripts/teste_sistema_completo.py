@@ -28,7 +28,7 @@ def testar_layouts():
     
     # Verificar layouts específicos
     layout_vagas = LayoutService.get_layout_by_tipo('VAGAS')
-    layout_candidatos = LayoutService.get_layout_by_tipo('CANDIDATOS_CLASSIFICADOS')
+    layout_candidatos = LayoutService.get_layout_by_tipo('HABILITADOS')
     
     if layout_vagas:
         total_campos = len(layout_vagas.get('dados', []))
@@ -39,9 +39,9 @@ def testar_layouts():
     
     if layout_candidatos:
         total_campos = len(layout_candidatos.get('dados', []))
-        print(f"   ✅ Layout CANDIDATOS_CLASSIFICADOS encontrado: {total_campos} campos")
+        print(f"   ✅ Layout HABILITADOS encontrado: {total_campos} campos")
     else:
-        print("   ❌ Layout CANDIDATOS_CLASSIFICADOS não encontrado")
+        print("   ❌ Layout HABILITADOS não encontrado")
         return False
     
     return True

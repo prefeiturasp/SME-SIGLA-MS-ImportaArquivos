@@ -7,7 +7,7 @@ Este documento demonstra como usar a API de layouts com a nova estrutura simplif
 ### Payload (apenas 2 campos necessários):
 ```json
 {
-  "tipo_de_layout": "FUNCIONARIOS",
+  "tipo_de_layout": "HABILITADOS",
   "dados": [
     {
       "tipo": "string",
@@ -38,7 +38,7 @@ Este documento demonstra como usar a API de layouts com a nova estrutura simplif
 ```json
 {
   "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "tipo_de_layout": "FUNCIONARIOS",
+  "tipo_de_layout": "HABILITADOS",
   "dados": [
     {
       "tipo": "string",
@@ -72,7 +72,7 @@ Este documento demonstra como usar a API de layouts com a nova estrutura simplif
 curl -X POST "http://localhost:8000/api/v1/layouts/" \
   -H "Content-Type: application/json" \
   -d '{
-    "tipo_de_layout": "FUNCIONARIOS",
+    "tipo_de_layout": "HABILITADOS",
     "dados": [
       {
         "tipo": "string",
@@ -108,7 +108,7 @@ curl -X POST "http://localhost:8000/api/v1/layouts/" \
   "results": [
     {
       "uuid": "6676add3-46dd-4c0a-9279-c833a203f600",
-      "tipo_de_layout": "CANDIDATOS_CLASSIFICADOS",
+      "tipo_de_layout": "HABILITADOS",
       "total_campos": 29,
       "criado_em": "2025-09-04T11:09:28.849594-03:00"
     },
@@ -120,7 +120,7 @@ curl -X POST "http://localhost:8000/api/v1/layouts/" \
     },
     {
       "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "tipo_de_layout": "FUNCIONARIOS",
+      "tipo_de_layout": "HABILITADOS",
       "total_campos": 3,
       "criado_em": "2025-09-08T13:30:00.000000+00:00"
     }
@@ -139,7 +139,7 @@ curl -X GET "http://localhost:8000/api/v1/layouts/"
 ```json
 {
   "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "tipo_de_layout": "FUNCIONARIOS",
+  "tipo_de_layout": "HABILITADOS",
   "dados": [
     {
       "tipo": "string",

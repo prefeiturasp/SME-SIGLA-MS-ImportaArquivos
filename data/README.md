@@ -7,7 +7,7 @@ Este diretório contém os dados de configuração do sistema de importação de
 O arquivo `layouts.json` contém a definição dos layouts do sistema, armazenados em JSON ao invés do banco de dados:
 
 - **VAGAS**: Layout simples com 3 campos (Inscricao, Nome, DataNascimento)
-- **CANDIDATOS_CLASSIFICADOS**: Layout completo com 29 campos para candidatos classificados
+- **HABILITADOS**: Layout completo com 29 campos para candidatos habilitados
 
 ## Como Usar
 
@@ -84,7 +84,7 @@ O arquivo deve conter uma lista de objetos JSON com a seguinte estrutura:
 [
     {
         "uuid": "string",                    // UUID único do layout
-        "tipo_de_layout": "string",          // Tipo do layout (VAGAS, CANDIDATOS_CLASSIFICADOS, etc.)
+        "tipo_de_layout": "string",          // Tipo do layout (VAGAS, HABILITADOS, etc.)
         "dados": [                           // Array de campos do layout
             {
                 "tipo": "string",            // Tipo do campo (string, integer, date, decimal, text)

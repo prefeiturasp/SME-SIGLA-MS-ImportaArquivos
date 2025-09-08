@@ -150,7 +150,7 @@ O sistema inclui um mecanismo de carga inicial de layouts através de arquivos J
 ### Layouts Disponíveis
 
 - **VAGAS**: Layout simples com 3 campos (Inscricao, Nome, DataNascimento)
-- **CANDIDATOS_CLASSIFICADOS**: Layout completo com 29 campos para candidatos classificados
+- **HABILITADOS**: Layout completo com 29 campos para candidatos habilitados
 
 ### Comando de Carga
 

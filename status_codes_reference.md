@@ -64,7 +64,7 @@
   - Arquivo CSV não corresponde ao layout
   - Validação de campos específicos falhou
   - Headers CSV incorretos
-- **Exemplo**: Arquivo VAGAS com headers de CANDIDATOS_CLASSIFICADOS
+- **Exemplo**: Arquivo VAGAS com headers de HABILITADOS
 
 ### 🔴 **Server Error (5xx)**
 

@@ -24,7 +24,7 @@ curl -X GET "http://localhost:8000/api/v1/layouts/" \
 curl -X GET "http://localhost:8000/api/v1/layouts/54eb3e0d-65ba-4e23-b7ee-580164ee0dc2/" \
   -H "Content-Type: application/json"
 
-# Layout CANDIDATOS_CLASSIFICADOS  
+# Layout HABILITADOS  
 curl -X GET "http://localhost:8000/api/v1/layouts/6676add3-46dd-4c0a-9279-c833a203f600/" \
   -H "Content-Type: application/json"
 ```
@@ -35,7 +35,7 @@ curl -X GET "http://localhost:8000/api/v1/layouts/6676add3-46dd-4c0a-9279-c833a2
 curl -X GET "http://localhost:8000/api/v1/layouts/?tipo_de_layout=VAGAS" \
   -H "Content-Type: application/json"
 
-curl -X GET "http://localhost:8000/api/v1/layouts/?tipo_de_layout=CANDIDATOS_CLASSIFICADOS" \
+curl -X GET "http://localhost:8000/api/v1/layouts/?tipo_de_layout=HABILITADOS" \
   -H "Content-Type: application/json"
 ```
 
@@ -100,7 +100,7 @@ curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
   -F "tipo_de_layout=VAGAS"
 ```
 
-### 2.3. Criar importação com arquivo CANDIDATOS_CLASSIFICADOS
+### 2.3. Criar importação com arquivo HABILITADOS
 
 #### Primeiro, crie um arquivo CSV de exemplo:
 ```bash
@@ -118,7 +118,7 @@ curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
   -F "concurso=Concurso Público Federal 2025" \
   -F "cargo=Auditor Fiscal" \
   -F "arquivo=@candidatos_exemplo.csv" \
-  -F "tipo_de_layout=CANDIDATOS_CLASSIFICADOS"
+  -F "tipo_de_layout=HABILITADOS"
 ```
 
 ### 2.4. Buscar importação específica
@@ -146,7 +146,7 @@ curl -X PATCH "http://localhost:8000/api/v1/importacao-arquivos/{UUID_DA_IMPORTA
 curl -X GET "http://localhost:8000/api/v1/importacao-arquivos/?tipo_de_layout=VAGAS" \
   -H "Content-Type: application/json"
 
-curl -X GET "http://localhost:8000/api/v1/importacao-arquivos/?tipo_de_layout=CANDIDATOS_CLASSIFICADOS" \
+curl -X GET "http://localhost:8000/api/v1/importacao-arquivos/?tipo_de_layout=HABILITADOS" \
   -H "Content-Type: application/json"
 ```
 
@@ -240,14 +240,14 @@ curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
 
 **Resposta esperada:** Erro 400 com mensagem de validação
 
-### 3.2. Teste com arquivo VAGAS mas marcado como CANDIDATOS_CLASSIFICADOS
+### 3.2. Teste com arquivo VAGAS mas marcado como HABILITADOS
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
   -H "Content-Type: multipart/form-data" \
   -F "nome=Teste Tipo Incorreto" \
   -F "arquivo=@vagas_exemplo.csv" \
-  -F "tipo_de_layout=CANDIDATOS_CLASSIFICADOS"
+  -F "tipo_de_layout=HABILITADOS"
 ```
 
 **Resposta esperada:** Erro 400 com mensagem de campos faltando
@@ -443,8 +443,8 @@ curl -X GET "http://localhost:8000/api/v1/layouts/{UUID_DO_LAYOUT}/campos_ordena
     },
     {
       "uuid": "xyz789-uvw456-rst123",
-      "nome": "Importação de Candidatos Classificados - Janeiro 2025", 
-      "tipo_de_layout": "CANDIDATOS_CLASSIFICADOS",
+      "nome": "Importação de Habilitados - Janeiro 2025", 
+      "tipo_de_layout": "HABILITADOS",
       "status": "processando",
       "criado_em": "2025-09-04T14:05:00Z"
     }
@@ -483,8 +483,8 @@ curl -X GET "http://localhost:8000/api/v1/layouts/{UUID_DO_LAYOUT}/campos_ordena
     "label": "Vagas"
   },
   {
-    "value": "CANDIDATOS_CLASSIFICADOS", 
-    "label": "Candidatos Classificados"
+    "value": "HABILITADOS", 
+    "label": "Habilitados"
   }
 ]
 ```
@@ -526,7 +526,7 @@ curl -s -X GET "http://localhost:8000/api/v1/importacao-arquivos/" \
 - **Nome** (string, 200): obrigatorio  
 - **DataNascimento** (date, 10): obrigatorio,data_valida
 
-### 7.2. Layout CANDIDATOS_CLASSIFICADOS (29 campos):
+### 7.2. Layout HABILITADOS (29 campos):
 1. **Inscricao** (string, 20): obrigatorio,unico
 2. **Nome** (string, 200): obrigatorio
 3. **DataNascimento** (date, 10): obrigatorio,data_valida
@@ -615,7 +615,7 @@ curl -X POST "http://localhost:8000/api/v1/importacao-arquivos/" \
 7. **Cabeçalhos Limpos**: Espaços em branco e caracteres especiais são tratados automaticamente
 8. **UUIDs Reais**: 
    - Layout VAGAS: `54eb3e0d-65ba-4e23-b7ee-580164ee0dc2`
-   - Layout CANDIDATOS_CLASSIFICADOS: `6676add3-46dd-4c0a-9279-c833a203f600`
+   - Layout HABILITADOS: `6676add3-46dd-4c0a-9279-c833a203f600`
 
 ### Formatos de Arquivo Suportados:
 - ✅ CSV exportado do Excel (com BOM)

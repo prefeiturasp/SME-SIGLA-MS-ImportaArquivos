@@ -38,7 +38,7 @@ class ImportacaoArquivos(BaseModel):
     arquivo_nome_original = CharField(max_length=255)   # Nome original do arquivo
     arquivo_tamanho = PositiveIntegerField()           # Tamanho em bytes
     arquivo_content_type = CharField(max_length=100)   # Tipo MIME
-    tipo_de_layout = CharField(choices=LAYOUTS)        # VAGAS/CANDIDATOS_CLASSIFICADOS
+    tipo_de_layout = CharField(choices=LAYOUTS)        # VAGAS/HABILITADOS
     status = CharField(choices=STATUS)                 # pendente/processando/concluido/erro
 ```
 
@@ -118,7 +118,7 @@ ls -la importacoes/
 ## 🚀 **Sistema Completamente Funcional:**
 
 - ✅ Validação rigorosa de CSV (headers, encoding, BOM)
-- ✅ Suporte a layouts VAGAS e CANDIDATOS_CLASSIFICADOS
+- ✅ Suporte a layouts VAGAS e HABILITADOS
 - ✅ Django salva apenas metadados
 - ✅ Robust_server salva arquivo físico
 - ✅ Status automático (pendente → processando)

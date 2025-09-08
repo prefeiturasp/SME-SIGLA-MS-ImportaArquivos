@@ -21,14 +21,14 @@ class ImportacaoStatus(Enum):
 class TipoLayout(Enum):
     """Enum para tipos de layout."""
     VAGAS = 'VAGAS'
-    CANDIDATOS_CLASSIFICADOS = 'CANDIDATOS_CLASSIFICADOS'
+    HABILITADOS = 'HABILITADOS'
 
     @classmethod
     def choices(cls) -> List[tuple]:
         """Retorna choices para usar em Django models."""
         return [
             (cls.VAGAS.value, 'Vagas'),
-            (cls.CANDIDATOS_CLASSIFICADOS.value, 'Candidatos Classificados'),
+            (cls.HABILITADOS.value, 'Habilitados'),
         ]
 
 
