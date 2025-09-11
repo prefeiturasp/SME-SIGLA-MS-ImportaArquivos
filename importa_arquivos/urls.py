@@ -1,13 +1,14 @@
-"""
-URL configuration for the importa_arquivos module.
-"""
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ImportacaoArquivosViewSet, LayoutViewSet
+from .views.importacao_habilitados import ImportacaoArquivoHabilitadosViewSet
+from .views.layout import LayoutArquivoImportacaoViewSet
+from .views.importacao_vagas import ImportacaoArquivoVagasViewSet
+
 
 router = DefaultRouter()
-router.register(r'importacao-arquivos', ImportacaoArquivosViewSet, basename='importacao-arquivo')
-router.register(r'layouts', LayoutViewSet, basename='layout')
+router.register(r'importacao-arquivo/habilitados', ImportacaoArquivoHabilitadosViewSet, basename='importacao-arquivo-habilitados')
+router.register(r'importacao-arquivo/vagas', ImportacaoArquivoVagasViewSet, basename='importacao-arquivo-vagas')
+router.register(r'layouts', LayoutArquivoImportacaoViewSet, basename='layout-arquivo')
 
 urlpatterns = [
     path('', include(router.urls)),
