@@ -81,3 +81,34 @@ def test_importacao_vagas_envio_api_exception(api_client, settings):
         assert resp.status_code in (200, 201)
         mock_validar.assert_called_once()
         mock_api.return_value.enviar_vagas.assert_called_once()
+
+
+def test_importacao_vagas_list_success(api_client, cria_vagas):
+    cria_vagas([
+        ('teste1.csv', 'PENDENTE'),
+        ('teste2.csv', 'PROCESSADO'),
+    ])
+
+    url = reverse('importacao-arquivo-vagas-list')
+    resp = api_client.get(url)
+
+    assert resp.status_code == 200
+    assert 'results' in resp.data
+    assert len(resp.data['results']) == 2
+    assert resp.data['results'][0]['nome_arquivo'] in ['teste1.csv', 'teste2.csv']
+
+
+def test_importacao_vagas_retrieve_success(api_client, cria_vagas):
+    objs = cria_vagas([
+        ('teste.csv', 'PENDENTE'),
+    ])
+    obj = objs[0]
+
+    url = reverse('importacao-arquivo-vagas-detail', kwargs={'pk': obj.pk})
+    resp = api_client.get(url)
+
+    assert resp.status_code == 200
+    assert resp.data['nome_arquivo'] == 'teste.csv'
+    assert resp.data['status'] == 'PENDENTE'
+    assert 'uuid' in resp.data
+

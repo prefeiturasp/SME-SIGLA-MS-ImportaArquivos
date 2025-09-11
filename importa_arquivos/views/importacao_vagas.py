@@ -20,9 +20,9 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
     queryset = ImportacaoArquivoVagas.objects.all()
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['nome', 'status']
-    search_fields = ['nome']
-    ordering_fields = ['nome', 'status', 'criado_em']
+    filterset_fields = ['nome_arquivo', 'status']
+    search_fields = ['nome_arquivo']
+    ordering_fields = ['nome_arquivo', 'status', 'criado_em']
     ordering = ['-criado_em']
     pagination_class = CustomPagination
 
