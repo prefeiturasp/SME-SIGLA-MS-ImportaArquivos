@@ -7,9 +7,14 @@ CHOICES_TIPO_IMPORTACAO_ARQUIVO = [
     ('VAGAS', 'Vagas'),
 ]
 
-from .constants import ImportacaoStatus, TipoLayout, FileValidationConstants
-from .services import RobustServerIntegrationService, FileValidationService
-  
+
+CHOICES_STATUS_IMPORTACAO_ARQUIVO = [
+    ('PENDENTE', 'Pendente'),
+    ('PROCESSANDO', 'Processando'),
+    ('CONCLUIDO', 'Concluído'),
+    ('ERRO', 'Erro'),
+]
+
 class BaseModel(models.Model):
     """
     Model base com UUID, criado_em e atualizado_em.
@@ -34,14 +39,10 @@ class BaseModelArquivoImportacao(BaseModel):
     )
     status = models.CharField(
         max_length=20,
-        choices=ImportacaoStatus.choices(),
-        default=ImportacaoStatus.PENDENTE.value,
+        choices=CHOICES_STATUS_IMPORTACAO_ARQUIVO,
+        default=CHOICES_STATUS_IMPORTACAO_ARQUIVO[0][0],
         verbose_name="Status"
     )
-    
-    # Services injetados
-    _validation_service = None
-    _integration_service = None
 
     class Meta:
         abstract = True
