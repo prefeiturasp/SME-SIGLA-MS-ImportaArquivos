@@ -1,42 +1,20 @@
-"""
-Django admin configuration for the importa_arquivos module.
-"""
 from django.contrib import admin
-from django.forms import JSONField
-from django.contrib.admin.widgets import AdminTextareaWidget
-from .models import ImportacaoArquivos
+from .models import ImportacaoArquivoHabilitado, LayoutArquivoImportacao
 
 
-@admin.register(ImportacaoArquivos)
-class ImportacaoArquivosAdmin(admin.ModelAdmin):
-    """
-    Admin para o modelo ImportacaoArquivos.
-    """
-    list_display = ['concurso', 'cargo', 'arquivo_nome_original', 'arquivo_tamanho_mb', 'tipo_de_layout', 'status', 'criado_em']
-    list_filter = ['tipo_de_layout', 'status', 'arquivo_content_type', 'criado_em', 'atualizado_em']
-    search_fields = ['concurso', 'cargo', 'arquivo_nome_original']
-    readonly_fields = ['uuid', 'arquivo_nome_original', 'arquivo_tamanho', 'arquivo_content_type', 'status', 'criado_em', 'atualizado_em']
-    ordering = ['-criado_em']
-    
-    fieldsets = (
-        ('Informações Básicas', {
-            'fields': ('concurso', 'cargo', 'tipo_de_layout')
-        }),
-        ('Informações do Arquivo', {
-            'fields': ('arquivo_nome_original', 'arquivo_tamanho', 'arquivo_content_type'),
-            'classes': ('collapse',)
-        }),
-        ('Status e Metadados', {
-            'fields': ('status', 'uuid', 'criado_em', 'atualizado_em'),
-            'classes': ('collapse',)
-        }),
-    )
-    
-    def arquivo_tamanho_mb(self, obj):
-        if obj.arquivo_tamanho:
-            return f"{obj.arquivo_tamanho / 1024 / 1024:.2f} MB"
-        return "0 MB"
-    arquivo_tamanho_mb.short_description = 'Tamanho'
+@admin.register(LayoutArquivoImportacao)
+class LayoutArquivoImportacaoAdmin(admin.ModelAdmin):
+    list_display = ('tipo', 'criado_em', 'atualizado_em')
+    search_fields = ('tipo',)
+    list_filter = ('tipo',)
+    ordering = ('-criado_em',)
+    readonly_fields = ('uuid', 'criado_em', 'atualizado_em')
 
 
-
+@admin.register(ImportacaoArquivoHabilitado)
+class ImportacaoArquivoHabilitadoAdmin(admin.ModelAdmin):
+    list_display = ('nome_arquivo', 'concurso_uuid', 'concurso_nome', 'status', 'criado_em')
+    search_fields = ('nome_arquivo', 'concurso_uuid', 'concurso_nome')
+    list_filter = ('status',)
+    ordering = ('-criado_em',)
+    readonly_fields = ('uuid', 'criado_em', 'atualizado_em')
