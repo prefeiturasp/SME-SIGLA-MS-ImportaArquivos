@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ImportacaoArquivoHabilitado, LayoutArquivoImportacao
+from .models import ImportacaoArquivoHabilitado, ImportacaoArquivoVagas, LayoutArquivoImportacao
 
 
 @admin.register(LayoutArquivoImportacao)
@@ -15,6 +15,15 @@ class LayoutArquivoImportacaoAdmin(admin.ModelAdmin):
 class ImportacaoArquivoHabilitadoAdmin(admin.ModelAdmin):
     list_display = ('nome_arquivo', 'concurso_uuid', 'concurso_nome', 'status', 'criado_em')
     search_fields = ('nome_arquivo', 'concurso_uuid', 'concurso_nome')
+    list_filter = ('status',)
+    ordering = ('-criado_em',)
+    readonly_fields = ('uuid', 'criado_em', 'atualizado_em')
+
+
+@admin.register(ImportacaoArquivoVagas)
+class ImportacaoArquivoVagasAdmin(admin.ModelAdmin):
+    list_display = ('nome_arquivo', 'status', 'criado_em')
+    search_fields = ('nome_arquivo',)
     list_filter = ('status',)
     ordering = ('-criado_em',)
     readonly_fields = ('uuid', 'criado_em', 'atualizado_em')
