@@ -4,6 +4,7 @@ import logging
 from typing import List, Dict, Tuple
 
 from ..models.layout import LayoutArquivoImportacao
+from importa_arquivos.services.exceptions import ColunaCSVInvalidaException
 
 logger = logging.getLogger(__name__)
 
@@ -20,19 +21,18 @@ def validar_csv_vagas(arquivo) -> Tuple[List[Dict], List[Dict]]:
 
     estrutura: List[Dict] = layout.estrutura or []
     colunas_esperadas = {item.get('coluna') for item in estrutura if isinstance(item, dict)}
-
     try:
         file_bytes = arquivo.read()
         arquivo.seek(0)
         text = file_bytes.decode('utf-8')
-        reader = csv.DictReader(io.StringIO(text))
+        reader = csv.DictReader(io.StringIO(text), delimiter=';')
     except Exception as exc:
         raise ValueError(f'Erro ao ler CSV: {exc}')
 
     headers_csv = set(reader.fieldnames or [])
-    for coluna in headers_csv:
-        if coluna not in colunas_esperadas:
-            logger.warning('Coluna não prevista no layout (VAGAS): %s', coluna)
+    if headers_csv != colunas_esperadas:
+        logger.warning(f'Colunas inválidas no CSV: {headers_csv}')
+        raise ColunaCSVInvalidaException(f'Colunas inválidas no CSV: {headers_csv}')
 
     registros: List[Dict] = []
     for row in reader:

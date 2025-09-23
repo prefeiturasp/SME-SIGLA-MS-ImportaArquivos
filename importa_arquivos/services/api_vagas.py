@@ -39,7 +39,7 @@ class ApiVagasService:
                 nome_payload = mapa.get(coluna_original)
                 if not nome_payload:
                     continue
-                if coluna_original == 'DataFechamentoModulo' and isinstance(valor, str):
+                if coluna_original == 'DATA' and isinstance(valor, str):
                     try:
                         valor = datetime.strptime(valor.strip(), '%d/%m/%Y').strftime('%Y-%m-%d')
                     except Exception:
@@ -49,7 +49,7 @@ class ApiVagasService:
         return saida
 
     def enviar_vagas(self, registros: List[Dict[str, Any]], estrutura: List[Dict[str, Any]], headers: Optional[Dict[str, str]] = None) -> requests.Response:
-        url = f"{self.base_url}/api/v1/vagas-escolas"
+        url = f"{self.base_url}/api/v1/vagas-escolas/"
         merged_headers = {**self._default_headers, **(headers or {})}
         dados = self._transformar_registros(registros, estrutura)
         payload = {

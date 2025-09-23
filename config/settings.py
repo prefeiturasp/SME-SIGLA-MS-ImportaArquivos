@@ -175,5 +175,5 @@ LOGGING = {
 CANDIDATOS_API_URL = os.environ.get('CANDIDATOS_API_URL', 'http://localhost:8000')
 CANDIDATOS_API_TIMEOUT = int(os.environ.get('CANDIDATOS_API_TIMEOUT', 30))
 
-ESCOLHAS_API_URL = os.environ.get('ESCOLHAS_API_URL', 'http://localhost:8000')
-ESCOLHAS_API_TIMEOUT = int(os.environ.get('ESCOLHAS_API_TIMEOUT', 30))
+ESCOLHA_API_URL = os.environ.get('ESCOLHA_API_URL', 'http://localhost:8000')
+ESCOLHA_API_TIMEOUT = int(os.environ.get('ESCOLHA_API_TIMEOUT', 30))
