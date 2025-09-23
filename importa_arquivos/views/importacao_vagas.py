@@ -48,7 +48,7 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
         response = super().create(request, *args, **kwargs)
 
         try:
-            ApiVagasService(base_url=settings.ESCOLHAS_API_URL).enviar_vagas(
+            ApiVagasService(base_url=settings.ESCOLHA_API_URL).enviar_vagas(
                 registros=registros,
                 estrutura=estrutura,
             )

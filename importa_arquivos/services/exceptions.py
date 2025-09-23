@@ -1,0 +1,2 @@
+class ColunaCSVInvalidaException(Exception):
+    pass
