@@ -1,11 +1,10 @@
-"""
-Serviços para integração com API de vagas.
-"""
 import logging
 from typing import List, Dict, Any, Optional
 
 import requests
 from datetime import datetime
+from requests.exceptions import RequestException
+from importa_arquivos.services.erros import registrar_erro
 
 logger = logging.getLogger(__name__)
 
@@ -48,14 +47,28 @@ class ApiVagasService:
             saida.append(novo)
         return saida
 
-    def enviar_vagas(self, registros: List[Dict[str, Any]], estrutura: List[Dict[str, Any]], headers: Optional[Dict[str, str]] = None) -> requests.Response:
+    def enviar_vagas(self,
+        registros: List[Dict[str, Any]],
+        estrutura: List[Dict[str, Any]],
+        headers: Optional[Dict[str, str]] = None,
+        importacao_obj: Optional[Any] = None,
+    ) -> requests.Response:
         url = f"{self.base_url}/api/v1/vagas-escolas/"
         merged_headers = {**self._default_headers, **(headers or {})}
         dados = self._transformar_registros(registros, estrutura)
         payload = {
             'vagas': dados,
         }
-        response = requests.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
-        response.raise_for_status()
-        logger.info('Vagas enviadas: %s', len(dados))
-        return response 
+        try:
+            response = requests.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
+            response.raise_for_status()
+            logger.info('Vagas enviadas: %s', len(dados))
+            return response
+        except RequestException as exc:
+            logger.error('Erro ao enviar vagas: %s', exc)
+            if importacao_obj is not None:
+                try:
+                    registrar_erro(importacao_obj, mensagem='Erro ao enviar vagas para API externa', detalhes=str(exc), exc=exc)
+                except Exception:
+                    pass
+            raise

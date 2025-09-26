@@ -34,25 +34,20 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        arquivo = serializer.validated_data.get('arquivo')
-
+        headers = self.get_success_headers(serializer.validated_data)
+        instance = serializer.save()
         try:
-            registros, estrutura = validar_csv_vagas(arquivo)
-        except ValueError as exc:
-            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            registros, estrutura = validar_csv_vagas(instance.arquivo, importacao_obj=instance)
         except Exception as exc:
-            logging.error('Erro inesperado na validação do CSV (VAGAS): %s', exc)
             return Response({'detail': 'Erro ao validar CSV.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        response = super().create(request, *args, **kwargs)
 
         try:
             ApiVagasService(base_url=settings.ESCOLHA_API_URL).enviar_vagas(
                 registros=registros,
                 estrutura=estrutura,
+                importacao_obj=instance,
             )
         except Exception as exc:
             logging.error('Falha ao enviar vagas para API externa: %s', exc)
 
-        return response
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
