@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+from django.contrib.contenttypes.fields import GenericRelation
 from .base import BaseModelArquivoImportacao
 
 

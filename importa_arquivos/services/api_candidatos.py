@@ -5,6 +5,8 @@ import logging
 from typing import List, Dict, Any, Optional
 
 import requests
+from requests import RequestException
+from importa_arquivos.services.erros import registrar_erro
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +44,15 @@ class ApiCandidatosService:
             transformados.append(novo)
         return transformados
 
-    def enviar_habilitados(self, registros: List[Dict[str, Any]], estrutura: List[Dict[str, Any]], concurso_uuid: str, concurso_nome: str, headers: Optional[Dict[str, str]] = None) -> requests.Response:
+    def enviar_habilitados(
+        self,
+        registros: List[Dict[str, Any]],
+        estrutura: List[Dict[str, Any]],
+        concurso_uuid: str,
+        concurso_nome: str,
+        headers: Optional[Dict[str, str]] = None,
+        importacao_obj: Optional[Any] = None,
+    ) -> requests.Response:
         url = f"{self.base_url}/api/v1/candidatos"
         merged_headers = {**self._default_headers, **(headers or {})}
 
@@ -53,7 +63,16 @@ class ApiCandidatosService:
             'concurso_nome': concurso_nome,
             'candidatos': dados_transformados,
         }
-        response = requests.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
-        response.raise_for_status()
-        logger.info('Candidatos enviados: %s (concurso=%s)', len(dados_transformados), concurso_uuid)
-        return response
+        try:
+            response = requests.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
+            response.raise_for_status()
+            logger.info('Candidatos enviados: %s (concurso=%s)', len(dados_transformados), concurso_uuid)
+            return response
+        except RequestException as exc:
+            logger.error('Erro ao enviar candidatos: %s', exc)
+            if importacao_obj is not None:
+                try:
+                    registrar_erro(importacao_obj, mensagem='Erro ao enviar candidatos para API externa', detalhes=str(exc), exc=exc)
+                except Exception:
+                    pass
+            raise

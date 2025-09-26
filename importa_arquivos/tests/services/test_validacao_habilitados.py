@@ -1,32 +1,24 @@
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from importa_arquivos.models.layout import LayoutArquivoImportacao
 from importa_arquivos.services.validacao_habilitados import validar_csv_habilitados
+from importa_arquivos.services.exceptions import LayoutNaoConfiguradoException
 
 
-@pytest.mark.django_db
-def test_validar_csv_habilitados_sucesso():
-    LayoutArquivoImportacao.objects.create(
-        tipo='HABILITADOS',
-        estrutura=[
-            {'coluna': 'Inscricao', 'campo_payload': 'codigo_inscricao'},
-            {'coluna': 'Nome', 'campo_payload': 'nome'},
-        ],
-    )
+pytestmark = pytest.mark.django_db
 
-    csv = 'Inscricao,Nome\n123,Joao\n'
-    arquivo = SimpleUploadedFile('h.csv', csv.encode('utf-8'), content_type='text/csv')
+
+def test_validar_csv_habilitados_sucesso(layout_habilitados):
+    csv = 'CPF\n12345678900\n'
+    arquivo = SimpleUploadedFile('h.csv', csv.encode('utf-8-sig'), content_type='text/csv')
 
     registros, estrutura = validar_csv_habilitados(arquivo)
     assert len(registros) == 1
-    assert registros[0]['Inscricao'] == '123'
-    assert registros[0]['Nome'] == 'Joao'
+    assert registros[0]['CPF'] == '12345678900'
     assert isinstance(estrutura, list)
 
 
-@pytest.mark.django_db
 def test_validar_csv_habilitados_sem_layout():
-    arquivo = SimpleUploadedFile('h.csv', b'Inscricao,Nome\n1,A\n', content_type='text/csv')
-    with pytest.raises(ValueError):
+    arquivo = SimpleUploadedFile('h.csv', b'CPF\n123\n', content_type='text/csv')
+    with pytest.raises(LayoutNaoConfiguradoException):
         validar_csv_habilitados(arquivo)

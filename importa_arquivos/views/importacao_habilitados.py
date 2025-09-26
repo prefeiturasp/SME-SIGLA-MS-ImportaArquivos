@@ -33,21 +33,16 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        arquivo = serializer.validated_data.get('arquivo')
+        instance = serializer.save()
 
         concurso_uuid = serializer.validated_data.get('concurso_uuid') or request.data.get('concurso_uuid')
         concurso_nome = serializer.validated_data.get('concurso_nome') or request.data.get('concurso_nome')
 
         try:
-            registros, estrutura = validar_csv_habilitados(arquivo)
-        except ValueError as exc:
-            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            registros, estrutura = validar_csv_habilitados(instance.arquivo, importacao_obj=instance)
         except Exception as exc:
             logging.error('Erro inesperado na validação do CSV: %s', exc)
             return Response({'detail': 'Erro ao validar CSV.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        response = super().create(request, *args, **kwargs)
 
         try:
             ApiCandidatosService(
@@ -55,10 +50,12 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
             ).enviar_habilitados(
                 registros=registros,
                 estrutura=estrutura,
-                concurso_uuid=str(concurso_uuid) if concurso_uuid else '',
-                concurso_nome=str(concurso_nome) if concurso_nome else '',
+                concurso_uuid=str(instance.concurso_uuid) if instance.concurso_uuid else '',
+                concurso_nome=str(instance.concurso_nome) if instance.concurso_nome else '',
+                importacao_obj=instance,
             )
         except Exception as exc:
             logging.error('Falha ao enviar dados para API externa: %s', exc)
 
-        return response
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
