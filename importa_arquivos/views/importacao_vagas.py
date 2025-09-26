@@ -20,8 +20,8 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
     queryset = ImportacaoArquivoVagas.objects.all()
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['nome_arquivo', 'status']
-    search_fields = ['nome_arquivo']
+    filterset_fields = ['nome_arquivo', 'status', 'concurso_uuid', 'concurso_nome']
+    search_fields = ['concurso_uuid', 'concurso_nome']
     ordering_fields = ['nome_arquivo', 'status', 'criado_em']
     ordering = ['-criado_em']
     pagination_class = CustomPagination
@@ -34,20 +34,29 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        headers = self.get_success_headers(serializer.validated_data)
         instance = serializer.save()
+
+        concurso_uuid = serializer.validated_data.get('concurso_uuid') or request.data.get('concurso_uuid')
+        concurso_nome = serializer.validated_data.get('concurso_nome') or request.data.get('concurso_nome')
+
         try:
             registros, estrutura = validar_csv_vagas(instance.arquivo, importacao_obj=instance)
         except Exception as exc:
+            logging.error('Erro inesperado na validação do CSV: %s', exc)
             return Response({'detail': 'Erro ao validar CSV.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            ApiVagasService(base_url=settings.ESCOLHA_API_URL).enviar_vagas(
+            ApiVagasService(
+                base_url=settings.ESCOLHA_API_URL,
+            ).enviar_vagas(
                 registros=registros,
                 estrutura=estrutura,
+                concurso_uuid=str(instance.concurso_uuid) if instance.concurso_uuid else '',
+                concurso_nome=str(instance.concurso_nome) if instance.concurso_nome else '',
                 importacao_obj=instance,
             )
         except Exception as exc:
-            logging.error('Falha ao enviar vagas para API externa: %s', exc)
+            logging.error('Falha ao enviar dados para API externa: %s', exc)
 
+        headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

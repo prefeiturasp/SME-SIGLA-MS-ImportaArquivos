@@ -7,7 +7,7 @@ class ImportacaoArquivoVagasCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImportacaoArquivoVagas
         fields = [
-            'arquivo'
+            'arquivo', 'concurso_uuid', 'concurso_nome'
         ]
 
     def create(self, validated_data):
@@ -26,6 +26,7 @@ class ImportacaoArquivoVagasListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImportacaoArquivoVagas
         fields = [
-            'uuid', 'nome_arquivo', 'arquivo', 'status', 'criado_em', 'atualizado_em'
+            'uuid', 'nome_arquivo', 'arquivo', 'status', 'concurso_uuid', 'concurso_nome',
+            'criado_em', 'atualizado_em'
         ]
         read_only_fields = ['uuid', 'criado_em', 'atualizado_em']
