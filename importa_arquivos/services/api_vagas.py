@@ -50,6 +50,8 @@ class ApiVagasService:
     def enviar_vagas(self,
         registros: List[Dict[str, Any]],
         estrutura: List[Dict[str, Any]],
+        concurso_uuid: str = '',
+        concurso_nome: str = '',
         headers: Optional[Dict[str, str]] = None,
         importacao_obj: Optional[Any] = None,
     ) -> requests.Response:
@@ -58,6 +60,8 @@ class ApiVagasService:
         dados = self._transformar_registros(registros, estrutura)
         payload = {
             'vagas': dados,
+            'concurso_uuid': concurso_uuid,
+            'concurso_nome': concurso_nome,
         }
         try:
             response = requests.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)

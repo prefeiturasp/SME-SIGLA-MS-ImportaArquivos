@@ -95,3 +95,109 @@ def test_api_vagas_nao_quebra_quando_registrar_erro_falha():
                     importacao_obj=obj,
                 )
             assert mock_reg.called
+
+
+class TestApiVagasConcursoFields:
+    """Testes para os novos campos de concurso no ApiVagasService."""
+
+    def test_enviar_vagas_com_campos_concurso(self):
+        """Testa envio de vagas com campos de concurso preenchidos."""
+        import uuid
+        service = ApiVagasService(base_url='https://api.exemplo')
+        concurso_uuid = str(uuid.uuid4())
+        concurso_nome = 'Concurso Teste 2025'
+        
+        registros = [{'DataFechamentoModulo': '05/09/2025'}]
+        estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
+
+        with patch('importa_arquivos.services.api_vagas.requests.post') as mock_post:
+            mock_resp = Mock()
+            mock_resp.raise_for_status.return_value = None
+            mock_post.return_value = mock_resp
+
+            service.enviar_vagas(
+                registros=registros,
+                estrutura=estrutura,
+                concurso_uuid=concurso_uuid,
+                concurso_nome=concurso_nome
+            )
+
+            # Verifica se os campos de concurso foram incluídos no payload
+            args, kwargs = mock_post.call_args
+            payload = kwargs['json']
+            assert payload['concurso_uuid'] == concurso_uuid
+            assert payload['concurso_nome'] == concurso_nome
+            assert 'vagas' in payload
+
+    def test_enviar_vagas_com_campos_concurso_vazios(self):
+        """Testa envio de vagas com campos de concurso vazios (valores padrão)."""
+        service = ApiVagasService(base_url='https://api.exemplo')
+        registros = [{'DataFechamentoModulo': '05/09/2025'}]
+        estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
+
+        with patch('importa_arquivos.services.api_vagas.requests.post') as mock_post:
+            mock_resp = Mock()
+            mock_resp.raise_for_status.return_value = None
+            mock_post.return_value = mock_resp
+
+            service.enviar_vagas(registros=registros, estrutura=estrutura)
+
+            # Verifica se os campos de concurso vazios foram incluídos no payload
+            args, kwargs = mock_post.call_args
+            payload = kwargs['json']
+            assert payload['concurso_uuid'] == ''
+            assert payload['concurso_nome'] == ''
+            assert 'vagas' in payload
+
+    def test_enviar_vagas_com_apenas_concurso_uuid(self):
+        """Testa envio de vagas com apenas concurso_uuid preenchido."""
+        import uuid
+        service = ApiVagasService(base_url='https://api.exemplo')
+        concurso_uuid = str(uuid.uuid4())
+        
+        registros = [{'DataFechamentoModulo': '05/09/2025'}]
+        estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
+
+        with patch('importa_arquivos.services.api_vagas.requests.post') as mock_post:
+            mock_resp = Mock()
+            mock_resp.raise_for_status.return_value = None
+            mock_post.return_value = mock_resp
+
+            service.enviar_vagas(
+                registros=registros,
+                estrutura=estrutura,
+                concurso_uuid=concurso_uuid
+            )
+
+            # Verifica se apenas concurso_uuid foi preenchido
+            args, kwargs = mock_post.call_args
+            payload = kwargs['json']
+            assert payload['concurso_uuid'] == concurso_uuid
+            assert payload['concurso_nome'] == ''
+            assert 'vagas' in payload
+
+    def test_enviar_vagas_com_apenas_concurso_nome(self):
+        """Testa envio de vagas com apenas concurso_nome preenchido."""
+        service = ApiVagasService(base_url='https://api.exemplo')
+        concurso_nome = 'Concurso Teste 2025'
+        
+        registros = [{'DataFechamentoModulo': '05/09/2025'}]
+        estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
+
+        with patch('importa_arquivos.services.api_vagas.requests.post') as mock_post:
+            mock_resp = Mock()
+            mock_resp.raise_for_status.return_value = None
+            mock_post.return_value = mock_resp
+
+            service.enviar_vagas(
+                registros=registros,
+                estrutura=estrutura,
+                concurso_nome=concurso_nome
+            )
+
+            # Verifica se apenas concurso_nome foi preenchido
+            args, kwargs = mock_post.call_args
+            payload = kwargs['json']
+            assert payload['concurso_uuid'] == ''
+            assert payload['concurso_nome'] == concurso_nome
+            assert 'vagas' in payload
