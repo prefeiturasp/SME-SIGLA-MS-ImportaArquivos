@@ -20,8 +20,8 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
     queryset = ImportacaoArquivoVagas.objects.all()
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['nome_arquivo', 'status', 'concurso_uuid', 'concurso_nome']
-    search_fields = ['concurso_uuid', 'concurso_nome']
+    filterset_fields = ['nome_arquivo', 'status', 'processo_uuid', 'processo_nome']
+    search_fields = ['processo_uuid', 'processo_nome']
     ordering_fields = ['nome_arquivo', 'status', 'criado_em']
     ordering = ['-criado_em']
     pagination_class = CustomPagination
@@ -36,8 +36,8 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
 
-        concurso_uuid = serializer.validated_data.get('concurso_uuid') or request.data.get('concurso_uuid')
-        concurso_nome = serializer.validated_data.get('concurso_nome') or request.data.get('concurso_nome')
+        processo_uuid = serializer.validated_data.get('processo_uuid') or request.data.get('processo_uuid')
+        processo_nome = serializer.validated_data.get('processo_nome') or request.data.get('processo_nome')
 
         try:
             registros, estrutura = validar_csv_vagas(instance.arquivo, importacao_obj=instance)
@@ -51,8 +51,8 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
             ).enviar_vagas(
                 registros=registros,
                 estrutura=estrutura,
-                concurso_uuid=str(instance.concurso_uuid) if instance.concurso_uuid else '',
-                concurso_nome=str(instance.concurso_nome) if instance.concurso_nome else '',
+                processo_uuid=str(instance.processo_uuid) if instance.processo_uuid else '',
+                processo_nome=str(instance.processo_nome) if instance.processo_nome else '',
                 importacao_obj=instance,
             )
         except Exception as exc:

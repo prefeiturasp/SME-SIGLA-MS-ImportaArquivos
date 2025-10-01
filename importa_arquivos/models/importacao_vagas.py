@@ -12,8 +12,8 @@ class ImportacaoArquivoVagas(BaseModelArquivoImportacao):
     Model para importação de arquivos de vagas.
     """
     history = AuditlogHistoryField()
-    concurso_uuid = models.UUIDField(verbose_name="UUID do concurso", null=True, blank=True)
-    concurso_nome = models.CharField(max_length=255, verbose_name="Nome do concurso", null=True, blank=True)
+    processo_uuid = models.UUIDField(verbose_name="UUID do processo de convocação", null=True, blank=True)
+    processo_nome = models.CharField(max_length=255, verbose_name="Nome do processo de convocação", null=True, blank=True)
 
     class Meta:
         db_table = 'importacao_arquivo_vagas'
