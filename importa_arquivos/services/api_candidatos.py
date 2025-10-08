@@ -53,7 +53,7 @@ class ApiCandidatosService:
         headers: Optional[Dict[str, str]] = None,
         importacao_obj: Optional[Any] = None,
     ) -> requests.Response:
-        url = f"{self.base_url}/api/v1/candidatos"
+        url = f"{self.base_url}/api/v1/candidatos/"
         merged_headers = {**self._default_headers, **(headers or {})}
 
         dados_transformados = self._transformar_registros(registros, estrutura)
