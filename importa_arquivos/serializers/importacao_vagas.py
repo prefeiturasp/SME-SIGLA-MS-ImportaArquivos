@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from ..models import ImportacaoArquivoVagas
+from django.contrib.contenttypes.models import ContentType
+from ..models import ImportacaoArquivoVagas, ImportacaoErro
 
 
 class ImportacaoArquivoVagasCreateSerializer(serializers.ModelSerializer):
@@ -23,10 +24,39 @@ class ImportacaoArquivoVagasCreateSerializer(serializers.ModelSerializer):
 
 class ImportacaoArquivoVagasListSerializer(serializers.ModelSerializer):
     """Serializer de listagem/detalhe para importações de vagas (todos os campos)."""
+    erros = serializers.SerializerMethodField()
+    
+    # Cache do content_type para evitar queries repetidas
+    _content_type_cache = None
+    
     class Meta:
         model = ImportacaoArquivoVagas
         fields = [
             'uuid', 'nome_arquivo', 'arquivo', 'status', 'processo_uuid', 'processo_nome',
-            'criado_em', 'atualizado_em'
+            'criado_em', 'atualizado_em', 'erros'
         ]
-        read_only_fields = ['uuid', 'criado_em', 'atualizado_em']
+        read_only_fields = ['uuid', 'criado_em', 'atualizado_em', 'erros']
+    
+    def get_erros(self, obj):
+        """Retorna os erros associados à importação, se existirem."""
+        # Usar cache do content_type para evitar queries repetidas
+        if ImportacaoArquivoVagasListSerializer._content_type_cache is None:
+            ImportacaoArquivoVagasListSerializer._content_type_cache = ContentType.objects.get_for_model(ImportacaoArquivoVagas)
+        
+        erros_queryset = ImportacaoErro.objects.filter(
+            content_type=ImportacaoArquivoVagasListSerializer._content_type_cache,
+            object_id=obj.uuid
+        ).order_by('-criado_em')
+        
+        if not erros_queryset.exists():
+            return None
+        
+        erros_list = []
+        for erro in erros_queryset:
+            erros_list.append({
+                'mensagem': erro.mensagem,
+                'erros': erro.erros,
+                'criado_em': erro.criado_em
+            })
+        
+        return erros_list

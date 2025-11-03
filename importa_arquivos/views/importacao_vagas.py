@@ -13,7 +13,12 @@ from ..serializers import (
 )
 from ..services.validacao_vagas import validar_csv_vagas
 from ..services.api_vagas import ApiVagasService
+from ..services.exceptions import ColunaCSVInvalidaException, LayoutNaoConfiguradoException, LeituraCSVException
 from ..utils import CustomPagination
+from rest_framework.decorators import action
+from django.http import HttpResponse
+from datetime import datetime
+from ..serializers import ImportacaoErrosListSerializer, queryset_erros_por_modelo
 
 
 class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
@@ -41,9 +46,16 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
 
         try:
             registros, estrutura = validar_csv_vagas(instance.arquivo, importacao_obj=instance)
+        except (ColunaCSVInvalidaException, LayoutNaoConfiguradoException, LeituraCSVException) as exc:
+            # Exceções customizadas já são capturadas pelo decorator e registram erro
+            # Mas ainda retornamos resposta HTTP para o cliente
+            mensagem = getattr(exc, 'mensagem', 'Erro ao validar arquivo de Vagas')
+            detalhes = getattr(exc, 'detalhes', str(exc))
+            logging.error('Erro na validação do CSV de Vagas: %s - %s', mensagem, detalhes)
+            return Response({'detail': mensagem, 'detalhes': detalhes}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as exc:
             logging.error('Erro inesperado na validação do CSV: %s', exc)
-            return Response({'detail': 'Erro ao validar CSV.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Erro ao validar arquivo de Vagas.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             ApiVagasService(
@@ -57,6 +69,47 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
             )
         except Exception as exc:
             logging.error('Falha ao enviar dados para API externa: %s', exc)
+            # O erro já foi registrado pelo serviço, garantir que a resposta tenha o status atualizado
+            instance.refresh_from_db()
 
+        # Atualizar serializer com dados atualizados da instância (incluindo status)
+        instance.refresh_from_db()
+        serializer = ImportacaoArquivoVagasListSerializer(instance)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @action(detail=False, methods=['get'], url_path='erros')
+    def listar_erros(self, request):
+        importacao_uuid = request.query_params.get('importacao_uuid', None)
+        qs = queryset_erros_por_modelo(ImportacaoArquivoVagas, importacao_uuid=importacao_uuid).select_related('content_type')
+        page = self.paginate_queryset(qs)
+        serializer = ImportacaoErrosListSerializer(page or qs, many=True)
+        if page is not None:
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='erros/download')
+    def download_erros(self, request):
+        importacao_uuid = request.query_params.get('importacao_uuid', None)
+        qs = queryset_erros_por_modelo(ImportacaoArquivoVagas, importacao_uuid=importacao_uuid).select_related('content_type')
+        serializer = ImportacaoErrosListSerializer(qs, many=True)
+        linhas = []
+        for item in serializer.data:
+            erros = item.get('erros') or ''
+            if erros:
+                # Separar por " | " e colocar cada parte em uma linha
+                partes_erro = erros.split(' | ')
+                for parte in partes_erro:
+                    # Adicionar negrito nos títulos (ex: "Colunas faltando:", "Colunas não esperadas:", etc.)
+                    if ':' in parte:
+                        titulo, conteudo = parte.split(':', 1)
+                        linhas.append(f"**{titulo.strip()}:** {conteudo.strip()}")
+                    else:
+                        linhas.append(parte)
+                # Adicionar linha em branco entre diferentes erros
+                linhas.append('')
+        conteudo = "\n".join(linhas).rstrip('\n')
+        resp = HttpResponse(conteudo, content_type='text/plain; charset=utf-8')
+        agora = datetime.now().strftime('%Y%m%d_%H%M%S')
+        resp['Content-Disposition'] = f'attachment; filename="vagas_erros_{agora}.txt"'
+        return resp

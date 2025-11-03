@@ -9,3 +9,7 @@ from .importacao_vagas import (
     ImportacaoArquivoVagasCreateSerializer,
     ImportacaoArquivoVagasListSerializer,
 )
+from .importacao_erros import (
+    ImportacaoErrosListSerializer,
+    queryset_erros_por_modelo,
+)
