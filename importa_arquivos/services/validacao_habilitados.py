@@ -36,15 +36,29 @@ def validar_csv_habilitados(arquivo, importacao_obj=None) -> Tuple[List[Dict], L
         text = file_bytes.decode('utf-8-sig')
         reader = csv.DictReader(io.StringIO(text))
     except Exception as exc:
-        raise LeituraCSVException('Erro ao ler arquivo CSV', detalhes=str(exc))
+        raise LeituraCSVException('Erro ao ler arquivo de Habilitados', detalhes=f'Não foi possível ler o arquivo CSV. Detalhes: {str(exc)}')
 
     headers_csv = set(reader.fieldnames or [])
     if headers_csv != colunas_esperadas:
         logger.warning(f'Colunas inválidas no CSV: {headers_csv}')
-        raise ColunaCSVInvalidaException(
-            'Colunas inválidas no arquivo CSV',
-            detalhes=f'Encontradas: {sorted(headers_csv)} | Esperadas: {sorted(colunas_esperadas)}'
-        )
+        
+        # Verificar quais colunas estão faltando ou sobrando para mensagem mais específica
+        colunas_faltando = colunas_esperadas - headers_csv
+        colunas_sobrando = headers_csv - colunas_esperadas
+        
+        mensagem_erro = 'Arquivo de Habilitados inválido'
+        detalhes_lista = []
+        
+        # Se houver colunas faltando, não mostrar essa parte (é redundante com colunas esperadas)
+        # Apenas mostrar colunas não esperadas se houver
+        if colunas_sobrando:
+            detalhes_lista.append(f'Colunas não esperadas: {sorted(colunas_sobrando)}')
+        # Sempre mostrar colunas esperadas quando há erro de validação
+        detalhes_lista.append(f'Colunas esperadas para Habilitados: {sorted(colunas_esperadas)}')
+        
+        detalhes = ' | '.join(detalhes_lista) if detalhes_lista else f'Encontradas: {sorted(headers_csv)} | Esperadas: {sorted(colunas_esperadas)}'
+        
+        raise ColunaCSVInvalidaException(mensagem_erro, detalhes=detalhes)
 
     registros: List[Dict] = []
     for row in reader:
