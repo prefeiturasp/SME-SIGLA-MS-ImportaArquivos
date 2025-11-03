@@ -174,7 +174,7 @@ LOGGING = {
 # SERVICES
 
 # CANDIDATOS_API_URL = os.environ.get('CANDIDATOS_API_URL', 'http://localhost:8000')
-CANDIDATOS_API_URL = 'http://localhost:8002'
+CANDIDATOS_API_URL = os.environ.get('CANDIDATOS_API_URL', 'http://localhost:8000')
 CANDIDATOS_API_TIMEOUT = int(os.environ.get('CANDIDATOS_API_TIMEOUT', 30))
 
 ESCOLHA_API_URL = os.environ.get('ESCOLHA_API_URL', 'http://localhost:8000')

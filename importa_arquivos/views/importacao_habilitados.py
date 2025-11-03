@@ -47,8 +47,6 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
         try:
             registros, estrutura = validar_csv_habilitados(instance.arquivo, importacao_obj=instance)
         except (ColunaCSVInvalidaException, LayoutNaoConfiguradoException, LeituraCSVException) as exc:
-            # Exceções customizadas já são capturadas pelo decorator e registram erro
-            # Mas ainda retornamos resposta HTTP para o cliente
             mensagem = getattr(exc, 'mensagem', 'Erro ao validar arquivo de Habilitados')
             detalhes = getattr(exc, 'detalhes', str(exc))
             logging.error('Erro na validação do CSV de Habilitados: %s - %s', mensagem, detalhes)
@@ -69,24 +67,12 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
             )
         except Exception as exc:
             logging.error('Falha ao enviar dados para API externa: %s', exc)
-            # O erro já foi registrado pelo serviço, garantir que a resposta tenha o status atualizado
             instance.refresh_from_db()
 
-        # Atualizar serializer com dados atualizados da instância (incluindo status)
         instance.refresh_from_db()
         serializer = ImportacaoArquivoHabilitadosListSerializer(instance)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    @action(detail=False, methods=['get'], url_path='erros')
-    def listar_erros(self, request):
-        importacao_uuid = request.query_params.get('importacao_uuid', None)
-        qs = queryset_erros_por_modelo(ImportacaoArquivoHabilitado, importacao_uuid=importacao_uuid).select_related('content_type')
-        page = self.paginate_queryset(qs)
-        serializer = ImportacaoErrosListSerializer(page or qs, many=True)
-        if page is not None:
-            return self.get_paginated_response(serializer.data)
-        return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path='erros/download')
     def download_erros(self, request):
@@ -97,16 +83,13 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
         for item in serializer.data:
             erros = item.get('erros') or ''
             if erros:
-                # Separar por " | " e colocar cada parte em uma linha
                 partes_erro = erros.split(' | ')
                 for parte in partes_erro:
-                    # Adicionar negrito nos títulos (ex: "Colunas faltando:", "Colunas não esperadas:", etc.)
                     if ':' in parte:
                         titulo, conteudo = parte.split(':', 1)
                         linhas.append(f"**{titulo.strip()}:** {conteudo.strip()}")
                     else:
                         linhas.append(parte)
-                # Adicionar linha em branco entre diferentes erros
                 linhas.append('')
         conteudo = "\n".join(linhas).rstrip('\n')
         resp = HttpResponse(conteudo, content_type='text/plain; charset=utf-8')
