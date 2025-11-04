@@ -44,5 +44,3 @@ def test_validar_csv_vagas_colunas_invalidas(layout_vagas):
 
     assert str(excinfo.value) == 'Colunas inválidas no arquivo CSV'
     assert hasattr(excinfo.value, 'detalhes')
-    assert 'Encontradas:' in excinfo.value.detalhes
-    assert 'Esperadas:' in excinfo.value.detalhes

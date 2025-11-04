@@ -48,13 +48,13 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
             registros, estrutura = validar_csv_vagas(instance.arquivo, importacao_obj=instance)
         except (ColunaCSVInvalidaException, LayoutNaoConfiguradoException, LeituraCSVException) as exc:
             # Mas ainda retornamos resposta HTTP para o cliente
-            mensagem = getattr(exc, 'mensagem', 'Erro ao validar arquivo de Vagas')
+            mensagem = getattr(exc, 'mensagem', 'Erro ao validar CSV.')
             detalhes = getattr(exc, 'detalhes', str(exc))
             logging.error('Erro na validação do CSV de Vagas: %s - %s', mensagem, detalhes)
             return Response({'detail': mensagem, 'detalhes': detalhes}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as exc:
             logging.error('Erro inesperado na validação do CSV: %s', exc)
-            return Response({'detail': 'Erro ao validar arquivo de Vagas.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Erro ao validar CSV.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             ApiVagasService(

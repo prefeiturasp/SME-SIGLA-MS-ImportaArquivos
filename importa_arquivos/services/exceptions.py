@@ -11,10 +11,17 @@ class BaseImportacaoException(Exception):
 class ColunaCSVInvalidaException(BaseImportacaoException):
     pass
 
+class CamposObrigatoriosNaoPreenchidosException(BaseImportacaoException):
+    pass
+
 
 class LayoutNaoConfiguradoException(BaseImportacaoException):
     pass
 
 
 class LeituraCSVException(BaseImportacaoException):
+    pass
+
+
+class EmailFormatoInvalidoException(BaseImportacaoException):
     pass

@@ -104,8 +104,8 @@ class TestApiVagasConcursoFields:
         """Testa envio de vagas com campos de concurso preenchidos."""
         import uuid
         service = ApiVagasService(base_url='https://api.exemplo')
-        concurso_uuid = str(uuid.uuid4())
-        concurso_nome = 'Concurso Teste 2025'
+        processo_uuid = str(uuid.uuid4())
+        processo_nome = 'Processo Teste 2025'
         
         registros = [{'DataFechamentoModulo': '05/09/2025'}]
         estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
@@ -118,15 +118,15 @@ class TestApiVagasConcursoFields:
             service.enviar_vagas(
                 registros=registros,
                 estrutura=estrutura,
-                concurso_uuid=concurso_uuid,
-                concurso_nome=concurso_nome
+                processo_uuid=processo_uuid,
+                processo_nome=processo_nome
             )
 
             # Verifica se os campos de concurso foram incluídos no payload
             args, kwargs = mock_post.call_args
             payload = kwargs['json']
-            assert payload['concurso_uuid'] == concurso_uuid
-            assert payload['concurso_nome'] == concurso_nome
+            assert payload['processo_uuid'] == processo_uuid
+            assert payload['processo_nome'] == processo_nome
             assert 'vagas' in payload
 
     def test_enviar_vagas_com_campos_concurso_vazios(self):
@@ -145,15 +145,15 @@ class TestApiVagasConcursoFields:
             # Verifica se os campos de concurso vazios foram incluídos no payload
             args, kwargs = mock_post.call_args
             payload = kwargs['json']
-            assert payload['concurso_uuid'] == ''
-            assert payload['concurso_nome'] == ''
+            assert payload['processo_uuid'] == ''
+            assert payload['processo_nome'] == ''
             assert 'vagas' in payload
 
     def test_enviar_vagas_com_apenas_concurso_uuid(self):
         """Testa envio de vagas com apenas concurso_uuid preenchido."""
         import uuid
         service = ApiVagasService(base_url='https://api.exemplo')
-        concurso_uuid = str(uuid.uuid4())
+        processo_uuid = str(uuid.uuid4())
         
         registros = [{'DataFechamentoModulo': '05/09/2025'}]
         estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
@@ -166,20 +166,20 @@ class TestApiVagasConcursoFields:
             service.enviar_vagas(
                 registros=registros,
                 estrutura=estrutura,
-                concurso_uuid=concurso_uuid
+                processo_uuid=processo_uuid
             )
 
             # Verifica se apenas concurso_uuid foi preenchido
             args, kwargs = mock_post.call_args
             payload = kwargs['json']
-            assert payload['concurso_uuid'] == concurso_uuid
-            assert payload['concurso_nome'] == ''
+            assert payload['processo_uuid'] == processo_uuid
+            assert payload['processo_nome'] == ''
             assert 'vagas' in payload
 
     def test_enviar_vagas_com_apenas_concurso_nome(self):
         """Testa envio de vagas com apenas concurso_nome preenchido."""
         service = ApiVagasService(base_url='https://api.exemplo')
-        concurso_nome = 'Concurso Teste 2025'
+        processo_nome = 'Processo Teste 2025'
         
         registros = [{'DataFechamentoModulo': '05/09/2025'}]
         estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
@@ -192,12 +192,12 @@ class TestApiVagasConcursoFields:
             service.enviar_vagas(
                 registros=registros,
                 estrutura=estrutura,
-                concurso_nome=concurso_nome
+                processo_nome=processo_nome
             )
 
             # Verifica se apenas concurso_nome foi preenchido
             args, kwargs = mock_post.call_args
             payload = kwargs['json']
-            assert payload['concurso_uuid'] == ''
-            assert payload['concurso_nome'] == concurso_nome
+            assert payload['processo_uuid'] == ''
+            assert payload['processo_nome'] == processo_nome
             assert 'vagas' in payload

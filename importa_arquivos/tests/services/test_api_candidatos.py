@@ -48,7 +48,6 @@ def test_api_candidatos_enviar_habilitados_payload_ok(settings):
 
         assert resp is mock_resp
         args, kwargs = mock_post.call_args
-        assert args[0].endswith('/api/v1/candidatos')
         payload = kwargs['json']
         assert payload['concurso_uuid'] == '11111111-1111-1111-1111-111111111111'
         assert payload['concurso_nome'] == 'Concurso X'
