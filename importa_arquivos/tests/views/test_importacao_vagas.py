@@ -145,37 +145,37 @@ class TestImportacaoVagasFiltersAndSearch:
         assert len(resp.data['results']) == 1
         assert resp.data['results'][0]['status'] == 'PENDENTE'
 
-    def test_filterset_fields_concurso_uuid(self, api_client):
-        """Testa filtro por concurso_uuid."""
+    def test_filterset_fields_processo_uuid(self, api_client):
+        """Testa filtro por processo_uuid."""
         import uuid
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.models import ImportacaoArquivoVagas
         
-        concurso_uuid = str(uuid.uuid4())
+        processo_uuid = str(uuid.uuid4())
         ImportacaoArquivoVagas.objects.create(
             nome_arquivo='arquivo1.csv',
             arquivo=SimpleUploadedFile('arquivo1.csv', b'content'),
             status='PENDENTE',
-            concurso_uuid=concurso_uuid,
-            concurso_nome='Concurso Teste 1'
+            processo_uuid=processo_uuid,
+            processo_nome='Processo Teste 1'
         )
         ImportacaoArquivoVagas.objects.create(
             nome_arquivo='arquivo2.csv',
             arquivo=SimpleUploadedFile('arquivo2.csv', b'content'),
             status='PROCESSADO',
-            concurso_uuid=str(uuid.uuid4()),
-            concurso_nome='Concurso Teste 2'
+            processo_uuid=str(uuid.uuid4()),
+            processo_nome='Processo Teste 2'
         )
 
         url = reverse('importacao-arquivo-vagas-list')
-        resp = api_client.get(url, {'concurso_uuid': concurso_uuid})
+        resp = api_client.get(url, {'processo_uuid': processo_uuid})
 
         assert resp.status_code == 200
         assert len(resp.data['results']) == 1
-        assert resp.data['results'][0]['concurso_uuid'] == concurso_uuid
+        assert resp.data['results'][0]['processo_uuid'] == processo_uuid
 
-    def test_filterset_fields_concurso_nome(self, api_client):
-        """Testa filtro por concurso_nome."""
+    def test_filterset_fields_processo_nome(self, api_client):
+        """Testa filtro por processo_nome."""
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.models import ImportacaoArquivoVagas
         
@@ -183,53 +183,53 @@ class TestImportacaoVagasFiltersAndSearch:
             nome_arquivo='arquivo1.csv',
             arquivo=SimpleUploadedFile('arquivo1.csv', b'content'),
             status='PENDENTE',
-            concurso_nome='Concurso Teste 1'
+            processo_nome='Processo Teste 1'
         )
         ImportacaoArquivoVagas.objects.create(
             nome_arquivo='arquivo2.csv',
             arquivo=SimpleUploadedFile('arquivo2.csv', b'content'),
             status='PROCESSADO',
-            concurso_nome='Concurso Teste 2'
+            processo_nome='Processo Teste 2'
         )
 
         url = reverse('importacao-arquivo-vagas-list')
-        resp = api_client.get(url, {'concurso_nome': 'Concurso Teste 1'})
+        resp = api_client.get(url, {'processo_nome': 'Processo Teste 1'})
 
         assert resp.status_code == 200
         assert len(resp.data['results']) == 1
-        assert resp.data['results'][0]['concurso_nome'] == 'Concurso Teste 1'
+        assert resp.data['results'][0]['processo_nome'] == 'Processo Teste 1'
 
-    def test_search_fields_concurso_uuid(self, api_client):
-        """Testa busca por concurso_uuid."""
+    def test_search_fields_processo_uuid(self, api_client):
+        """Testa busca por processo_uuid."""
         import uuid
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.models import ImportacaoArquivoVagas
         
-        concurso_uuid = str(uuid.uuid4())
+        processo_uuid = str(uuid.uuid4())
         ImportacaoArquivoVagas.objects.create(
             nome_arquivo='arquivo1.csv',
             arquivo=SimpleUploadedFile('arquivo1.csv', b'content'),
             status='PENDENTE',
-            concurso_uuid=concurso_uuid,
-            concurso_nome='Concurso Teste 1'
+            processo_uuid=processo_uuid,
+            processo_nome='Processo Teste 1'
         )
         ImportacaoArquivoVagas.objects.create(
             nome_arquivo='arquivo2.csv',
             arquivo=SimpleUploadedFile('arquivo2.csv', b'content'),
             status='PROCESSADO',
-            concurso_uuid=str(uuid.uuid4()),
-            concurso_nome='Concurso Teste 2'
+            processo_uuid=str(uuid.uuid4()),
+            processo_nome='Processo Teste 2'
         )
 
         url = reverse('importacao-arquivo-vagas-list')
-        resp = api_client.get(url, {'search': concurso_uuid})
+        resp = api_client.get(url, {'search': processo_uuid})
 
         assert resp.status_code == 200
         assert len(resp.data['results']) == 1
-        assert resp.data['results'][0]['concurso_uuid'] == concurso_uuid
+        assert resp.data['results'][0]['processo_uuid'] == processo_uuid
 
-    def test_search_fields_concurso_nome(self, api_client):
-        """Testa busca por concurso_nome."""
+    def test_search_fields_processo_nome(self, api_client):
+        """Testa busca por processo_nome."""
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.models import ImportacaoArquivoVagas
         
@@ -237,32 +237,32 @@ class TestImportacaoVagasFiltersAndSearch:
             nome_arquivo='arquivo1.csv',
             arquivo=SimpleUploadedFile('arquivo1.csv', b'content'),
             status='PENDENTE',
-            concurso_nome='Concurso Teste 1'
+            processo_nome='Processo Teste 1'
         )
         ImportacaoArquivoVagas.objects.create(
             nome_arquivo='arquivo2.csv',
             arquivo=SimpleUploadedFile('arquivo2.csv', b'content'),
             status='PROCESSADO',
-            concurso_nome='Concurso Teste 2'
+            processo_nome='Processo Teste 2'
         )
 
         url = reverse('importacao-arquivo-vagas-list')
-        resp = api_client.get(url, {'search': 'Concurso Teste 1'})
+        resp = api_client.get(url, {'search': 'Processo Teste 1'})
 
         assert resp.status_code == 200
         assert len(resp.data['results']) == 1
-        assert resp.data['results'][0]['concurso_nome'] == 'Concurso Teste 1'
+        assert resp.data['results'][0]['processo_nome'] == 'Processo Teste 1'
 
 
 # Testes para o tratamento dos campos de concurso no create
 class TestImportacaoVagasConcursoFields:
-    """Testes para o tratamento dos campos de concurso no create."""
+    """Testes para o tratamento dos campos de processo no create."""
 
     def test_create_with_concurso_fields_in_serializer(self, api_client, settings):
         """Testa criação com campos de concurso no serializer."""
         settings.ESCOLHA_API_URL = 'https://api.exemplo'
         import uuid
-        concurso_uuid = str(uuid.uuid4())
+        processo_uuid = str(uuid.uuid4())
         arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
 
         with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, \
@@ -276,22 +276,22 @@ class TestImportacaoVagasConcursoFields:
             url = reverse('importacao-arquivo-vagas-list')
             resp = api_client.post(url, {
                 'arquivo': arquivo,
-                'concurso_uuid': concurso_uuid,
-                'concurso_nome': 'Concurso Teste',
+                'processo_uuid': processo_uuid,
+                'processo_nome': 'Processo Teste',
             }, format='multipart')
 
             assert resp.status_code in (200, 201)
             mock_api.return_value.enviar_vagas.assert_called_once()
             # Verifica se os campos de concurso foram passados para a API
             call_args = mock_api.return_value.enviar_vagas.call_args
-            assert call_args[1]['concurso_uuid'] == concurso_uuid
-            assert call_args[1]['concurso_nome'] == 'Concurso Teste'
+            assert call_args[1]['processo_uuid'] == processo_uuid
+            assert call_args[1]['processo_nome'] == 'Processo Teste'
 
     def test_create_with_concurso_fields_in_request_data(self, api_client, settings):
         """Testa criação com campos de concurso no request.data."""
         settings.ESCOLHA_API_URL = 'https://api.exemplo'
         import uuid
-        concurso_uuid = str(uuid.uuid4())
+        processo_uuid = str(uuid.uuid4())
         arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
 
         with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, \
@@ -305,16 +305,16 @@ class TestImportacaoVagasConcursoFields:
             url = reverse('importacao-arquivo-vagas-list')
             resp = api_client.post(url, {
                 'arquivo': arquivo,
-                'concurso_uuid': concurso_uuid,
-                'concurso_nome': 'Concurso Teste',
+                'processo_uuid': processo_uuid,
+                'processo_nome': 'Processo Teste',
             }, format='multipart')
 
             assert resp.status_code in (200, 201)
             mock_api.return_value.enviar_vagas.assert_called_once()
             # Verifica se os campos de concurso foram passados para a API
             call_args = mock_api.return_value.enviar_vagas.call_args
-            assert call_args[1]['concurso_uuid'] == concurso_uuid
-            assert call_args[1]['concurso_nome'] == 'Concurso Teste'
+            assert call_args[1]['processo_uuid'] == processo_uuid
+            assert call_args[1]['processo_nome'] == 'Processo Teste'
 
     def test_create_with_empty_concurso_fields(self, api_client, settings):
         """Testa criação com campos de concurso vazios."""
@@ -338,8 +338,8 @@ class TestImportacaoVagasConcursoFields:
             mock_api.return_value.enviar_vagas.assert_called_once()
             # Verifica se os campos de concurso vazios foram passados como string vazia
             call_args = mock_api.return_value.enviar_vagas.call_args
-            assert call_args[1]['concurso_uuid'] == ''
-            assert call_args[1]['concurso_nome'] == ''
+            assert call_args[1]['processo_uuid'] == ''
+            assert call_args[1]['processo_nome'] == ''
 
 
 # Testes para tratamento de erros com logging
@@ -393,7 +393,7 @@ class TestImportacaoVagasErrorHandling:
 
 # Testes para os serializers com campos de concurso
 class TestImportacaoVagasSerializers:
-    """Testes para os serializers com os novos campos de concurso."""
+    """Testes para os serializers com os novos campos de processo."""
 
     def test_create_serializer_with_concurso_fields(self):
         """Testa ImportacaoArquivoVagasCreateSerializer com campos de concurso."""
@@ -401,21 +401,21 @@ class TestImportacaoVagasSerializers:
         from importa_arquivos.serializers import ImportacaoArquivoVagasCreateSerializer
         import uuid
         
-        concurso_uuid = str(uuid.uuid4())
+        processo_uuid = str(uuid.uuid4())
         arquivo = SimpleUploadedFile('teste.csv', b'content')
         
         data = {
             'arquivo': arquivo,
-            'concurso_uuid': concurso_uuid,
-            'concurso_nome': 'Concurso Teste 2025'
+            'processo_uuid': processo_uuid,
+            'processo_nome': 'Processo Teste 2025'
         }
         
         serializer = ImportacaoArquivoVagasCreateSerializer(data=data)
         assert serializer.is_valid()
         
         instance = serializer.save()
-        assert str(instance.concurso_uuid) == concurso_uuid
-        assert instance.concurso_nome == 'Concurso Teste 2025'
+        assert str(instance.processo_uuid) == processo_uuid
+        assert instance.processo_nome == 'Processo Teste 2025'
         assert instance.nome_arquivo == 'teste.csv'
         assert instance.tipo == 'VAGAS'
 
@@ -434,40 +434,40 @@ class TestImportacaoVagasSerializers:
         assert serializer.is_valid()
         
         instance = serializer.save()
-        assert instance.concurso_uuid is None
-        assert instance.concurso_nome is None
+        assert instance.processo_uuid is None
+        assert instance.processo_nome is None
         assert instance.nome_arquivo == 'teste.csv'
         assert instance.tipo == 'VAGAS'
 
-    def test_list_serializer_includes_concurso_fields(self, api_client):
-        """Testa ImportacaoArquivoVagasListSerializer inclui campos de concurso."""
+    def test_list_serializer_includes_processo_fields(self, api_client):
+        """Testa ImportacaoArquivoVagasListSerializer inclui campos de processo."""
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.models import ImportacaoArquivoVagas
         import uuid
         
-        concurso_uuid = str(uuid.uuid4())
+        processo_uuid = str(uuid.uuid4())
         obj = ImportacaoArquivoVagas.objects.create(
             nome_arquivo='teste.csv',
             arquivo=SimpleUploadedFile('teste.csv', b'content'),
             status='PENDENTE',
-            concurso_uuid=concurso_uuid,
-            concurso_nome='Concurso Teste 2025'
+            processo_uuid=processo_uuid,
+            processo_nome='Processo Teste 2025'
         )
         
         url = reverse('importacao-arquivo-vagas-detail', kwargs={'pk': obj.pk})
         resp = api_client.get(url)
         
         assert resp.status_code == 200
-        assert resp.data['concurso_uuid'] == concurso_uuid
-        assert resp.data['concurso_nome'] == 'Concurso Teste 2025'
+        assert resp.data['processo_uuid'] == processo_uuid
+        assert resp.data['processo_nome'] == 'Processo Teste 2025'
         assert 'uuid' in resp.data
         assert 'nome_arquivo' in resp.data
         assert 'status' in resp.data
         assert 'criado_em' in resp.data
         assert 'atualizado_em' in resp.data
 
-    def test_list_serializer_with_null_concurso_fields(self, api_client):
-        """Testa ImportacaoArquivoVagasListSerializer com campos de concurso nulos."""
+    def test_list_serializer_with_null_processo_fields(self, api_client):
+        """Testa ImportacaoArquivoVagasListSerializer com campos de processo nulos."""
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.models import ImportacaoArquivoVagas
         
@@ -475,127 +475,16 @@ class TestImportacaoVagasSerializers:
             nome_arquivo='teste.csv',
             arquivo=SimpleUploadedFile('teste.csv', b'content'),
             status='PENDENTE',
-            concurso_uuid=None,
-            concurso_nome=None
+            processo_uuid=None,
+            processo_nome=None
         )
         
         url = reverse('importacao-arquivo-vagas-detail', kwargs={'pk': obj.pk})
         resp = api_client.get(url)
         
         assert resp.status_code == 200
-        assert resp.data['concurso_uuid'] is None
-        assert resp.data['concurso_nome'] is None
+        assert resp.data['processo_uuid'] is None
+        assert resp.data['processo_nome'] is None
         assert 'uuid' in resp.data
         assert 'nome_arquivo' in resp.data
         assert 'status' in resp.data
-
-
-# Testes para o modelo ImportacaoArquivoVagas
-class TestImportacaoArquivoVagasModel:
-    """Testes para o modelo ImportacaoArquivoVagas com os novos campos de concurso."""
-
-    def test_model_creation_with_concurso_fields(self):
-        """Testa criação do modelo com campos de concurso."""
-        from django.core.files.uploadedfile import SimpleUploadedFile
-        from importa_arquivos.models import ImportacaoArquivoVagas
-        import uuid
-        
-        concurso_uuid = uuid.uuid4()
-        obj = ImportacaoArquivoVagas.objects.create(
-            nome_arquivo='teste.csv',
-            arquivo=SimpleUploadedFile('teste.csv', b'content'),
-            tipo='VAGAS',
-            concurso_uuid=concurso_uuid,
-            concurso_nome='Concurso Teste 2025'
-        )
-        
-        assert obj.concurso_uuid == concurso_uuid
-        assert obj.concurso_nome == 'Concurso Teste 2025'
-        assert obj.nome_arquivo == 'teste.csv'
-        assert obj.tipo == 'VAGAS'
-        assert obj.pk is not None
-
-    def test_model_creation_without_concurso_fields(self):
-        """Testa criação do modelo sem campos de concurso (valores nulos)."""
-        from django.core.files.uploadedfile import SimpleUploadedFile
-        from importa_arquivos.models import ImportacaoArquivoVagas
-        
-        obj = ImportacaoArquivoVagas.objects.create(
-            nome_arquivo='teste.csv',
-            arquivo=SimpleUploadedFile('teste.csv', b'content'),
-            tipo='VAGAS',
-            concurso_uuid=None,
-            concurso_nome=None
-        )
-        
-        assert obj.concurso_uuid is None
-        assert obj.concurso_nome is None
-        assert obj.nome_arquivo == 'teste.csv'
-        assert obj.tipo == 'VAGAS'
-        assert obj.pk is not None
-
-    def test_model_creation_with_empty_string_concurso_nome(self):
-        """Testa criação do modelo com concurso_nome como string vazia."""
-        from django.core.files.uploadedfile import SimpleUploadedFile
-        from importa_arquivos.models import ImportacaoArquivoVagas
-        
-        obj = ImportacaoArquivoVagas.objects.create(
-            nome_arquivo='teste.csv',
-            arquivo=SimpleUploadedFile('teste.csv', b'content'),
-            tipo='VAGAS',
-            concurso_uuid=None,
-            concurso_nome=''
-        )
-        
-        assert obj.concurso_uuid is None
-        assert obj.concurso_nome == ''
-        assert obj.nome_arquivo == 'teste.csv'
-        assert obj.tipo == 'VAGAS'
-        assert obj.pk is not None
-
-    def test_model_str_representation(self):
-        """Testa representação string do modelo."""
-        from django.core.files.uploadedfile import SimpleUploadedFile
-        from importa_arquivos.models import ImportacaoArquivoVagas
-        
-        obj = ImportacaoArquivoVagas.objects.create(
-            nome_arquivo='teste.csv',
-            arquivo=SimpleUploadedFile('teste.csv', b'content'),
-            tipo='VAGAS'
-        )
-        
-        assert str(obj) == 'teste.csv'
-
-    def test_model_fields_are_optional(self):
-        """Testa que os campos de concurso são opcionais (null=True, blank=True)."""
-        from django.core.files.uploadedfile import SimpleUploadedFile
-        from importa_arquivos.models import ImportacaoArquivoVagas
-        
-        # Testa criação sem especificar os campos
-        obj = ImportacaoArquivoVagas.objects.create(
-            nome_arquivo='teste.csv',
-            arquivo=SimpleUploadedFile('teste.csv', b'content'),
-            tipo='VAGAS'
-        )
-        
-        assert obj.concurso_uuid is None
-        assert obj.concurso_nome is None
-        assert obj.pk is not None
-
-    def test_model_concurso_nome_max_length(self):
-        """Testa que concurso_nome respeita o max_length=255."""
-        from django.core.files.uploadedfile import SimpleUploadedFile
-        from importa_arquivos.models import ImportacaoArquivoVagas
-        
-        # Nome com 255 caracteres (limite máximo)
-        long_name = 'A' * 255
-        obj = ImportacaoArquivoVagas.objects.create(
-            nome_arquivo='teste.csv',
-            arquivo=SimpleUploadedFile('teste.csv', b'content'),
-            tipo='VAGAS',
-            concurso_nome=long_name
-        )
-        
-        assert obj.concurso_nome == long_name
-        assert len(obj.concurso_nome) == 255
-

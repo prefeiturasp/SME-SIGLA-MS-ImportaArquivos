@@ -2,6 +2,8 @@ import csv
 import io
 import logging
 from typing import List, Dict, Tuple
+from datetime import datetime
+from validate_docbr import CPF
 
 from importa_arquivos.models import LayoutArquivoImportacao
 from importa_arquivos.services.exceptions import ColunaCSVInvalidaException, LayoutNaoConfiguradoException, LeituraCSVException
@@ -9,6 +11,139 @@ from .erros import captura_erros_importacao
 
 
 logger = logging.getLogger(__name__)
+
+
+def _validar_obrigatoriedade_linhas(estrutura: List[Dict], registros: List[Dict]) -> Dict[int, List[str]]:
+    """
+    Valida campos obrigatórios linha a linha conforme a estrutura do layout.
+    Retorna a lista de registros (dicts) quando não há erros; caso contrário lança exceção.
+    """
+    erros_por_linha: Dict[int, List[str]] = {}
+
+    def _eh_obrigatorio(valor):
+        try:
+            return str(valor).strip() in ('1', 'true', 'True')
+        except Exception:
+            return False
+
+    colunas_obrigatorias = [
+        (item.get('coluna'), item)
+        for item in estrutura if isinstance(item, dict) and _eh_obrigatorio(item.get('obrigatorio'))
+        if item.get('coluna')
+    ]
+
+    for idx, row in enumerate(registros, start=2):  # Header na linha 1
+
+        faltantes = []
+        for coluna, _item in colunas_obrigatorias:
+            valor = row.get(coluna)
+            if valor is None or str(valor).strip() == '':
+                faltantes.append(coluna)
+
+        if faltantes:
+            erros_por_linha.setdefault(idx, []).append(
+                f"Campos obrigatórios vazios: {', '.join(sorted(faltantes))}"
+            )
+    return erros_por_linha
+
+
+def _validar_formato_email(estrutura: List[Dict], registros: List[Dict]) -> Dict[int, List[str]]:
+    """
+    Valida o formato de e-mail conforme coluna definida no layout (campo_payload='email' ou coluna 'Email').
+    Lança EmailFormatoInvalidoException com detalhe agregando linhas com e-mail inválido.
+    """
+    email_coluna = None
+    for item in estrutura:
+        if not isinstance(item, dict):
+            continue
+        campo = str(item.get('campo_payload', '')).lower()
+        coluna = item.get('coluna')
+        if campo == 'email' or (isinstance(coluna, str) and coluna.lower() in ('email', 'e-mail')):
+            email_coluna = coluna
+            break
+    if not email_coluna:
+        return {}
+
+    import re
+    regex = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+    erros_por_linha: Dict[int, List[str]] = {}
+    for idx, row in enumerate(registros, start=2):
+        valor = row.get(email_coluna)
+        if valor is None or str(valor).strip() == '':
+            continue
+        if not regex.match(str(valor).strip()):
+            erros_por_linha.setdefault(idx, []).append(
+                f"Email inválido -> '{valor}'"
+            )
+    return erros_por_linha
+
+
+def _validar_cpf(estrutura: List[Dict], registros: List[Dict]) -> Dict[int, List[str]]:
+    """
+    Valida CPF usando validate_docbr.CPF(). Aceita valores com máscara; remove não dígitos.
+    Coluna identificada por campo_payload='cpf' ou coluna 'CPF'.
+    """
+    cpf_coluna = None
+    for item in estrutura:
+        if not isinstance(item, dict):
+            continue
+        campo = str(item.get('campo_payload', '')).lower()
+        coluna = item.get('coluna')
+        # Valida CPF sempre que a coluna/campo esteja mapeada no layout
+        if (campo == 'cpf' or (isinstance(coluna, str) and coluna.lower() == 'cpf')):
+            cpf_coluna = coluna
+            break
+    if not cpf_coluna:
+        return {}
+
+    validator = CPF()
+    erros_por_linha: Dict[int, List[str]] = {}
+    for idx, row in enumerate(registros, start=2):
+        valor = row.get(cpf_coluna)
+        if valor is None or str(valor).strip() == '':
+            continue
+        digits = ''.join(ch for ch in str(valor) if ch.isdigit())
+        if not validator.validate(digits):
+            erros_por_linha.setdefault(idx, []).append(
+                f"CPF inválido -> '{valor}'"
+            )
+
+    return erros_por_linha
+
+
+def _validar_data_nascimento(estrutura: List[Dict], registros: List[Dict]) -> Dict[int, List[str]]:
+    """
+    Valida a coluna de data de nascimento no padrão mm/dd/yyyy.
+    Coluna identificada por campo_payload='data_nascimento' ou nomes de coluna
+    como 'DataNascimento'/'dataNascimento' (case-insensitive).
+    """
+    coluna_dn = None
+    for item in estrutura:
+        if not isinstance(item, dict):
+            continue
+        payload = str(item.get('campo_payload', '')).lower()
+        coluna = item.get('coluna')
+        if payload == 'data_nascimento' or (
+            isinstance(coluna, str) and coluna.lower() in ('datanascimento', 'datanascimento')
+        ):
+            coluna_dn = coluna
+            break
+    if not coluna_dn:
+        return {}
+
+    erros_por_linha: Dict[int, List[str]] = {}
+    for idx, row in enumerate(registros, start=2):
+        valor = row.get(coluna_dn)
+        if valor is None or str(valor).strip() == '':
+            continue
+        try:
+            datetime.strptime(str(valor).strip(), '%m/%d/%Y')
+        except Exception:
+            erros_por_linha.setdefault(idx, []).append(
+                f"dataNascimento inválida -> '{valor}' (esperado mm/dd/yyyy)"
+            )
+
+    return erros_por_linha
 
 
 @captura_erros_importacao(param_nome_obj='importacao_obj')
@@ -41,29 +176,28 @@ def validar_csv_habilitados(arquivo, importacao_obj=None) -> Tuple[List[Dict], L
     headers_csv = set(reader.fieldnames or [])
     if headers_csv != colunas_esperadas:
         logger.warning(f'Colunas inválidas no CSV: {headers_csv}')
-        
-        # Verificar quais colunas estão faltando ou sobrando para mensagem mais específica
-        colunas_faltando = colunas_esperadas - headers_csv
-        colunas_sobrando = headers_csv - colunas_esperadas
-        
-        mensagem_erro = 'Arquivo de Habilitados inválido'
-        detalhes_lista = []
-        
-        # Se houver colunas faltando, não mostrar essa parte (é redundante com colunas esperadas)
-        # Apenas mostrar colunas não esperadas se houver
-        if colunas_sobrando:
-            detalhes_lista.append(f'Colunas não esperadas: {sorted(colunas_sobrando)}')
-        # Sempre mostrar colunas esperadas quando há erro de validação
-        detalhes_lista.append(f'Colunas esperadas para Habilitados: {sorted(colunas_esperadas)}')
-        
-        detalhes = ' | '.join(detalhes_lista) if detalhes_lista else f'Encontradas: {sorted(headers_csv)} | Esperadas: {sorted(colunas_esperadas)}'
-        
-        raise ColunaCSVInvalidaException(mensagem_erro, detalhes=detalhes)
+        detalhes = f'Encontradas: {sorted(headers_csv)} | Esperadas: {sorted(colunas_esperadas)}'
+
+        raise ColunaCSVInvalidaException('Arquivo de Habilitados inválido', detalhes=detalhes)
 
     registros: List[Dict] = []
     for row in reader:
-        if not isinstance(row, dict):
-            continue
-        registros.append(row)
+        if isinstance(row, dict):
+            registros.append(row)
+    erros_obrig = _validar_obrigatoriedade_linhas(estrutura, registros)
+    erros_email = _validar_formato_email(estrutura, registros)
+    erros_cpf = _validar_cpf(estrutura, registros)
+    erros_dn = _validar_data_nascimento(estrutura, registros)
+
+    erros_agrupados: Dict[int, List[str]] = {}
+    for src in (erros_obrig, erros_email, erros_cpf, erros_dn):
+        for linha, msgs in src.items():
+            erros_agrupados.setdefault(linha, []).extend(msgs)
+
+    if erros_agrupados:
+        mensagens = [f"Linha {linha}: {'; '.join(msgs)}" for linha, msgs in sorted(erros_agrupados.items())]
+        detalhes = " | ".join(mensagens)
+        logger.error("Erros de validação no CSV de Habilitados: %s", detalhes)
+        raise ColunaCSVInvalidaException('Erros de validação encontrados', detalhes=detalhes)
 
     return registros, estrutura
