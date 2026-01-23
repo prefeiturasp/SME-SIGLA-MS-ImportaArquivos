@@ -2,6 +2,7 @@ import pytest
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from unittest.mock import patch, Mock
+from importa_arquivos.services.exceptions import TipoUEDesabilitadoException
 
 pytestmark = pytest.mark.django_db
 
@@ -11,7 +12,7 @@ def test_importacao_vagas_create_success(api_client, settings):
     arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
 
     with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, \
-         patch('importa_arquivos.views.importacao_vagas.ApiVagasService') as mock_api:
+         patch('importa_arquivos.views.importacao_vagas.ApiEscolhasService') as mock_api:
         mock_validar.return_value = (
             [{'DataFechamentoModulo': '05/09/2025'}],
             [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
@@ -65,7 +66,7 @@ def test_importacao_vagas_envio_api_exception(api_client, settings):
     arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
 
     with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, \
-         patch('importa_arquivos.views.importacao_vagas.ApiVagasService') as mock_api:
+         patch('importa_arquivos.views.importacao_vagas.ApiEscolhasService') as mock_api:
         mock_validar.return_value = (
             [{'DataFechamentoModulo': '05/09/2025'}],
             [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
@@ -81,6 +82,29 @@ def test_importacao_vagas_envio_api_exception(api_client, settings):
         assert resp.status_code in (200, 201)
         mock_validar.assert_called_once()
         mock_api.return_value.enviar_vagas.assert_called_once()
+
+
+def test_importacao_vagas_tipo_ue_desabilitado(api_client, settings):
+    settings.ESCOLHA_API_URL = 'https://api.exemplo'
+    arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
+
+    with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, \
+         patch('importa_arquivos.views.importacao_vagas.ApiEscolhasService') as mock_api:
+        mock_validar.return_value = (
+            [{'DataFechamentoModulo': '05/09/2025', 'codigo_eol': '123456'}],
+            [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
+        )
+        mock_api.return_value.enviar_vagas.side_effect = TipoUEDesabilitadoException('Tipo de UE desabilitado', 'TIPO_UE_DESABILITADO')
+
+        url = reverse('importacao-arquivo-vagas-list')
+        resp = api_client.post(url, {
+            'arquivo': arquivo,
+            'tipo': 'VAGAS',
+        }, format='multipart')
+
+        assert resp.status_code == 400
+        assert resp.data.get('code') == 'TIPO_UE_DESABILITADO'
+        assert 'Tipo de UE desabilitado' in resp.data.get('detail', '')
 
 
 def test_importacao_vagas_list_success(api_client, cria_vagas):
@@ -266,26 +290,26 @@ class TestImportacaoVagasConcursoFields:
         arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
 
         with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, \
-             patch('importa_arquivos.views.importacao_vagas.ApiVagasService') as mock_api:
-            mock_validar.return_value = (
-                [{'DataFechamentoModulo': '05/09/2025'}],
-                [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
-            )
-            mock_api.return_value.enviar_vagas.return_value = Mock()
+            patch('importa_arquivos.views.importacao_vagas.ApiEscolhasService') as mock_api:
+                mock_validar.return_value = (
+                    [{'DataFechamentoModulo': '05/09/2025'}],
+                    [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
+                )
+                mock_api.return_value.enviar_vagas.return_value = Mock()
 
-            url = reverse('importacao-arquivo-vagas-list')
-            resp = api_client.post(url, {
-                'arquivo': arquivo,
-                'processo_uuid': processo_uuid,
-                'processo_nome': 'Processo Teste',
-            }, format='multipart')
+                url = reverse('importacao-arquivo-vagas-list')
+                resp = api_client.post(url, {
+                    'arquivo': arquivo,
+                    'processo_uuid': processo_uuid,
+                    'processo_nome': 'Processo Teste',
+                }, format='multipart')
 
-            assert resp.status_code in (200, 201)
-            mock_api.return_value.enviar_vagas.assert_called_once()
-            # Verifica se os campos de concurso foram passados para a API
-            call_args = mock_api.return_value.enviar_vagas.call_args
-            assert call_args[1]['processo_uuid'] == processo_uuid
-            assert call_args[1]['processo_nome'] == 'Processo Teste'
+                assert resp.status_code in (200, 201)
+                mock_api.return_value.enviar_vagas.assert_called_once()
+                # Verifica se os campos de concurso foram passados para a API
+                call_args = mock_api.return_value.enviar_vagas.call_args
+                assert call_args[1]['processo_uuid'] == processo_uuid
+                assert call_args[1]['processo_nome'] == 'Processo Teste'
 
     def test_create_with_concurso_fields_in_request_data(self, api_client, settings):
         """Testa criação com campos de concurso no request.data."""
@@ -295,7 +319,7 @@ class TestImportacaoVagasConcursoFields:
         arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
 
         with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, \
-             patch('importa_arquivos.views.importacao_vagas.ApiVagasService') as mock_api:
+             patch('importa_arquivos.views.importacao_vagas.ApiEscolhasService') as mock_api:
             mock_validar.return_value = (
                 [{'DataFechamentoModulo': '05/09/2025'}],
                 [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
@@ -322,7 +346,7 @@ class TestImportacaoVagasConcursoFields:
         arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
 
         with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, \
-             patch('importa_arquivos.views.importacao_vagas.ApiVagasService') as mock_api:
+             patch('importa_arquivos.views.importacao_vagas.ApiEscolhasService') as mock_api:
             mock_validar.return_value = (
                 [{'DataFechamentoModulo': '05/09/2025'}],
                 [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
@@ -371,7 +395,7 @@ class TestImportacaoVagasErrorHandling:
         arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
 
         with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, \
-             patch('importa_arquivos.views.importacao_vagas.ApiVagasService') as mock_api, \
+             patch('importa_arquivos.views.importacao_vagas.ApiEscolhasService') as mock_api, \
              patch('importa_arquivos.views.importacao_vagas.logging') as mock_logging:
             mock_validar.return_value = (
                 [{'DataFechamentoModulo': '05/09/2025'}],

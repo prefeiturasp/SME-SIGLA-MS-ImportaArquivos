@@ -25,3 +25,10 @@ class LeituraCSVException(BaseImportacaoException):
 
 class EmailFormatoInvalidoException(BaseImportacaoException):
     pass
+
+
+class TipoUEDesabilitadoException(BaseImportacaoException):
+    """
+    Erro retornado pela API de Escolhas quando o tipo_ue da escola está desabilitado.
+    """
+    pass
