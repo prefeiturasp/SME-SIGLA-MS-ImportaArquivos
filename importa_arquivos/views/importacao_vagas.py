@@ -12,8 +12,9 @@ from ..serializers import (
     ImportacaoArquivoVagasListSerializer,
 )
 from ..services.validacao_vagas import validar_csv_vagas
-from ..services.api_vagas import ApiVagasService
+from ..services.api_escolhas import ApiEscolhasService
 from ..services.exceptions import ColunaCSVInvalidaException, LayoutNaoConfiguradoException, LeituraCSVException
+from ..services.exceptions import TipoUEDesabilitadoException
 from ..utils import CustomPagination
 from rest_framework.decorators import action
 from django.http import HttpResponse
@@ -57,7 +58,7 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Erro ao validar CSV.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            ApiVagasService(
+            ApiEscolhasService(
                 base_url=settings.ESCOLHA_API_URL,
             ).enviar_vagas(
                 registros=registros,
@@ -66,6 +67,9 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
                 processo_nome=str(instance.processo_nome) if instance.processo_nome else '',
                 importacao_obj=instance,
             )
+        except TipoUEDesabilitadoException as exc:
+            logging.error('Tipo UE desabilitado ao enviar dados: %s', exc)
+            return Response({'detail': str(exc), 'code': 'TIPO_UE_DESABILITADO'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as exc:
             logging.error('Falha ao enviar dados para API externa: %s', exc)
             instance.refresh_from_db()

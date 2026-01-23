@@ -52,4 +52,4 @@ def validar_csv_vagas(arquivo, importacao_obj=None) -> Tuple[List[Dict], List[Di
             continue
         registros.append(row)
 
-    return registros, estrutura 
+    return registros, estrutura

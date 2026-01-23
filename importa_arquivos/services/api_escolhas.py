@@ -5,11 +5,13 @@ import requests
 from datetime import datetime
 from requests.exceptions import RequestException
 from importa_arquivos.services.erros import registrar_erro
+from importa_arquivos.services.exceptions import TipoUEDesabilitadoException
+from .erros import captura_erros_importacao
 
 logger = logging.getLogger(__name__)
 
 
-class ApiVagasService:
+class ApiEscolhasService:
     def __init__(self, base_url: str = 'https://example.com', timeout_seconds: int = 30):
         self.base_url = base_url.rstrip('/')
         self.timeout_seconds = timeout_seconds
@@ -18,9 +20,10 @@ class ApiVagasService:
             'Content-Type': 'application/json',
         }
 
+        # Mantido compatível: método e contrato iguais ao antigo ApiVagasService
     def _transformar_registros(self, registros: List[Dict[str, Any]], estrutura: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        Transforma os registros do CSV para o formato esperado pela API de vagas usando campo_payload do layout.
+        Transforma os registros do CSV para o formato esperado pela API usando campo_payload do layout.
         """
         mapa: Dict[str, str] = {}
         for item in estrutura:
@@ -47,6 +50,7 @@ class ApiVagasService:
             saida.append(novo)
         return saida
 
+    @captura_erros_importacao(param_nome_obj='importacao_obj')
     def enviar_vagas(self,
         registros: List[Dict[str, Any]],
         estrutura: List[Dict[str, Any]],
@@ -65,6 +69,17 @@ class ApiVagasService:
         }
         try:
             response = requests.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
+            # Tratamento específico para erro de tipo_ue desabilitado
+            if response.status_code == 400:
+                try:
+                    data = response.json()
+                except Exception:
+                    data = {}
+                if isinstance(data, dict) and data.get('code') == 'TIPO_UE_DESABILITADO':
+                    raise TipoUEDesabilitadoException(
+                        mensagem=str(data.get('detail') or 'Tipo de UE desabilitado'),
+                        detalhes='TIPO_UE_DESABILITADO'
+                    )
             response.raise_for_status()
             logger.info('Vagas enviadas: %s', len(dados))
             return response
