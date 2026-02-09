@@ -9,13 +9,6 @@ class ImportacaoEscolhasCreateSerializer(serializers.Serializer):
     processo_uuid = serializers.UUIDField(required=True)
     processo_id = serializers.IntegerField(required=True)
     concurso_uuid = serializers.UUIDField(required=True)
-    # def create(self, validated_data):
-    #     instance = ImportacaoEscolhas.objects.create(
-    #         processo_uuid=validated_data.get('processo_uuid'),
-    #         processo_id=validated_data.get('processo_id'),
-    #         status=CHOICES_STATUS_IMPORTACAO_ARQUIVO[0][0], # PENDENTE
-    #     )
-    #     return instance
 
 
 class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):

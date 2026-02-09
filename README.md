@@ -204,7 +204,6 @@ python scripts/teste_sistema_completo.py
 O script de teste verifica:
 - ✅ Layouts carregados corretamente
 - ✅ API funcionando
-- ✅ Robust Server disponível
 - ✅ Criação de importações
 - ✅ Integração completa
 
