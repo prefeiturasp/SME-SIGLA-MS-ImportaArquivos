@@ -91,3 +91,96 @@ class ApiEscolhasService:
                 except Exception:
                     pass
             raise
+
+    def _transformar_escolhas_prodam_para_escolhas(self, dados_prodam: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Transforma dados da Prodam para o formato esperado pelo MS-Escolhas.
+        
+        Args:
+            dados_prodam: Lista de dicionários com dados da Prodam
+            
+        Returns:
+            Lista de dicionários no formato esperado pelo MS-Escolhas
+        """
+        escolhas = []
+        
+        # Mapeamento de status da Prodam para situações do MS-Escolhas
+        mapeamento_status = {
+            'DESISTENTE': 'NAO-ESCOLHA',
+            'ALOCADO': 'ESCOLHA',
+            # Adicione outros mapeamentos conforme necessário
+        }
+        
+        for item in dados_prodam:
+            escolha = {
+                'cpf': item.get('codigoPessoaFisica', ''),
+                'codigo_cargo': item.get('codigoCargo', ''),
+                'codigo_eol': item.get('codigoUnidadeAlocacao') or '',
+                'tipo_vaga': item.get('tipoVaga') or '',
+            }
+            
+            # Mapear descricaoStatus para situacao
+            status_prodam = item.get('descricaoStatus', '')
+            situacao = mapeamento_status.get(status_prodam, 'PENDENTE')
+            escolha['situacao'] = situacao
+            
+            escolhas.append(escolha)
+        
+        return escolhas
+
+    @captura_erros_importacao(param_nome_obj='importacao_obj')
+    def enviar_escolhas_prodam(
+        self,
+        processo_uuid: str,
+        concurso_uuid: str,
+        dados_prodam: List[Dict[str, Any]],
+        headers: Optional[Dict[str, str]] = None,
+        importacao_obj: Optional[Any] = None,
+    ) -> requests.Response:
+        """
+        Envia escolhas da Prodam para o MS-Escolhas.
+        
+        Args:
+            processo_uuid: UUID do processo de convocação
+            concurso_uuid: UUID do concurso
+            dados_prodam: Lista de dicionários com dados da Prodam
+            headers: Headers adicionais para a requisição
+            importacao_obj: Objeto de importação para registro de erros
+            
+        Returns:
+            Response da requisição
+            
+        Raises:
+            RequestException: Em caso de erro na requisição
+        """
+        url = f"{self.base_url}/api/v1/escolhas/importacao-prodam/"
+        merged_headers = {**self._default_headers, **(headers or {})}
+        
+        # Transformar dados da Prodam para formato MS-Escolhas
+        escolhas = self._transformar_escolhas_prodam_para_escolhas(dados_prodam)
+        
+        payload = {
+            'processo_uuid': str(processo_uuid),
+            'concurso_uuid': str(concurso_uuid),
+            'escolhas': escolhas,
+        }
+        
+        try:
+            logger.info(f'Enviando {len(escolhas)} escolhas para MS-Escolhas (processo_uuid={processo_uuid})')
+            response = requests.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
+            response.raise_for_status()
+            logger.info(f'Escolhas enviadas com sucesso: {len(escolhas)}')
+            return response
+        except RequestException as exc:
+            logger.error(f'Erro ao enviar escolhas para MS-Escolhas: {exc}')
+            if importacao_obj is not None:
+                try:
+                    registrar_erro(
+                        importacao_obj,
+                        mensagem='Erro ao enviar escolhas para MS-Escolhas',
+                        detalhes=str(exc),
+                        exc=exc
+                    )
+                except Exception:
+                    pass
+            raise
