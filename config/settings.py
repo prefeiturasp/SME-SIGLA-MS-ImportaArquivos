@@ -102,8 +102,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Robust Server Configuration
-ROBUST_SERVER_URL = os.environ.get('ROBUST_SERVER_URL', 'http://localhost:8003')
 
 # Internationalization
 LANGUAGE_CODE = 'pt-br'
@@ -173,9 +171,14 @@ LOGGING = {
 
 # SERVICES
 
-# CANDIDATOS_API_URL = os.environ.get('CANDIDATOS_API_URL', 'http://localhost:8000')
 CANDIDATOS_API_URL = os.environ.get('CANDIDATOS_API_URL', 'http://localhost:8000')
 CANDIDATOS_API_TIMEOUT = int(os.environ.get('CANDIDATOS_API_TIMEOUT', 30))
 
-ESCOLHA_API_URL = os.environ.get('ESCOLHA_API_URL', 'http://localhost:8000')
+ESCOLHA_API_URL = os.environ.get('ESCOLHA_API_URL', 'http://localhost:8004')
 ESCOLHA_API_TIMEOUT = int(os.environ.get('ESCOLHA_API_TIMEOUT', 30))
+
+# PRODAM API Configuration
+PRODAM_ESCOLHAS_API_URL = os.environ.get('PRODAM_ESCOLHAS_API_URL')
+PRODAM_API_TOKEN = os.environ.get('PRODAM_API_TOKEN')
+PRODAM_API_USUARIO = os.environ.get('PRODAM_API_USUARIO')
+PRODAM_API_SENHA = os.environ.get('PRODAM_API_SENHA')
