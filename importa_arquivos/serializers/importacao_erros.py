@@ -5,6 +5,7 @@ from ..models import (
     ImportacaoErro,
     ImportacaoArquivoHabilitado,
     ImportacaoArquivoVagas,
+    ImportacaoEscolhas,
 )
 
 
@@ -29,6 +30,8 @@ class ImportacaoErrosListSerializer(serializers.Serializer):
                 if isinstance(obj, ImportacaoArquivoHabilitado):
                     data['concurso_uuid'] = obj.concurso_uuid
                 elif isinstance(obj, ImportacaoArquivoVagas):
+                    data['processo_uuid'] = obj.processo_uuid
+                elif isinstance(obj, ImportacaoEscolhas):
                     data['processo_uuid'] = obj.processo_uuid
         except Exception:
             # Se o objeto foi deletado ou não existe, mantém None

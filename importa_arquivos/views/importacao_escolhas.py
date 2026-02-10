@@ -3,6 +3,9 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.decorators import action
+from django.http import HttpResponse
+from datetime import datetime
 import logging
 from django.conf import settings
 
@@ -11,6 +14,8 @@ from ..serializers import (
     ImportacaoEscolhasCreateSerializer,
     ImportacaoEscolhasListSerializer,
     EscolhasImportacaoSerializer,
+    ImportacaoErrosListSerializer,
+    queryset_erros_por_modelo,
 )
 from ..services.api_prodam import ApiProdamService
 from ..services.api_escolhas import ApiEscolhasService
@@ -58,6 +63,10 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
         processo_id = serializer.validated_data.get('processo_id')
         concurso_uuid = serializer.validated_data.get('concurso_uuid')
         
+        if not processo_id:
+            processo_id = 819
+            logger.info(f'Usando processo_id fixo (819) para processo_uuid={processo_uuid}')
+        
         instance = ImportacaoEscolhas.objects.create(
             processo_uuid=processo_uuid,
             processo_id=processo_id,
@@ -91,6 +100,10 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             # 4. Obter lista de dados
             dados_prodam = resposta_api.get('lstDadosResultadoConvocacaoIngresso', [])
             
+            # Sempre salvar os dados retornados da API (mesmo se vazio)
+            instance.dados_prodam = dados_prodam
+            instance.save(update_fields=['dados_prodam'])
+            
             if not dados_prodam:
                 logger.warning('API PRODAM retornou lista vazia')
                 instance.status = 'CONCLUIDO'
@@ -114,7 +127,6 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             
             # 6. Atualizar status e quantidade de registros
             instance.status = 'CONCLUIDO'
-            instance.dados_prodam = dados_prodam
             instance.save()
             
             logger.info(f'Importação concluída com sucesso: {len(dados_prodam)} registros')
@@ -144,4 +156,36 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
         serializer_response = ImportacaoEscolhasListSerializer(instance)
         headers = self.get_success_headers(serializer_response.data)
         return Response(serializer_response.data, status=status.HTTP_201_CREATED, headers=headers)
+    
+    @action(detail=False, methods=['get'], url_path='erros')
+    def listar_erros(self, request):
+        """Lista erros de importação de escolhas."""
+        importacao_uuid = request.query_params.get('importacao_uuid', None)
+        qs = queryset_erros_por_modelo(ImportacaoEscolhas, importacao_uuid=importacao_uuid).select_related('content_type')
+        serializer = ImportacaoErrosListSerializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'], url_path='erros/download')
+    def download_erros(self, request):
+        """Download dos erros de importação de escolhas em formato texto."""
+        importacao_uuid = request.query_params.get('importacao_uuid', None)
+        qs = queryset_erros_por_modelo(ImportacaoEscolhas, importacao_uuid=importacao_uuid).select_related('content_type')
+        serializer = ImportacaoErrosListSerializer(qs, many=True)
+        linhas = []
+        for item in serializer.data:
+            erros = item.get('erros') or ''
+            if erros:
+                partes_erro = erros.split(' | ')
+                for parte in partes_erro:
+                    if ':' in parte:
+                        titulo, conteudo = parte.split(':', 1)
+                        linhas.append(f"**{titulo.strip()}:** {conteudo.strip()}")
+                    else:
+                        linhas.append(parte)
+                linhas.append('')
+        conteudo = "\n".join(linhas).rstrip('\n')
+        resp = HttpResponse(conteudo, content_type='text/plain; charset=utf-8')
+        agora = datetime.now().strftime('%Y%m%d_%H%M%S')
+        resp['Content-Disposition'] = f'attachment; filename="escolhas_erros_{agora}.txt"'
+        return resp
 

@@ -87,7 +87,7 @@ class ApiProdamService:
             # Verifica se a requisição foi bem-sucedida
             response.raise_for_status()
             # Parse da resposta
-            data = response.json()
+            data = json.loads(response.json())
             
             # Valida estrutura da resposta
             serializer = ResponseSerializer(data=data)
