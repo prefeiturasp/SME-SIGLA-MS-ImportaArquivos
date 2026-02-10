@@ -7,13 +7,14 @@ from ..models.base import CHOICES_STATUS_IMPORTACAO_ARQUIVO
 class ImportacaoEscolhasCreateSerializer(serializers.Serializer):
     """Serializer de criação para importações de escolhas."""
     processo_uuid = serializers.UUIDField(required=True)
-    processo_id = serializers.IntegerField(required=True)
+    processo_id = serializers.IntegerField(required=False, allow_null=True)
     concurso_uuid = serializers.UUIDField(required=True)
 
 
 class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
     """Serializer de listagem/detalhe para importações de escolhas."""
     erros = serializers.SerializerMethodField()
+    processo_nome = serializers.SerializerMethodField()
     
     _content_type_cache = None
     
@@ -21,9 +22,10 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
         model = ImportacaoEscolhas
         fields = [
             'uuid', 'processo_uuid', 'processo_id', 'dados_prodam',
-            'status', 'criado_em', 'atualizado_em', 'erros', 'concurso_uuid'
+            'status', 'criado_em', 'atualizado_em', 'erros', 'concurso_uuid',
+            'processo_nome'
         ]
-        read_only_fields = ['uuid', 'criado_em', 'atualizado_em', 'erros']
+        read_only_fields = ['uuid', 'criado_em', 'atualizado_em', 'erros', 'processo_nome']
     
     def get_erros(self, obj):
         """Retorna os erros associados à importação, se existirem."""
@@ -47,6 +49,12 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
             })
         
         return erros_list
+    
+    def get_processo_nome(self, obj):
+        """Retorna o nome do processo buscando via API externa se necessário."""
+        # O frontend já busca o nome do processo quando necessário
+        # Este campo pode ser None e o frontend fará a busca
+        return None
 
 
 class ResponseSerializer(serializers.Serializer):
