@@ -65,12 +65,7 @@ class ApiProdamService:
         response = None
         try:
             logger.info(f'Consultando API externa: processo_id={processo_id}')
-            response = requests.post(
-                url,
-                json=payload,
-                headers=headers,
-                timeout=self.timeout_seconds
-            )
+            response = requests.post(url, json=payload, headers=headers, timeout=self.timeout_seconds)
             
             # Salva log da chamada com resposta raw (mesmo em caso de erro HTTP)
             if response is not None:
@@ -79,7 +74,7 @@ class ApiProdamService:
                         url=url,
                         metodo_http='POST',
                         processo_id=processo_id,
-                        resposta_raw=response.json()
+                        resposta_raw=response.text
                     )
                 except Exception as log_exc:
                     logger.warning(f'Erro ao salvar log da chamada: {log_exc}')
@@ -87,7 +82,7 @@ class ApiProdamService:
             # Verifica se a requisição foi bem-sucedida
             response.raise_for_status()
             # Parse da resposta
-            data = json.loads(response.json())
+            data = json.loads(response.text)
             
             # Valida estrutura da resposta
             serializer = ResponseSerializer(data=data)
