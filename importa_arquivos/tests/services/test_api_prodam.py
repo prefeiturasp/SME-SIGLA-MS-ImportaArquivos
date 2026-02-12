@@ -168,7 +168,7 @@ class TestApiProdamService:
         
         with patch('importa_arquivos.services.api_prodam.requests.post') as mock_post:
             mock_resp = Mock()
-            mock_resp.text = '{}'
+            mock_resp.text = json.dumps(resposta_mock)
             mock_resp.json.side_effect = [resposta_mock, json.dumps(resposta_mock)]
             mock_resp.raise_for_status.return_value = None
             mock_post.return_value = mock_resp
@@ -265,7 +265,7 @@ class TestApiProdamService:
         
         with patch('importa_arquivos.services.api_prodam.requests.post') as mock_post:
             mock_resp = Mock()
-            mock_resp.text = '{}'
+            mock_resp.text = json.dumps(resposta_mock)
             mock_resp.json.side_effect = [resposta_mock, json.dumps(resposta_mock)]
             mock_resp.raise_for_status.return_value = None
             mock_post.return_value = mock_resp
