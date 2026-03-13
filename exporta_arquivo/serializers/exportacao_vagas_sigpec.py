@@ -28,10 +28,7 @@ class ExportacaoVagasSigpecCreateSerializer(serializers.ModelSerializer):
     Serializer para criação de exportações de vagas SIGPEC.
     Aceita processo_uuid, cargo_uuid, concurso_uuid (opcional), concurso_nome (opcional),
     processo_nome (opcional), cargo_nome (opcional), cargo_codigo (obrigatório).
-    Aceita descricao_processo como alias de processo_nome (front envia descricao_processo).
     """
-
-    descricao_processo = serializers.CharField(required=False, allow_blank=True, write_only=True)
 
     class Meta:
         model = ExportacaoVagasSigpec
@@ -43,14 +40,7 @@ class ExportacaoVagasSigpecCreateSerializer(serializers.ModelSerializer):
             'processo_nome',
             'cargo_nome',
             'cargo_codigo',
-            'descricao_processo',
         ]
-
-    def create(self, validated_data):
-        descricao = validated_data.pop('descricao_processo', None)
-        if descricao is not None and not (validated_data.get('processo_nome') or '').strip():
-            validated_data['processo_nome'] = (descricao or '').strip() or None
-        return super().create(validated_data)
 
 
 class ExportacaoVagasSigpecListSerializer(serializers.ModelSerializer):
