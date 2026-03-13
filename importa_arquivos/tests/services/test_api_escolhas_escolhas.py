@@ -39,7 +39,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         assert escolhas[0]['situacao'] == 'ESCOLHA'
 
     def test_transformar_escolhas_prodam_mapeamento_status_desistente(self):
-        """Testa mapeamento de status DESISTENTE para NAO-ESCOLHA."""
+        """Status DESISTENTE é filtrado (apenas ALOCADO é mantido)."""
         service = ApiEscolhasService(base_url='https://api.exemplo')
         
         dados_prodam = [
@@ -52,7 +52,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         
         escolhas = service._transformar_escolhas_prodam_para_escolhas(dados_prodam)
         
-        assert escolhas[0]['situacao'] == 'NAO-ESCOLHA'
+        assert len(escolhas) == 0
 
     def test_transformar_escolhas_prodam_mapeamento_status_alocado(self):
         """Testa mapeamento de status ALOCADO para ESCOLHA."""
@@ -71,7 +71,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         assert escolhas[0]['situacao'] == 'ESCOLHA'
 
     def test_transformar_escolhas_prodam_status_nao_mapeado(self):
-        """Testa que status não mapeados viram PENDENTE."""
+        """Status não mapeados são filtrados (apenas ALOCADO é mantido)."""
         service = ApiEscolhasService(base_url='https://api.exemplo')
         
         dados_prodam = [
@@ -84,7 +84,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         
         escolhas = service._transformar_escolhas_prodam_para_escolhas(dados_prodam)
         
-        assert escolhas[0]['situacao'] == 'PENDENTE'
+        assert len(escolhas) == 0
 
     def test_transformar_escolhas_prodam_campos_opcionais_nulos(self):
         """Testa transformação quando campos opcionais são None."""
@@ -106,7 +106,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         assert escolhas[0]['tipo_vaga'] == ''
 
     def test_transformar_escolhas_prodam_multiplos_registros(self):
-        """Testa transformação de múltiplos registros."""
+        """Apenas registros com status ALOCADO são mantidos."""
         service = ApiEscolhasService(base_url='https://api.exemplo')
         
         dados_prodam = [
@@ -124,11 +124,9 @@ class TestApiEscolhasServiceEscolhasProdam:
         
         escolhas = service._transformar_escolhas_prodam_para_escolhas(dados_prodam)
         
-        assert len(escolhas) == 2
+        assert len(escolhas) == 1
         assert escolhas[0]['cpf'] == '11111111111'
         assert escolhas[0]['situacao'] == 'ESCOLHA'
-        assert escolhas[1]['cpf'] == '22222222222'
-        assert escolhas[1]['situacao'] == 'NAO-ESCOLHA'
 
     def test_enviar_escolhas_prodam_sucesso(self):
         """Testa envio bem-sucedido de escolhas Prodam."""
