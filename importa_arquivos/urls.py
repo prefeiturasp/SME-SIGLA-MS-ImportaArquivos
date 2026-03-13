@@ -13,5 +13,6 @@ router.register(r'importacao-escolhas', ImportacaoEscolhasViewSet, basename='imp
 router.register(r'layouts', LayoutArquivoImportacaoViewSet, basename='layout-arquivo')
 
 urlpatterns = [
+    path('', include('exporta_arquivo.urls')),
     path('', include(router.urls)),
 ] 
