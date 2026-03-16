@@ -6,10 +6,8 @@ concurso_codigo e concurso_data_criacao são opcionais (preenchidos no model qua
 Busca habilitados na API Candidatos, monta dados_concurso e lista_candidatos e formata o arquivo .txt (pipe, DD/MM/YYYY, CPF só dígitos).
 """
 import re
-import uuid as uuid_module
 from typing import Any, Dict, List, Optional, Tuple
 
-from .exceptions import ExportacaoBadRequestException, ExportacaoNotFoundException
 from .api_candidatos import ApiCandidatosService
 
 _api_candidatos = ApiCandidatosService()
@@ -22,28 +20,6 @@ COLUNAS_LINHA = [
     "cd_cargo", "cd_vinculo", "cd_registro_funcional", "nr_classificação", "nr_desempate",
     "reservado", "nr_classificação_concurso",
 ]
-
-
-def _validar_uuids_processo_cargo(processo_uuid: str, cargo_uuid: str) -> None:
-    """Valida formato de processo_uuid e cargo_uuid. Levanta ExportacaoNotFoundException se inválidos."""
-    for name, value in (("processo_uuid", processo_uuid), ("cargo_uuid", cargo_uuid)):
-        try:
-            uuid_module.UUID(str(value))
-        except (ValueError, TypeError, AttributeError):
-            raise ExportacaoNotFoundException(mensagem=f"{name} inválido.", detalhes=f"{name} inválido.")
-
-
-def _validar_concurso_uuid(concurso_uuid: Optional[str]) -> None:
-    """Valida formato do concurso_uuid se informado. Levanta ExportacaoNotFoundException se inválido."""
-    if not concurso_uuid:
-        return
-    try:
-        uuid_module.UUID(str(concurso_uuid))
-    except (ValueError, TypeError):
-        raise ExportacaoNotFoundException(
-            mensagem="concurso_uuid inválido.",
-            detalhes="concurso_uuid inválido.",
-        )
 
 
 def _buscar_habilitados(
@@ -149,37 +125,6 @@ def _mapear_habilitado_para_exportacao(item: Dict[str, Any]) -> Dict[str, Any]:
         'nr_classificação_concurso': item.get('classificacao'),
     }
 
-
-def _validar_cargo_codigo(val: Any) -> int:
-    """Converte cargo_codigo para int. Levanta ExportacaoBadRequestException se ausente ou inválido."""
-    if val is None:
-        raise ExportacaoBadRequestException(
-            mensagem="cargo_codigo é obrigatório.", detalhes="cargo_codigo ausente.",
-        )
-    try:
-        return int(val)
-    except (TypeError, ValueError):
-        raise ExportacaoBadRequestException(
-            mensagem="cargo_codigo inválido. Deve ser numérico.",
-            detalhes="cargo_codigo deve ser numérico.",
-        )
-
-
-def _validar_concurso_codigo(val: Any) -> int:
-    """Converte concurso_codigo para int. Levanta ExportacaoBadRequestException se inválido."""
-    if val is None:
-        raise ExportacaoBadRequestException(
-            mensagem="concurso_codigo inválido.", detalhes="concurso_codigo ausente ou inválido.",
-        )
-    try:
-        return int(val)
-    except (TypeError, ValueError):
-        raise ExportacaoBadRequestException(
-            mensagem="concurso_codigo inválido. Deve ser numérico.",
-            detalhes="concurso_codigo deve ser numérico.",
-        )
-
-
 def exportar_candidatos_processo(
     processo_uuid: str,
     cargo_uuid: str,
@@ -192,26 +137,23 @@ def exportar_candidatos_processo(
 ) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
     """
     Orquestra a exportação de candidatos por processo.
-    Valida UUIDs e parâmetros; obtém habilitados; retorna (dados_concurso, lista_candidatos).
+    Obtém habilitados; retorna (dados_concurso, lista_candidatos).
     """
-    _validar_uuids_processo_cargo(processo_uuid, cargo_uuid)
-    _validar_concurso_uuid(concurso_uuid)
-    cargo_codigo_val = _validar_cargo_codigo(cargo_codigo)
     cargo_nome_final = (cargo_nome or "").strip()
     dados_concurso: Dict[str, Any] = {
         'codigo': None,
         'data_criacao': '',
-        'cargo_codigo': cargo_codigo_val,
+        'cargo_codigo': cargo_codigo,
         'cargo_nome': cargo_nome_final,
         'processo_uuid': processo_uuid,
     }
     if concurso_uuid:
         if concurso_codigo is not None:
-            dados_concurso['codigo'] = _validar_concurso_codigo(concurso_codigo)
+            dados_concurso['codigo'] = concurso_codigo
         if concurso_data_criacao is not None and (concurso_data_criacao or "").strip():
             dados_concurso['data_criacao'] = (concurso_data_criacao or "").strip()
 
-    lista_bruta = _buscar_habilitados(processo_uuid, cargo_codigo_val, concurso_uuid=concurso_uuid)
+    lista_bruta = _buscar_habilitados(processo_uuid, cargo_codigo, concurso_uuid=concurso_uuid)
     _chave = lambda i: (i.get('ranking_escolha') is None, i.get('ranking_escolha') or 0)
     lista_ordenada = sorted((i for i in lista_bruta if isinstance(i, dict)), key=_chave)
     lista_candidatos = [_mapear_habilitado_para_exportacao(item) for item in lista_ordenada]
