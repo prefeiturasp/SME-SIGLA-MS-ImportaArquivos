@@ -76,7 +76,7 @@ class TestExportacaoCandidatosProcessoCreateSerializer:
             "cargo_nome": "Cargo Y",
             "concurso_nome": "Concurso Z",
             "concurso_codigo": 99,
-            "concurso_data_criacao": "01/01/2024",
+            "concurso_data_criacao": "2024-01-01T00:00:00",
         }
         serializer = ExportacaoCandidatosProcessoCreateSerializer(data=data)
         assert serializer.is_valid(), serializer.errors
@@ -84,7 +84,10 @@ class TestExportacaoCandidatosProcessoCreateSerializer:
         assert obj.processo_nome == "Processo X"
         assert obj.cargo_nome == "Cargo Y"
         assert obj.concurso_codigo == 99
-        assert obj.concurso_data_criacao == "01/01/2024"
+        assert obj.concurso_data_criacao is not None
+        assert obj.concurso_data_criacao.year == 2024
+        assert obj.concurso_data_criacao.month == 1
+        assert obj.concurso_data_criacao.day == 1
         obj.delete()
 
 class TestExportacaoCandidatosProcessoListSerializer:
