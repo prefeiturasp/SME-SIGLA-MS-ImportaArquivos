@@ -15,12 +15,6 @@ from ..serializers import (
 )
 from ..services.exportacao_candidatos_processo import (
     exportar_candidatos_processo,
-    formatar_arquivo_candidatos_processo,
-)
-from ..services.exceptions import (
-    ExportacaoBadRequestException,
-    ExportacaoNotFoundException,
-    ExportacaoServiceUnavailableException,
 )
 from .base_exportacao import BaseExportacaoViewSet
 
@@ -49,29 +43,12 @@ class ExportacaoCandidatosProcessoViewSet(BaseExportacaoViewSet):
         return response
 
     def executar_exportacao(self, instance):
-        """Executa a exportação de candidatos processo, gera o arquivo e persiste conteúdo e nome no registro."""
-        concurso_uuid = str(instance.concurso_uuid) if instance.concurso_uuid else None
-        processo_nome = getattr(instance, 'processo_nome', None) or None
-        cargo_nome = getattr(instance, 'cargo_nome', None) or None
-        cargo_codigo_payload = getattr(instance, 'cargo_codigo', None)
-        concurso_codigo_payload = getattr(instance, 'concurso_codigo', None)
-        concurso_data_criacao_payload = getattr(instance, 'concurso_data_criacao', None)
+        """Executa a exportação de candidatos processo, gera o arquivo e persiste conteúdo e nome no registro."""    
 
-        dados_concurso, lista_candidatos = exportar_candidatos_processo(
-            str(instance.processo_uuid),
-            str(instance.cargo_uuid),
-            concurso_uuid=concurso_uuid,
-            processo_nome=processo_nome,
-            cargo_nome=cargo_nome,
-            cargo_codigo=cargo_codigo_payload,
-            concurso_codigo=concurso_codigo_payload,
-            concurso_data_criacao=concurso_data_criacao_payload,
-        )
-        conteudo = formatar_arquivo_candidatos_processo(dados_concurso, lista_candidatos)
-        cargo_nome_val = dados_concurso.get("cargo_nome") or "cargo"
-        codigo_concurso = dados_concurso.get("codigo") or dados_concurso.get("cargo_codigo") or ""
-        desc_safe = self.sanitizar_nome_arquivo(cargo_nome_val, max_len=60)
-        nome_arquivo = f"candidatos_processo_{desc_safe}_{codigo_concurso}.txt"
+        conteudo = exportar_candidatos_processo(instance)
+
+        desc_safe = self.sanitizar_nome_arquivo(instance.cargo_nome, max_len=60)
+        nome_arquivo = f"candidatos_processo_{desc_safe}_{instance.concurso_codigo}.txt"
         instance.conteudo_arquivo = conteudo
         instance.nome_arquivo = nome_arquivo
         instance.save(update_fields=['conteudo_arquivo', 'nome_arquivo'])
