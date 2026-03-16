@@ -48,21 +48,34 @@ class TestIntegracaoCreateCandidatosProcesso:
 
     def test_create_mockando_apenas_api_externa_retorna_200_e_arquivo_txt(self, api_client):
         """
-        POST create com payload válido; mock de requests.get (API Candidatos) retorna habilitados.
+        POST create com payload válido; mock de requests.get para API Concursos e API Candidatos.
         Service exportar_candidatos_processo e formatar_arquivo_candidatos_processo rodam de verdade.
         Verifica: 200, Content-Type text/plain, registro com conteudo_arquivo e nome_arquivo, conteúdo com pipe.
         """
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = _resposta_habilitados_api()
+        concurso_uuid = _uuid()
+        mock_concursos = MagicMock()
+        mock_concursos.status_code = 200
+        mock_concursos.json.return_value = {"codigo": 10, "criado_em": "2024-01-01T00:00:00"}
 
-        with patch("exporta_arquivo.services.api_candidatos.requests.get", return_value=mock_response):
+        mock_candidatos = MagicMock()
+        mock_candidatos.status_code = 200
+        mock_candidatos.json.return_value = _resposta_habilitados_api()
+
+        def fake_get(url, *args, **kwargs):
+            if "concursos" in url:
+                return mock_concursos
+            return mock_candidatos
+
+        with patch("exporta_arquivo.services.api_concursos.requests.get", side_effect=fake_get), patch(
+            "exporta_arquivo.services.api_candidatos.requests.get", side_effect=fake_get
+        ):
             response = api_client.post(
                 self.URL,
                 {
                     "processo_uuid": _uuid(),
                     "cargo_uuid": _uuid(),
                     "cargo_codigo": 10,
+                    "concurso_uuid": concurso_uuid,
                     "processo_nome": "Processo Integração",
                     "cargo_nome": "Cargo Teste",
                 },
@@ -83,4 +96,4 @@ class TestIntegracaoCreateCandidatosProcesso:
         assert "12345678900" in registro.conteudo_arquivo
         assert "Candidato Teste" in registro.conteudo_arquivo
 
-        mock_response.json.assert_called_once()
+        mock_candidatos.json.assert_called_once()

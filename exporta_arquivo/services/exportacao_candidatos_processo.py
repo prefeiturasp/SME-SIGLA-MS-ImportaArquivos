@@ -6,7 +6,7 @@ concurso_codigo e concurso_data_criacao são opcionais (preenchidos no model qua
 Busca habilitados na API Candidatos, monta dados_concurso e lista_candidatos e formata o arquivo .txt (pipe, DD/MM/YYYY, CPF só dígitos).
 """
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from exporta_arquivo.models import ExportacaoCandidatosProcesso
 from exporta_arquivo.services import ApiConcursosService, ApiCandidatosService
@@ -102,11 +102,11 @@ def _mapear_habilitado_para_exportacao(item: Dict[str, Any], dados_concurso: Dic
 
 def exportar_candidatos_processo(
     instance: ExportacaoCandidatosProcesso,
-) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+) -> str:
     """
     Orquestra a exportação de candidatos por processo.
-    Obtém habilitados; retorna (dados_concurso, lista_candidatos).   """  
-    
+    Obtém dados do concurso e habilitados; formata e retorna o conteúdo do arquivo .txt.
+    """
     dados_concurso = ApiConcursosService().get_concurso(instance.concurso_uuid)
     instance.concurso_codigo = dados_concurso.get('codigo')
     instance.concurso_data_criacao = dados_concurso.get('criado_em')

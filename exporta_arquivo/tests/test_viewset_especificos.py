@@ -36,14 +36,9 @@ class TestExportacaoCandidatosProcessoViewSetEspecifico:
     URL = "/api/v1/exportacao/candidatos-processo/"
 
     def test_create_com_mocks_persiste_conteudo_e_nome_arquivo_prefixo_candidatos_processo(self, api_client):
-        dados_concurso = {"codigo": 1, "data_criacao": "01/01/2024", "cargo_nome": "Cargo X", "cargo_codigo": 10}
-        lista_candidatos = [{"cd_cpf": "123", "nm_candidato_concurso": "Fulano"}]
         conteudo_esperado = "conteudo|pipe|formatado\n"
         with patch(
             "exporta_arquivo.views.exportacao_candidatos_processo.exportar_candidatos_processo",
-            return_value=(dados_concurso, lista_candidatos),
-        ), patch(
-            "exporta_arquivo.views.exportacao_candidatos_processo.formatar_arquivo_candidatos_processo",
             return_value=conteudo_esperado,
         ):
             response = api_client.post(
