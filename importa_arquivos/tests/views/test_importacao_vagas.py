@@ -1,7 +1,11 @@
+import uuid
 import pytest
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.contenttypes.models import ContentType
 from unittest.mock import patch, Mock
+
+from importa_arquivos.models import ImportacaoArquivoVagas, ImportacaoErro
 from importa_arquivos.services.exceptions import TipoUEDesabilitadoException
 
 pytestmark = pytest.mark.django_db
@@ -512,3 +516,97 @@ class TestImportacaoVagasSerializers:
         assert 'uuid' in resp.data
         assert 'nome_arquivo' in resp.data
         assert 'status' in resp.data
+
+
+# Testes para download_erros
+def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(api_client):
+    """Testa download_erros retorna arquivo vazio quando não há erros."""
+    url = reverse('importacao-arquivo-vagas-download-erros')
+    resp = api_client.get(url)
+    assert resp.status_code == 200
+    assert resp['Content-Type'] == 'text/plain; charset=utf-8'
+    assert 'attachment' in resp['Content-Disposition']
+    assert 'vagas_erros_' in resp['Content-Disposition']
+    assert resp.content == b''
+
+
+def test_download_erros_formata_conteudo_corretamente(api_client):
+    """Testa download_erros formata erros com titulo: conteudo."""
+    arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
+    importacao = ImportacaoArquivoVagas.objects.create(
+        nome_arquivo='v.csv',
+        arquivo=arquivo,
+        tipo='VAGAS',
+    )
+    content_type = ContentType.objects.get_for_model(ImportacaoArquivoVagas)
+    ImportacaoErro.objects.create(
+        content_type=content_type,
+        object_id=importacao.uuid,
+        mensagem='Erro de teste',
+        erros='Linha 1: erro na linha 1 | Linha 2: erro na linha 2',
+    )
+    url = reverse('importacao-arquivo-vagas-download-erros')
+    resp = api_client.get(url)
+    assert resp.status_code == 200
+    assert resp['Content-Type'] == 'text/plain; charset=utf-8'
+    assert 'attachment' in resp['Content-Disposition']
+    conteudo = resp.content.decode('utf-8')
+    assert '**Linha 1:** erro na linha 1' in conteudo
+    assert '**Linha 2:** erro na linha 2' in conteudo
+
+
+def test_download_erros_parte_sem_dois_pontos_apenas_append(api_client):
+    """Testa download_erros: partes sem ':' são adicionadas como estão."""
+    arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
+    importacao = ImportacaoArquivoVagas.objects.create(
+        nome_arquivo='v.csv',
+        arquivo=arquivo,
+        tipo='VAGAS',
+    )
+    content_type = ContentType.objects.get_for_model(ImportacaoArquivoVagas)
+    ImportacaoErro.objects.create(
+        content_type=content_type,
+        object_id=importacao.uuid,
+        mensagem='Erro',
+        erros='Mensagem simples sem dois pontos',
+    )
+    url = reverse('importacao-arquivo-vagas-download-erros')
+    resp = api_client.get(url)
+    assert resp.status_code == 200
+    conteudo = resp.content.decode('utf-8')
+    assert 'Mensagem simples sem dois pontos' in conteudo
+
+
+def test_download_erros_filtra_por_importacao_uuid(api_client):
+    """Testa download_erros filtra por importacao_uuid quando informado."""
+    arquivo = SimpleUploadedFile('v1.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
+    importacao1 = ImportacaoArquivoVagas.objects.create(
+        nome_arquivo='v1.csv',
+        arquivo=arquivo,
+        tipo='VAGAS',
+    )
+    arquivo2 = SimpleUploadedFile('v2.csv', b'DataFechamentoModulo\n06/09/2025\n', content_type='text/csv')
+    importacao2 = ImportacaoArquivoVagas.objects.create(
+        nome_arquivo='v2.csv',
+        arquivo=arquivo2,
+        tipo='VAGAS',
+    )
+    content_type = ContentType.objects.get_for_model(ImportacaoArquivoVagas)
+    ImportacaoErro.objects.create(
+        content_type=content_type,
+        object_id=importacao1.uuid,
+        mensagem='Erro 1',
+        erros='Erro importacao 1',
+    )
+    ImportacaoErro.objects.create(
+        content_type=content_type,
+        object_id=importacao2.uuid,
+        mensagem='Erro 2',
+        erros='Erro importacao 2',
+    )
+    url = reverse('importacao-arquivo-vagas-download-erros')
+    resp = api_client.get(url, {'importacao_uuid': str(importacao1.uuid)})
+    assert resp.status_code == 200
+    conteudo = resp.content.decode('utf-8')
+    assert 'Erro importacao 1' in conteudo
+    assert 'Erro importacao 2' not in conteudo
