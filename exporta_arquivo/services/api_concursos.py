@@ -45,6 +45,8 @@ class ApiConcursosService:
         """
         url = f"{self.base_url}/api/v1/concursos/{concurso_uuid}/"
 
+        logger.info(f"Chamando API de concursos: {url}")
+
         try:
             response = requests.get(
                 url,
@@ -59,6 +61,7 @@ class ApiConcursosService:
             ) from exc
 
         if response.status_code == 404:
+            logger.error(f"Concurso não encontrado: {url}")
             raise ExportacaoNotFoundException(
                 mensagem="Concurso não encontrado.",
                 detalhes=f"concurso_uuid={concurso_uuid}",
@@ -76,6 +79,7 @@ class ApiConcursosService:
             )
 
         if response.status_code != 200:
+            logger.error(f"Erro ao obter dados do concurso: {url}")
             raise ExportacaoServiceUnavailableException(
                 mensagem="Erro ao obter dados do concurso.",
                 detalhes=f"Status {response.status_code}",
