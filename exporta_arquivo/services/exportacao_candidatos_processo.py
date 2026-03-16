@@ -108,7 +108,6 @@ def exportar_candidatos_processo(
     Obtém habilitados; retorna (dados_concurso, lista_candidatos).   """  
     
     dados_concurso = ApiConcursosService().get_concurso(instance.concurso_uuid)
-    print(dados_concurso.get('criado_em'))
     instance.concurso_codigo = dados_concurso.get('codigo')
     instance.concurso_data_criacao = dados_concurso.get('criado_em')
     instance.save(update_fields=['concurso_codigo', 'concurso_data_criacao'])
