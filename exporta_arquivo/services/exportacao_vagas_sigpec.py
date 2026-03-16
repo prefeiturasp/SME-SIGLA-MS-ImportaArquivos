@@ -57,7 +57,8 @@ def buscar_vagas_escolas(
             'vagas_definitivas': v['vagas_definitivas'],
             'vagas_precarias': v['vagas_precarias'],
         }
-        for v in vagas        
+        for v in vagas 
+            if v['escola']['codigo_integracao'] is not None and v['escola']['codigo_integracao'] != ''
     ]
     return vagas_listas
 
