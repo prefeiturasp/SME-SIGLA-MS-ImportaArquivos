@@ -13,11 +13,10 @@ class ExportacaoCandidatosProcesso(BaseModel):
         null=True,
         blank=True,
     )
-    concurso_data_criacao = models.CharField(
-        max_length=50,
+    concurso_data_criacao = models.DateTimeField(
         verbose_name="Data de criação do concurso",
         null=True,
-        blank=True,
+        blank=True,    
     )    
    
     class Meta:

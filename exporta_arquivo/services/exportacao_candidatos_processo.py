@@ -8,9 +8,8 @@ Busca habilitados na API Candidatos, monta dados_concurso e lista_candidatos e f
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-from .api_candidatos import ApiCandidatosService
-
-_api_candidatos = ApiCandidatosService()
+from exporta_arquivo.models import ExportacaoCandidatosProcesso
+from exporta_arquivo.services import ApiConcursosService, ApiCandidatosService
 
 SEP = "|"
 COLUNAS_LINHA = [
@@ -18,20 +17,8 @@ COLUNAS_LINHA = [
     "nr_rg", "cd_cep", "nm_logradouro", "nr_logradouro", "tx_complemento", "nm_bairro",
     "nm_município", "sg_unidade_federativa", "nm_email", "nr_telefone_fixo", "nr_telefone_celular",
     "cd_cargo", "cd_vinculo", "cd_registro_funcional", "nr_classificação", "nr_desempate",
-    "reservado", "nr_classificação_concurso",
+    "nr_classificação_concurso",
 ]
-
-
-def _buscar_habilitados(
-    processo_uuid: str,
-    codigo_cargo: int,
-    concurso_uuid: Optional[str] = None,
-) -> List[Dict[str, Any]]:
-    """Obtém lista de habilitados via ApiCandidatosService."""
-    return _api_candidatos.get_habilitados(
-        processo_uuid, codigo_cargo, lote__concurso_uuid=concurso_uuid,
-    )
-
 
 def _data_para_dd_mm_yyyy(val: Any) -> str:
     """Converte data (ISO ou string) para DD/MM/YYYY."""
@@ -64,47 +51,35 @@ def _campo(val: Any) -> str:
     return s.replace(SEP, " ") if SEP in s else s
 
 
-def formatar_arquivo_candidatos_processo(
-    dados_concurso: Dict[str, Any],
+def formatar_arquivo_candidatos_processo(    
     linhas_candidatos: List[Dict[str, Any]],
 ) -> str:
     """
     Gera o conteúdo do arquivo TXT (delimitado por |) sem cabeçalho.
     data_criacao e dt_nascimento em DD/MM/YYYY; cd_cpf apenas dígitos.
     """
-    codigo_str = str(dados_concurso.get("codigo")) if dados_concurso.get("codigo") is not None else ""
-    data_criacao = _data_para_dd_mm_yyyy(dados_concurso.get("data_criacao") or "")
     linhas: List[str] = []
     for item in linhas_candidatos:
         if not isinstance(item, dict):
             continue
         valores: List[str] = []
-        for col in COLUNAS_LINHA:
-            if col == "codigo":
-                valores.append(_campo(codigo_str))
-            elif col == "data_criacao":
-                valores.append(data_criacao)
-            elif col == "cd_cpf":
-                valores.append(_cpf_apenas_digitos(item.get("cd_cpf")))
-            elif col == "dt_nascimento":
-                valores.append(_data_para_dd_mm_yyyy(item.get("dt_nascimento")))
-            elif col == "reservado":
-                valores.append("")
-            else:
-                valores.append(_campo(item.get(col)))
+        for col in COLUNAS_LINHA:           
+            valores.append(_campo(item.get(col)))
         linhas.append(SEP.join(valores))
     return "\n".join(linhas) + "\n" if linhas else ""
 
 
-def _mapear_habilitado_para_exportacao(item: Dict[str, Any]) -> Dict[str, Any]:
+def _mapear_habilitado_para_exportacao(item: Dict[str, Any], dados_concurso: Dict[str, Any]) -> Dict[str, Any]:
     """Mapeia item da API de habilitados para a estrutura do arquivo (colunas esperadas pelo formatter)."""
     candidato = item.get('candidato') if isinstance(item.get('candidato'), dict) else {}
     dt_nasc = candidato.get('data_nascimento')
     dt_nasc = (str(dt_nasc).split('T')[0] if dt_nasc else '') if dt_nasc is not None else ''
     return {
-        'cd_cpf': candidato.get('cpf') or '',
+        'codigo': dados_concurso.get('codigo'),
+        'data_criacao': _data_para_dd_mm_yyyy(dados_concurso.get('criado_em')),
+        'cd_cpf': _cpf_apenas_digitos(candidato.get('cpf')) or '',
         'nm_candidato_concurso': candidato.get('nome') or '',
-        'dt_nascimento': dt_nasc,
+        'dt_nascimento': _data_para_dd_mm_yyyy(dt_nasc),
         'cd_sexo': candidato.get('genero') or '',
         'nr_rg': candidato.get('rg') or '',
         'cd_cep': candidato.get('cep') or '',
@@ -126,35 +101,25 @@ def _mapear_habilitado_para_exportacao(item: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 def exportar_candidatos_processo(
-    processo_uuid: str,
-    cargo_uuid: str,
-    concurso_uuid: Optional[str] = None,
-    processo_nome: Optional[str] = None,
-    cargo_nome: Optional[str] = None,
-    cargo_codigo: Optional[Any] = None,
-    concurso_codigo: Optional[Any] = None,
-    concurso_data_criacao: Optional[str] = None,
+    instance: ExportacaoCandidatosProcesso,
 ) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
     """
     Orquestra a exportação de candidatos por processo.
-    Obtém habilitados; retorna (dados_concurso, lista_candidatos).
-    """
-    cargo_nome_final = (cargo_nome or "").strip()
-    dados_concurso: Dict[str, Any] = {
-        'codigo': None,
-        'data_criacao': '',
-        'cargo_codigo': cargo_codigo,
-        'cargo_nome': cargo_nome_final,
-        'processo_uuid': processo_uuid,
-    }
-    if concurso_uuid:
-        if concurso_codigo is not None:
-            dados_concurso['codigo'] = concurso_codigo
-        if concurso_data_criacao is not None and (concurso_data_criacao or "").strip():
-            dados_concurso['data_criacao'] = (concurso_data_criacao or "").strip()
+    Obtém habilitados; retorna (dados_concurso, lista_candidatos).   """  
+    
+    dados_concurso = ApiConcursosService().get_concurso(instance.concurso_uuid)
+    print(dados_concurso.get('criado_em'))
+    instance.concurso_codigo = dados_concurso.get('codigo')
+    instance.concurso_data_criacao = dados_concurso.get('criado_em')
+    instance.save(update_fields=['concurso_codigo', 'concurso_data_criacao'])
 
-    lista_bruta = _buscar_habilitados(processo_uuid, cargo_codigo, concurso_uuid=concurso_uuid)
+    lista_habilitados = ApiCandidatosService().get_habilitados(
+        instance.processo_uuid, 
+        instance.cargo_codigo, 
+        lote__concurso_uuid=instance.concurso_uuid
+        )
     _chave = lambda i: (i.get('ranking_escolha') is None, i.get('ranking_escolha') or 0)
-    lista_ordenada = sorted((i for i in lista_bruta if isinstance(i, dict)), key=_chave)
-    lista_candidatos = [_mapear_habilitado_para_exportacao(item) for item in lista_ordenada]
-    return (dados_concurso, lista_candidatos)
+    lista_ordenada = sorted((i for i in lista_habilitados if isinstance(i, dict)), key=_chave)
+    lista_candidatos = [_mapear_habilitado_para_exportacao(item, dados_concurso) for item in lista_ordenada]
+    conteudo_formatado = formatar_arquivo_candidatos_processo(lista_candidatos)
+    return conteudo_formatado
