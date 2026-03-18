@@ -14,6 +14,7 @@ def healthcheck(_request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('importa_arquivos.urls')),
+    path('api/v1/', include('exporta_arquivo.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SwaggerFromFileView.as_view(url_name='schema'), name='swagger-ui'),
     path('', healthcheck, name='healthcheck'),

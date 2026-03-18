@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'auditlog',
     'drf_spectacular',
     'importa_arquivos',
+    'exporta_arquivo',
 ]
 
 MIDDLEWARE = [
@@ -123,6 +124,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Disposition']
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Importa Arquivo Sigla API',
@@ -174,10 +176,13 @@ LOGGING = {
 CANDIDATOS_API_URL = os.environ.get('CANDIDATOS_API_URL', 'http://localhost:8000')
 CANDIDATOS_API_TIMEOUT = int(os.environ.get('CANDIDATOS_API_TIMEOUT', 30))
 
+CONCURSOS_API_URL = os.environ.get('CONCURSOS_API_URL', 'http://localhost:8001')
+CONCURSOS_API_TIMEOUT = int(os.environ.get('CONCURSOS_API_TIMEOUT', 30))
+
 ESCOLHA_API_URL = os.environ.get('ESCOLHA_API_URL', 'http://localhost:8004')
 ESCOLHA_API_TIMEOUT = int(os.environ.get('ESCOLHA_API_TIMEOUT', 30))
 
-PROCESSOS_CONVOCACAO_API_URL = os.environ.get('PROCESSOS_CONVOCACAO_API_URL', 'http://localhost:8003')
+PROCESSOS_CONVOCACAO_API_URL = os.environ.get('PROCESSOS_CONVOCACAO_API_URL', 'http://localhost:8000')
 PROCESSOS_CONVOCACAO_API_TIMEOUT = int(os.environ.get('PROCESSOS_CONVOCACAO_API_TIMEOUT', 30))
 
 # PRODAM API Configuration

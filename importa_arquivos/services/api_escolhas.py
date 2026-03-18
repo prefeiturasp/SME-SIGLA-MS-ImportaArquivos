@@ -105,27 +105,17 @@ class ApiEscolhasService:
         escolhas = []
         
         # Mapeamento de status da Prodam para situações do MS-Escolhas
-        mapeamento_status = {
-            'DESISTENTE': 'NAO-ESCOLHA',
-            'ALOCADO': 'ESCOLHA',
-            # Adicione outros mapeamentos conforme necessário
-        }
-        
+        dados_prodam = [item for item in dados_prodam if item.get('descricaoStatus') == 'ALOCADO']
         for item in dados_prodam:
             escolha = {
                 'cpf': item.get('codigoPessoaFisica', ''),
                 'codigo_cargo': item.get('codigoCargo', ''),
                 'codigo_eol': item.get('codigoUnidadeAlocacao') or '',
                 'tipo_vaga': item.get('tipoVaga') or '',
+                'situacao': 'ESCOLHA',
             }
-            
-            # Mapear descricaoStatus para situacao
-            status_prodam = item.get('descricaoStatus', '')
-            situacao = mapeamento_status.get(status_prodam, 'PENDENTE')
-            escolha['situacao'] = situacao
-            
             escolhas.append(escolha)
-        
+
         return escolhas
 
     @captura_erros_importacao(param_nome_obj='importacao_obj')

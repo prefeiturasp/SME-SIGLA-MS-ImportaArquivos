@@ -480,3 +480,148 @@ class TestImportacaoEscolhasViewSet:
             importacao = ImportacaoEscolhas.objects.get(processo_uuid=processo_uuid)
             assert importacao.dados_prodam == dados_prodam
 
+    def test_listar_erros_retorna_lista_vazia_quando_sem_erros(self, api_client):
+        """Testa listar_erros retorna lista vazia quando não há erros."""
+        url = reverse('importacao-escolhas-listar-erros')
+        resp = api_client.get(url)
+        assert resp.status_code == 200
+        assert resp.data == []
+
+    def test_listar_erros_retorna_erros_existentes(self, api_client):
+        """Testa listar_erros retorna erros de ImportacaoEscolhas."""
+        importacao = ImportacaoEscolhas.objects.create(
+            processo_uuid=uuid.uuid4(),
+            processo_id=123,
+            status='ERRO',
+        )
+        content_type = ContentType.objects.get_for_model(ImportacaoEscolhas)
+        ImportacaoErro.objects.create(
+            content_type=content_type,
+            object_id=importacao.uuid,
+            mensagem='Erro de teste',
+            erros='Linha 1: erro na linha 1 | Linha 2: erro na linha 2',
+        )
+        url = reverse('importacao-escolhas-listar-erros')
+        resp = api_client.get(url)
+        assert resp.status_code == 200
+        assert len(resp.data) == 1
+        assert resp.data[0]['mensagem'] == 'Erro de teste'
+        assert resp.data[0]['erros'] == 'Linha 1: erro na linha 1 | Linha 2: erro na linha 2'
+
+    def test_listar_erros_filtra_por_importacao_uuid(self, api_client):
+        """Testa listar_erros filtra por importacao_uuid quando informado."""
+        importacao1 = ImportacaoEscolhas.objects.create(
+            processo_uuid=uuid.uuid4(),
+            processo_id=123,
+            status='ERRO',
+        )
+        importacao2 = ImportacaoEscolhas.objects.create(
+            processo_uuid=uuid.uuid4(),
+            processo_id=456,
+            status='ERRO',
+        )
+        content_type = ContentType.objects.get_for_model(ImportacaoEscolhas)
+        ImportacaoErro.objects.create(
+            content_type=content_type,
+            object_id=importacao1.uuid,
+            mensagem='Erro importacao 1',
+            erros='Erro 1',
+        )
+        ImportacaoErro.objects.create(
+            content_type=content_type,
+            object_id=importacao2.uuid,
+            mensagem='Erro importacao 2',
+            erros='Erro 2',
+        )
+        url = reverse('importacao-escolhas-listar-erros')
+        resp = api_client.get(url, {'importacao_uuid': str(importacao1.uuid)})
+        assert resp.status_code == 200
+        assert len(resp.data) == 1
+        assert resp.data[0]['mensagem'] == 'Erro importacao 1'
+        assert resp.data[0]['erros'] == 'Erro 1'
+
+    def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(self, api_client):
+        """Testa download_erros retorna arquivo vazio quando não há erros."""
+        url = reverse('importacao-escolhas-download-erros')
+        resp = api_client.get(url)
+        assert resp.status_code == 200
+        assert resp['Content-Type'] == 'text/plain; charset=utf-8'
+        assert 'attachment' in resp['Content-Disposition']
+        assert 'escolhas_erros_' in resp['Content-Disposition']
+        assert resp.content == b''
+
+    def test_download_erros_formata_conteudo_corretamente(self, api_client):
+        """Testa download_erros formata erros com titulo: conteudo."""
+        importacao = ImportacaoEscolhas.objects.create(
+            processo_uuid=uuid.uuid4(),
+            processo_id=123,
+            status='ERRO',
+        )
+        content_type = ContentType.objects.get_for_model(ImportacaoEscolhas)
+        ImportacaoErro.objects.create(
+            content_type=content_type,
+            object_id=importacao.uuid,
+            mensagem='Erro de teste',
+            erros='Linha 1: erro na linha 1 | Linha 2: erro na linha 2',
+        )
+        url = reverse('importacao-escolhas-download-erros')
+        resp = api_client.get(url)
+        assert resp.status_code == 200
+        assert resp['Content-Type'] == 'text/plain; charset=utf-8'
+        assert 'attachment' in resp['Content-Disposition']
+        conteudo = resp.content.decode('utf-8')
+        assert '**Linha 1:** erro na linha 1' in conteudo
+        assert '**Linha 2:** erro na linha 2' in conteudo
+
+    def test_download_erros_parte_sem_dois_pontos_apenas_append(self, api_client):
+        """Testa download_erros: partes sem ':' são adicionadas como estão."""
+        importacao = ImportacaoEscolhas.objects.create(
+            processo_uuid=uuid.uuid4(),
+            processo_id=123,
+            status='ERRO',
+        )
+        content_type = ContentType.objects.get_for_model(ImportacaoEscolhas)
+        ImportacaoErro.objects.create(
+            content_type=content_type,
+            object_id=importacao.uuid,
+            mensagem='Erro',
+            erros='Mensagem simples sem dois pontos',
+        )
+        url = reverse('importacao-escolhas-download-erros')
+        resp = api_client.get(url)
+        assert resp.status_code == 200
+        conteudo = resp.content.decode('utf-8')
+        assert 'Mensagem simples sem dois pontos' in conteudo
+
+    def test_download_erros_filtra_por_importacao_uuid(self, api_client):
+        """Testa download_erros filtra por importacao_uuid quando informado."""
+        importacao1 = ImportacaoEscolhas.objects.create(
+            processo_uuid=uuid.uuid4(),
+            processo_id=123,
+            status='ERRO',
+        )
+        importacao2 = ImportacaoEscolhas.objects.create(
+            processo_uuid=uuid.uuid4(),
+            processo_id=456,
+            status='ERRO',
+        )
+        content_type = ContentType.objects.get_for_model(ImportacaoEscolhas)
+        ImportacaoErro.objects.create(
+            content_type=content_type,
+            object_id=importacao1.uuid,
+            mensagem='Erro 1',
+            erros='Erro importacao 1',
+        )
+        ImportacaoErro.objects.create(
+            content_type=content_type,
+            object_id=importacao2.uuid,
+            mensagem='Erro 2',
+            erros='Erro importacao 2',
+        )
+        url = reverse('importacao-escolhas-download-erros')
+        resp = api_client.get(url, {'importacao_uuid': str(importacao1.uuid)})
+        assert resp.status_code == 200
+        conteudo = resp.content.decode('utf-8')
+        assert 'Erro importacao 1' in conteudo
+        assert 'Erro importacao 2' not in conteudo
+

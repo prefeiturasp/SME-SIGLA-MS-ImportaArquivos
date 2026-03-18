@@ -1,0 +1,157 @@
+"""
+View base abstrata para exportação de dados.
+
+Centraliza list/create/retrieve, get_serializer_class, list com query params
+(processo_uuid, cargo_uuid, concurso_uuid) para resposta em arquivo, action
+download e tratamento de exceções (404/502).
+"""
+import re
+
+from django.http import HttpResponse
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+
+from importa_arquivos.utils import CustomPagination
+
+from ..services.exceptions import (
+    ExportacaoBadRequestException,
+    ExportacaoNotFoundException,
+    ExportacaoServiceUnavailableException,
+)
+
+
+def _sanitizar_nome_arquivo(texto: str, max_len: int = 80) -> str:
+    """Remove caracteres inválidos para nome de arquivo e limita tamanho."""
+    if not texto or not isinstance(texto, str):
+        return "arquivo"
+    s = re.sub(r'[^\w\s\-]', '', texto, flags=re.UNICODE)
+    s = re.sub(r'\s+', '_', s.strip())
+    return (s[:max_len] if len(s) > max_len else s) or "arquivo"
+
+
+class BaseExportacaoViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet base abstrata para exportação.
+
+    Subclasses devem definir:
+    - queryset
+    - list_serializer_class
+    - create_serializer_class
+    - gerar_arquivo(processo_uuid, cargo_uuid, concurso_uuid=None)
+    - executar_exportacao(instance)
+    """
+    list_serializer_class = None
+    create_serializer_class = None
+
+    lookup_field = 'uuid'
+    lookup_url_kwarg = 'uuid'
+    permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['processo_uuid', 'cargo_uuid', 'concurso_uuid', 'concurso_nome']
+    search_fields = ['concurso_nome']
+    ordering_fields = ['criado_em', 'atualizado_em', 'processo_uuid', 'cargo_uuid']
+    ordering = ['-criado_em']
+    pagination_class = CustomPagination
+
+    @staticmethod
+    def sanitizar_nome_arquivo(texto: str, max_len: int = 80) -> str:
+        """Remove caracteres inválidos para nome de arquivo e limita tamanho."""
+        return _sanitizar_nome_arquivo(texto, max_len)
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return self.list_serializer_class
+        return self.create_serializer_class
+
+    def list(self, request, *args, **kwargs):
+        """
+        Listagem paginada ou, se processo_uuid, cargo_uuid e cargo_codigo na query, retorna arquivo (download direto).
+
+        Para download direto são obrigatórios: processo_uuid, cargo_uuid e cargo_codigo na query.
+        """
+        processo_uuid = request.query_params.get('processo_uuid', '').strip()
+        cargo_uuid = request.query_params.get('cargo_uuid', '').strip()
+        concurso_uuid = request.query_params.get('concurso_uuid', '').strip() or None
+        processo_nome = request.query_params.get('processo_nome', '').strip() or None
+        cargo_nome = request.query_params.get('cargo_nome', '').strip() or None
+        cargo_codigo_raw = request.query_params.get('cargo_codigo', '').strip() or None
+        if processo_uuid and cargo_uuid:
+            if not cargo_codigo_raw:
+                return Response(
+                    {"detail": "Para download direto, envie processo_uuid, cargo_uuid e cargo_codigo na query."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            try:
+                cargo_codigo = int(cargo_codigo_raw)
+            except (TypeError, ValueError):
+                return Response(
+                    {"detail": "cargo_codigo na query deve ser numérico."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            return self.gerar_arquivo(
+                processo_uuid, cargo_uuid,
+                concurso_uuid=concurso_uuid,
+                processo_nome=processo_nome,
+                cargo_nome=cargo_nome,
+                cargo_codigo=cargo_codigo,
+            )
+        return super().list(request, *args, **kwargs)
+
+    def gerar_arquivo(
+        self,
+        instance
+    ):
+        """
+        Gera resposta de arquivo para os UUIDs dados.
+        processo_nome e cargo_nome opcionais (vindos do front no create, do registro no download,
+        ou da query no GET list). Quando ausentes (ex.: download direto via GET list sem create),
+        o serviço usa fallback: API de convocação para cargo_nome e "processo" para processo_nome.
+        Subclasses devem implementar (ex.: chamar serviço de exportação e retornar HttpResponse/Response).
+        """
+        raise NotImplementedError("Subclasse deve implementar gerar_arquivo.")
+
+    def executar_exportacao(self, instance):
+        """
+        Executa a exportação após create (ex.: chamar serviço com instance.processo_uuid, etc).
+        Subclasses devem implementar.
+        """
+        raise NotImplementedError("Subclasse deve implementar executar_exportacao.")
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+
+        try:
+            self.executar_exportacao(instance)
+        except ExportacaoBadRequestException as exc:
+            return Response(
+                {"detail": exc.mensagem},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except ExportacaoNotFoundException as exc:
+            return Response(
+                {"detail": exc.mensagem},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except ExportacaoServiceUnavailableException as exc:
+            return Response(
+                {"detail": exc.mensagem},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        return self.gerar_arquivo(instance)
+
+    @action(detail=True, methods=['get'], url_path='download')
+    def download(self, request, uuid=None):
+        """
+        Retorna o arquivo da exportação. Se o registro tiver conteudo_arquivo e nome_arquivo
+        salvos (create recente), devolve esse conteúdo sem chamar APIs. Registros antigos
+        sem conteúdo continuam funcionando com geração na hora via gerar_arquivo.
+        """
+        instance = self.get_object()
+       
+        return self.gerar_arquivo(instance)
