@@ -3,6 +3,7 @@ from unittest.mock import patch, Mock
 from django.core.files.base import ContentFile
 from importa_arquivos.models import ImportacaoArquivoHabilitado, ImportacaoErro
 from importa_arquivos.services.api_candidatos import ApiCandidatosService
+from importa_arquivos.services.exceptions import ApiCandidatosException
 from requests import RequestException
 
 
@@ -36,7 +37,8 @@ def test_api_candidatos_enviar_habilitados_payload_ok(settings):
 
     with patch('importa_arquivos.services.api_candidatos.requests.post') as mock_post:
         mock_resp = Mock()
-        mock_resp.raise_for_status.return_value = None
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {'ok': True}
         mock_post.return_value = mock_resp
 
         resp = svc.enviar_habilitados(
@@ -46,7 +48,7 @@ def test_api_candidatos_enviar_habilitados_payload_ok(settings):
             concurso_nome='Concurso X',
         )
 
-        assert resp is mock_resp
+        assert resp == {'ok': True}
         args, kwargs = mock_post.call_args
         payload = kwargs['json']
         assert payload['concurso_uuid'] == '11111111-1111-1111-1111-111111111111'
@@ -74,3 +76,26 @@ def test_api_candidatos_cria_erro_quando_request_falha():
             )
 
     assert ImportacaoErro.objects.filter(object_id=obj.uuid).exists()
+
+
+def test_api_candidatos_levanta_excecao_especifica_quando_status_nao_for_200():
+    service = ApiCandidatosService(base_url='http://example.com')
+
+    mock_resp = Mock()
+    mock_resp.status_code = 400
+    mock_resp.json.return_value = {'detail': 'Erro externo', 'code': 'ERRO_EXTERNO'}
+    mock_resp.text = '{"detail":"Erro externo","code":"ERRO_EXTERNO"}'
+
+    with patch('importa_arquivos.services.api_candidatos.requests.post', return_value=mock_resp):
+        with pytest.raises(ApiCandidatosException) as exc_info:
+            service.enviar_habilitados(
+                registros=[{'x': 'y'}],
+                estrutura=[{'coluna': 'x', 'campo_payload': 'x'}],
+                concurso_uuid='11111111-1111-1111-1111-111111111111',
+                concurso_nome='Concurso X',
+            )
+
+    exc = exc_info.value
+    assert exc.status_code == 400
+    assert exc.mensagem == 'Falha ao enviar candidatos para API externa'
+    assert 'Erro externo' in (exc.detalhes or '')

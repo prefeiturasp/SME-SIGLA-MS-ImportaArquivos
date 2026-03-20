@@ -6,7 +6,7 @@ import requests
 from datetime import datetime
 from requests.exceptions import RequestException, HTTPError
 from importa_arquivos.services.erros import registrar_erro
-from importa_arquivos.services.exceptions import TipoUEDesabilitadoException
+from importa_arquivos.services.exceptions import TipoUEDesabilitadoException, ApiEscolhasException
 from .erros import captura_erros_importacao
 
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ class ApiEscolhasService:
         processo_nome: str = '',
         headers: Optional[Dict[str, str]] = None,
         importacao_obj: Optional[Any] = None,
-    ) -> requests.Response:
+    ) -> dict:
         url = f"{self.base_url}/api/v1/vagas-escolas/"
         merged_headers = {**self._default_headers, **(headers or {})}
         dados = self._transformar_registros(registros, estrutura)
@@ -81,16 +81,16 @@ class ApiEscolhasService:
                         mensagem=str(data.get('detail') or 'Tipo de UE desabilitado'),
                         detalhes='TIPO_UE_DESABILITADO'
                     )
-            response.raise_for_status()
+            if response.status_code != 200:
+                raise ApiEscolhasException(
+                    mensagem='Falha ao enviar vagas para API externa',
+                    detalhes=response.text or f'Status {response.status_code}',
+                    status_code=response.status_code,
+                )
             logger.info('Vagas enviadas: %s', len(dados))
-            return response
+            return response.json()
         except RequestException as exc:
             logger.error('Erro ao enviar vagas: %s', exc)
-            if importacao_obj is not None:
-                try:
-                    registrar_erro(importacao_obj, mensagem='Erro ao enviar vagas para API externa', detalhes=str(exc), exc=exc)
-                except Exception:
-                    pass
             raise
 
     def _transformar_escolhas_prodam_para_escolhas(self, dados_prodam: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

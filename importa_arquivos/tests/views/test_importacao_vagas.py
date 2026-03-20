@@ -5,10 +5,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.contenttypes.models import ContentType
 from unittest.mock import patch, Mock
 
-from requests.exceptions import HTTPError
-
 from importa_arquivos.models import ImportacaoArquivoVagas, ImportacaoErro
-from importa_arquivos.services.exceptions import TipoUEDesabilitadoException
+from importa_arquivos.services.exceptions import TipoUEDesabilitadoException, ApiEscolhasException
 
 pytestmark = pytest.mark.django_db
 
@@ -77,11 +75,12 @@ def test_importacao_vagas_envio_api_exception(api_client, settings):
             [{'DataFechamentoModulo': '05/09/2025'}],
             [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
         )
-        mock_resp = Mock()
-        mock_resp.status_code = 400
-        mock_resp.json.return_value = {'detail': 'Erro externo', 'code': 'ERRO_EXTERNO'}
-        mock_resp.text = 'Erro externo'
-        mock_api.return_value.enviar_vagas.side_effect = HTTPError('api fail', response=mock_resp)
+        mock_api.return_value.enviar_vagas.side_effect = ApiEscolhasException(
+            mensagem='Erro externo',
+            detalhes='Detalhes do erro externo',
+            status_code=400,
+            code='ERRO_EXTERNO',
+        )
 
         url = reverse('importacao-arquivo-vagas-list')
         resp = api_client.post(url, {
@@ -91,7 +90,8 @@ def test_importacao_vagas_envio_api_exception(api_client, settings):
 
         assert resp.status_code == 400
         assert resp.data['detail'] == 'Erro externo'
-        assert resp.data['code'] == 'ERRO_EXTERNO'
+        assert resp.data['detalhes'] == 'Detalhes do erro externo'
+        assert resp.data['status_code'] == 400
         mock_validar.assert_called_once()
         mock_api.return_value.enviar_vagas.assert_called_once()
 
@@ -413,11 +413,12 @@ class TestImportacaoVagasErrorHandling:
                 [{'DataFechamentoModulo': '05/09/2025'}],
                 [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
             )
-            mock_resp = Mock()
-            mock_resp.status_code = 400
-            mock_resp.json.return_value = {'detail': 'Erro externo', 'code': 'ERRO_EXTERNO'}
-            mock_resp.text = 'Erro externo'
-            mock_api.return_value.enviar_vagas.side_effect = HTTPError('api fail', response=mock_resp)
+            mock_api.return_value.enviar_vagas.side_effect = ApiEscolhasException(
+                mensagem='Erro externo',
+                detalhes='Detalhes do erro externo',
+                status_code=400,
+                code='ERRO_EXTERNO',
+            )
 
             url = reverse('importacao-arquivo-vagas-list')
             resp = api_client.post(url, {
@@ -426,9 +427,8 @@ class TestImportacaoVagasErrorHandling:
 
             assert resp.status_code == 400
             assert resp.data['detail'] == 'Erro externo'
-            # Verifica se o erro foi logado
-            mock_logging.error.assert_called_once()
-            assert 'Falha ao enviar dados para API externa' in mock_logging.error.call_args[0][0]
+            assert resp.data['detalhes'] == 'Detalhes do erro externo'
+            assert resp.data['status_code'] == 400
 
 
 # Testes para os serializers com campos de concurso

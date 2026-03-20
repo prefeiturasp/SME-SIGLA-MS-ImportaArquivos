@@ -4,7 +4,7 @@ from requests import RequestException
 
 from importa_arquivos.models import ImportacaoArquivoVagas, ImportacaoErro
 from importa_arquivos.services.api_escolhas import ApiEscolhasService
-from importa_arquivos.services.exceptions import TipoUEDesabilitadoException
+from importa_arquivos.services.exceptions import TipoUEDesabilitadoException, ApiEscolhasException
 
 
 pytestmark = pytest.mark.django_db
@@ -35,11 +35,12 @@ def test_api_vagas_enviar_payload_ok(settings):
 
     with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
         mock_resp = Mock()
-        mock_resp.raise_for_status.return_value = None
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {'ok': True}
         mock_post.return_value = mock_resp
 
         resp = svc.enviar_vagas(registros=registros, estrutura=estrutura)
-        assert resp is mock_resp
+        assert resp == {'ok': True}
         args, kwargs = mock_post.call_args
         assert args[0].endswith('/api/v1/vagas-escolas/')
         assert kwargs['json']['vagas'][0]['data_fechamento_modulo'] == '05/09/2025' 
@@ -88,14 +89,12 @@ def test_api_vagas_nao_quebra_quando_registrar_erro_falha():
     service = ApiEscolhasService(base_url='http://example.com')
 
     with patch('importa_arquivos.services.api_escolhas.requests.post', side_effect=RequestException('boom')):
-        with patch('importa_arquivos.services.api_escolhas.registrar_erro', side_effect=RuntimeError('fail-log')) as mock_reg:
-            with pytest.raises(RequestException):
-                service.enviar_vagas(
-                    registros=[{'A': '1'}],
-                    estrutura=[{'coluna': 'A', 'campo_payload': 'a'}],
-                    importacao_obj=obj,
-                )
-            assert mock_reg.called
+        with pytest.raises(RequestException):
+            service.enviar_vagas(
+                registros=[{'A': '1'}],
+                estrutura=[{'coluna': 'A', 'campo_payload': 'a'}],
+                importacao_obj=obj,
+            )
 
 
 class TestApiVagasConcursoFields:
@@ -113,6 +112,7 @@ class TestApiVagasConcursoFields:
 
         with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
             mock_resp = Mock()
+            mock_resp.status_code = 200
             mock_resp.raise_for_status.return_value = None
             mock_post.return_value = mock_resp
 
@@ -156,12 +156,16 @@ def test_enviar_vagas_erro_400_outro_codigo_gatilha_request_exception():
         mock_resp = Mock()
         mock_resp.status_code = 400
         mock_resp.json.return_value = {'code': 'OUTRO', 'detail': 'erro genérico'}
-        from requests import RequestException
-        mock_resp.raise_for_status.side_effect = RequestException('400 Client Error')
+        mock_resp.text = '{"code":"OUTRO","detail":"erro genérico"}'
         mock_post.return_value = mock_resp
 
-        with pytest.raises(RequestException):
+        with pytest.raises(ApiEscolhasException) as exc_info:
             service.enviar_vagas(registros=registros, estrutura=estrutura)
+
+        exc = exc_info.value
+        assert exc.status_code == 400
+        assert exc.mensagem == 'Falha ao enviar vagas para API externa'
+        assert 'erro genérico' in (exc.detalhes or '')
 
     def test_enviar_vagas_com_campos_concurso_vazios(self):
         """Testa envio de vagas com campos de concurso vazios (valores padrão)."""
@@ -171,6 +175,7 @@ def test_enviar_vagas_erro_400_outro_codigo_gatilha_request_exception():
 
         with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
             mock_resp = Mock()
+            mock_resp.status_code = 200
             mock_resp.raise_for_status.return_value = None
             mock_post.return_value = mock_resp
 
@@ -194,6 +199,7 @@ def test_enviar_vagas_erro_400_outro_codigo_gatilha_request_exception():
 
         with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
             mock_resp = Mock()
+            mock_resp.status_code = 200
             mock_resp.raise_for_status.return_value = None
             mock_post.return_value = mock_resp
 
@@ -220,6 +226,7 @@ def test_enviar_vagas_erro_400_outro_codigo_gatilha_request_exception():
 
         with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
             mock_resp = Mock()
+            mock_resp.status_code = 200
             mock_resp.raise_for_status.return_value = None
             mock_post.return_value = mock_resp
 
