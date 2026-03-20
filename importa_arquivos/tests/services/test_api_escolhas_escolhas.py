@@ -4,6 +4,7 @@ Testes unitários para métodos relacionados a escolhas no ApiEscolhasService.
 import pytest
 from unittest.mock import patch, Mock
 from requests import RequestException
+from requests.exceptions import HTTPError
 
 from importa_arquivos.models import ImportacaoEscolhas, ImportacaoErro
 from importa_arquivos.services.api_escolhas import ApiEscolhasService
@@ -217,6 +218,42 @@ class TestApiEscolhasServiceEscolhasProdam:
                     concurso_uuid='223e4567-e89b-12d3-a456-426614174000',
                     dados_prodam=dados_prodam,
                 )
+
+    def test_enviar_escolhas_prodam_erro_http_parseia_detail_code_detalhes(self):
+        """Em erro HTTP, deve parsear detail/code/detalhes da resposta externa."""
+        service = ApiEscolhasService(base_url='https://api.exemplo')
+
+        dados_prodam = [
+            {
+                'codigoPessoaFisica': '12345678901',
+                'codigoCargo': '123',
+                'descricaoStatus': 'ALOCADO',
+            }
+        ]
+
+        mock_response = Mock()
+        mock_response.status_code = 400
+        mock_response.json.return_value = {
+            'detail': 'Erro externo de escolhas',
+            'code': 'ERRO_ESCOLHAS',
+            'detalhes': 'Payload inválido'
+        }
+        mock_response.text = '{"detail":"Erro externo de escolhas","code":"ERRO_ESCOLHAS","detalhes":"Payload inválido"}'
+
+        with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
+            mock_post.return_value.raise_for_status.side_effect = HTTPError('bad request', response=mock_response)
+
+            with pytest.raises(RequestException) as exc_info:
+                service.enviar_escolhas_prodam(
+                    processo_uuid='123e4567-e89b-12d3-a456-426614174000',
+                    concurso_uuid='223e4567-e89b-12d3-a456-426614174000',
+                    dados_prodam=dados_prodam,
+                )
+
+            msg = str(exc_info.value)
+            assert '"detail": "Erro externo de escolhas"' in msg
+            assert '"code": "ERRO_ESCOLHAS"' in msg
+            assert '"detalhes": "Payload inválido"' in msg
 
     def test_enviar_escolhas_prodam_registra_erro_quando_importacao_obj_fornecido(self):
         """Testa que erro é registrado quando importacao_obj é fornecido."""

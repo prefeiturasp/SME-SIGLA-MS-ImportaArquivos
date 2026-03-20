@@ -1,9 +1,10 @@
 import logging
+import json
 from typing import List, Dict, Any, Optional
 
 import requests
 from datetime import datetime
-from requests.exceptions import RequestException
+from requests.exceptions import RequestException, HTTPError
 from importa_arquivos.services.erros import registrar_erro
 from importa_arquivos.services.exceptions import TipoUEDesabilitadoException
 from .erros import captura_erros_importacao
@@ -161,6 +162,45 @@ class ApiEscolhasService:
             response.raise_for_status()
             logger.info(f'Escolhas enviadas com sucesso: {len(escolhas)}')
             return response
+        except HTTPError as exc:
+            response_data = None
+            response_text = ''
+            try:
+                response_text = exc.response.text if exc.response is not None else str(exc)
+            except Exception:
+                response_text = str(exc)
+
+            try:
+                response_data = exc.response.json() if exc.response is not None else None
+            except Exception:
+                response_data = None
+
+            detail = 'Falha ao enviar escolhas para MS-Escolhas'
+            code = None
+            detalhes = response_text or str(exc)
+            status_code = getattr(exc.response, 'status_code', None) or 400
+            if isinstance(response_data, dict):
+                detail = response_data.get('detail') or response_data.get('message') or detail
+                code = response_data.get('code')
+                detalhes = response_data.get('detalhes') or response_data.get('detail') or detalhes
+
+            erro_formatado = {'detail': detail, 'detalhes': detalhes, 'status_code': status_code}
+            if code:
+                erro_formatado['code'] = code
+
+            mensagem_erro = json.dumps(erro_formatado, ensure_ascii=False)
+            logger.error('Erro HTTP ao enviar escolhas para MS-Escolhas: %s', mensagem_erro)
+            if importacao_obj is not None:
+                try:
+                    registrar_erro(
+                        importacao_obj,
+                        mensagem='Erro ao enviar escolhas para MS-Escolhas',
+                        detalhes=mensagem_erro,
+                        exc=exc
+                    )
+                except Exception:
+                    pass
+            raise RequestException(mensagem_erro) from exc
         except RequestException as exc:
             logger.error(f'Erro ao enviar escolhas para MS-Escolhas: {exc}')
             if importacao_obj is not None:

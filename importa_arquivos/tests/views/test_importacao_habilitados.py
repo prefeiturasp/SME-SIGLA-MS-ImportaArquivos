@@ -5,6 +5,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.contenttypes.models import ContentType
 from unittest.mock import patch, Mock
 
+from requests.exceptions import HTTPError
+
 from importa_arquivos.models import ImportacaoArquivoHabilitado, ImportacaoErro
 from importa_arquivos.services.exceptions import (
     ColunaCSVInvalidaException,
@@ -37,6 +39,7 @@ def test_importacao_habilitados_create_success(api_client, settings):
         }, format='multipart')
 
         assert resp.status_code in (200, 201)
+        assert resp.data['status'] == 'CONCLUIDO'
         mock_validar.assert_called_once()
         mock_api.return_value.enviar_habilitados.assert_called_once()
 
@@ -123,7 +126,11 @@ def test_importacao_habilitados_envio_api_exception(api_client, settings):
             [{'Inscricao': '123', 'Nome': 'Joao'}],
             [{'coluna': 'Inscricao', 'campo_payload': 'codigo_inscricao'}]
         )
-        mock_api.return_value.enviar_habilitados.side_effect = Exception('api fail')
+        mock_resp = Mock()
+        mock_resp.status_code = 400
+        mock_resp.json.return_value = {'detail': 'Erro externo', 'code': 'ERRO_EXTERNO'}
+        mock_resp.text = 'Erro externo'
+        mock_api.return_value.enviar_habilitados.side_effect = HTTPError('api fail', response=mock_resp)
 
         url = reverse('importacao-arquivo-habilitados-list')
         resp = api_client.post(url, {
@@ -133,8 +140,9 @@ def test_importacao_habilitados_envio_api_exception(api_client, settings):
             'tipo': 'HABILITADOS',
         }, format='multipart')
 
-        # Mesmo com falha no envio à API externa, a criação deve ter sucesso
-        assert resp.status_code in (200, 201)
+        assert resp.status_code == 400
+        assert resp.data['detail'] == 'Erro externo'
+        assert resp.data['code'] == 'ERRO_EXTERNO'
         mock_validar.assert_called_once()
         mock_api.return_value.enviar_habilitados.assert_called_once()
 

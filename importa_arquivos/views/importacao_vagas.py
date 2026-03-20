@@ -20,6 +20,7 @@ from rest_framework.decorators import action
 from django.http import HttpResponse
 from datetime import datetime
 from ..serializers import ImportacaoErrosListSerializer, queryset_erros_por_modelo
+from requests.exceptions import HTTPError, RequestException, Timeout
 
 
 class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
@@ -70,9 +71,54 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
         except TipoUEDesabilitadoException as exc:
             logging.error('Tipo UE desabilitado ao enviar dados: %s', exc)
             return Response({'detail': str(exc), 'code': 'TIPO_UE_DESABILITADO'}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as exc:
+        except HTTPError as exc:
             logging.error('Falha ao enviar dados para API externa: %s', exc)
             instance.refresh_from_db()
+
+            status_code = getattr(exc.response, 'status_code', None) or status.HTTP_502_BAD_GATEWAY
+            response_data = None
+            response_text = ''
+            try:
+                response_text = exc.response.text if exc.response is not None else str(exc)
+            except Exception:
+                response_text = str(exc)
+
+            try:
+                response_data = exc.response.json() if exc.response is not None else None
+            except Exception:
+                response_data = None
+
+            detail = 'Falha ao enviar dados para API externa'
+            code = None
+            detalhes = response_text or str(exc)
+            if isinstance(response_data, dict):
+                detail = response_data.get('detail') or response_data.get('message') or detail
+                code = response_data.get('code')
+                detalhes = response_data.get('detalhes') or response_data.get('detail') or detalhes
+
+            payload = {'detail': detail, 'detalhes': detalhes}
+            if code:
+                payload['code'] = code
+            return Response(payload, status=status_code)
+        except RequestException as exc:
+            logging.error('Falha ao enviar dados para API externa: %s', exc)
+            instance.refresh_from_db()
+            if isinstance(exc, Timeout):
+                return Response(
+                    {'detail': 'Timeout ao enviar dados para API externa', 'detalhes': str(exc)},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+            return Response(
+                {'detail': 'Falha ao enviar dados para API externa', 'detalhes': str(exc)},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        except Exception as exc:
+            logging.error('Erro inesperado ao enviar dados para API externa: %s', exc)
+            instance.refresh_from_db()
+            return Response(
+                {'detail': 'Erro ao enviar dados para API externa', 'detalhes': str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         instance.refresh_from_db()
         serializer = ImportacaoArquivoVagasListSerializer(instance)
