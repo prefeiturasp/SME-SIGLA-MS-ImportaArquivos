@@ -79,7 +79,7 @@ class ApiEscolhasService:
                         mensagem=str(data.get('detail') or 'Tipo de UE desabilitado'),
                         detalhes='TIPO_UE_DESABILITADO'
                     )
-            if response.status_code != 200:
+            if response.status_code >= 400:
                 raise ApiEscolhasException(
                     mensagem='Falha ao enviar vagas para API externa',
                     detalhes=response.text or f'Status {response.status_code}',
@@ -158,7 +158,7 @@ class ApiEscolhasService:
             logger.error(f'Erro ao enviar escolhas para MS-Escolhas: {exc}')
             raise
 
-        if response.status_code != 200:
+        if response.status_code >= 400:
             raise ApiEscolhasException(
                 mensagem='Falha ao enviar escolhas para API externa',
                 detalhes=response.text or f'Status {response.status_code}',

@@ -71,7 +71,7 @@ class ApiCandidatosService:
             logger.error('Erro ao enviar candidatos: %s', exc)
             raise
          
-        if response.status_code != 200:
+        if response.status_code >= 400:
             raise ApiCandidatosException(
                 mensagem='Falha ao enviar candidatos para API externa',
                 detalhes=response.text or f'Status {response.status_code}',
