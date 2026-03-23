@@ -1,11 +1,9 @@
 import logging
-import json
 from typing import List, Dict, Any, Optional
 
 import requests
 from datetime import datetime
-from requests.exceptions import RequestException, HTTPError
-from importa_arquivos.services.erros import registrar_erro
+from requests.exceptions import RequestException
 from importa_arquivos.services.exceptions import TipoUEDesabilitadoException, ApiEscolhasException
 from .erros import captura_erros_importacao
 
@@ -127,7 +125,7 @@ class ApiEscolhasService:
         dados_prodam: List[Dict[str, Any]],
         headers: Optional[Dict[str, str]] = None,
         importacao_obj: Optional[Any] = None,
-    ) -> requests.Response:
+    ) -> dict:
         """
         Envia escolhas da Prodam para o MS-Escolhas.
         
@@ -139,10 +137,7 @@ class ApiEscolhasService:
             importacao_obj: Objeto de importação para registro de erros
             
         Returns:
-            Response da requisição
-            
-        Raises:
-            RequestException: Em caso de erro na requisição
+            dict com resposta da requisição
         """
         url = f"{self.base_url}/api/v1/escolhas/importacao-prodam/"
         merged_headers = {**self._default_headers, **(headers or {})}
@@ -159,58 +154,16 @@ class ApiEscolhasService:
         try:
             logger.info(f'Enviando {len(escolhas)} escolhas para MS-Escolhas (processo_uuid={processo_uuid})')
             response = requests.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
-            response.raise_for_status()
-            logger.info(f'Escolhas enviadas com sucesso: {len(escolhas)}')
-            return response
-        except HTTPError as exc:
-            response_data = None
-            response_text = ''
-            try:
-                response_text = exc.response.text if exc.response is not None else str(exc)
-            except Exception:
-                response_text = str(exc)
-
-            try:
-                response_data = exc.response.json() if exc.response is not None else None
-            except Exception:
-                response_data = None
-
-            detail = 'Falha ao enviar escolhas para MS-Escolhas'
-            code = None
-            detalhes = response_text or str(exc)
-            status_code = getattr(exc.response, 'status_code', None) or 400
-            if isinstance(response_data, dict):
-                detail = response_data.get('detail') or response_data.get('message') or detail
-                code = response_data.get('code')
-                detalhes = response_data.get('detalhes') or response_data.get('detail') or detalhes
-
-            erro_formatado = {'detail': detail, 'detalhes': detalhes, 'status_code': status_code}
-            if code:
-                erro_formatado['code'] = code
-
-            mensagem_erro = json.dumps(erro_formatado, ensure_ascii=False)
-            logger.error('Erro HTTP ao enviar escolhas para MS-Escolhas: %s', mensagem_erro)
-            if importacao_obj is not None:
-                try:
-                    registrar_erro(
-                        importacao_obj,
-                        mensagem='Erro ao enviar escolhas para MS-Escolhas',
-                        detalhes=mensagem_erro,
-                        exc=exc
-                    )
-                except Exception:
-                    pass
-            raise RequestException(mensagem_erro) from exc
         except RequestException as exc:
             logger.error(f'Erro ao enviar escolhas para MS-Escolhas: {exc}')
-            if importacao_obj is not None:
-                try:
-                    registrar_erro(
-                        importacao_obj,
-                        mensagem='Erro ao enviar escolhas para MS-Escolhas',
-                        detalhes=str(exc),
-                        exc=exc
-                    )
-                except Exception:
-                    pass
             raise
+
+        if response.status_code != 200:
+            raise ApiEscolhasException(
+                mensagem='Falha ao enviar escolhas para API externa',
+                detalhes=response.text or f'Status {response.status_code}',
+                status_code=response.status_code,
+            )
+
+        logger.info(f'Escolhas enviadas com sucesso: {len(escolhas)}')
+        return response.json()

@@ -9,6 +9,7 @@ from unittest.mock import patch, Mock
 from requests import RequestException
 
 from importa_arquivos.models import ImportacaoEscolhas, ImportacaoErro
+from importa_arquivos.services.exceptions import ApiEscolhasException
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -250,13 +251,6 @@ class TestImportacaoEscolhasViewSet:
             ],
         }
 
-        erro_estruturado = json.dumps({
-            'detail': 'Falha ao enviar escolhas para MS-Escolhas',
-            'detalhes': 'Candidato não encontrado',
-            'code': 'ERRO_ESCOLHAS',
-            'status_code': 400,
-        }, ensure_ascii=False)
-
         with patch('importa_arquivos.views.importacao_escolhas.ApiProdamService') as mock_prodam, \
              patch('importa_arquivos.views.importacao_escolhas.ApiEscolhasService') as mock_escolhas:
 
@@ -265,7 +259,12 @@ class TestImportacaoEscolhasViewSet:
             mock_prodam.return_value = mock_prodam_instance
 
             mock_escolhas_instance = Mock()
-            mock_escolhas_instance.enviar_escolhas_prodam.side_effect = RequestException(erro_estruturado)
+            mock_escolhas_instance.enviar_escolhas_prodam.side_effect = ApiEscolhasException(
+                mensagem='Falha ao enviar escolhas para API externa',
+                detalhes='Candidato não encontrado',
+                status_code=400,
+                code='ERRO_ESCOLHAS',
+            )
             mock_escolhas.return_value = mock_escolhas_instance
 
             url = reverse('importacao-escolhas-list')
@@ -276,7 +275,7 @@ class TestImportacaoEscolhasViewSet:
             }, format='json')
 
             assert resp.status_code == 400
-            assert resp.data['detail'] == 'Falha ao enviar escolhas para MS-Escolhas'
+            assert resp.data['detail'] == 'Falha ao enviar escolhas para API externa'
             assert resp.data['detalhes'] == 'Candidato não encontrado'
             assert resp.data['code'] == 'ERRO_ESCOLHAS'
 

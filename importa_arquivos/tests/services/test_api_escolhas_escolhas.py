@@ -4,10 +4,10 @@ Testes unitários para métodos relacionados a escolhas no ApiEscolhasService.
 import pytest
 from unittest.mock import patch, Mock
 from requests import RequestException
-from requests.exceptions import HTTPError
 
 from importa_arquivos.models import ImportacaoEscolhas, ImportacaoErro
 from importa_arquivos.services.api_escolhas import ApiEscolhasService
+from importa_arquivos.services.exceptions import ApiEscolhasException
 
 
 pytestmark = pytest.mark.django_db
@@ -143,7 +143,8 @@ class TestApiEscolhasServiceEscolhasProdam:
         
         with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
             mock_resp = Mock()
-            mock_resp.raise_for_status.return_value = None
+            mock_resp.status_code = 200
+            mock_resp.json.return_value = {'ok': True}
             mock_post.return_value = mock_resp
             
             processo_uuid = '123e4567-e89b-12d3-a456-426614174000'
@@ -154,7 +155,7 @@ class TestApiEscolhasServiceEscolhasProdam:
                 dados_prodam=dados_prodam,
             )
             
-            assert response is mock_resp
+            assert response == {'ok': True}
             args, kwargs = mock_post.call_args
             assert args[0].endswith('/api/v1/escolhas/importacao-prodam/')
             
@@ -182,7 +183,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         
         with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
             mock_resp = Mock()
-            mock_resp.raise_for_status.return_value = None
+            mock_resp.status_code = 200
             mock_post.return_value = mock_resp
             
             service.enviar_escolhas_prodam(
@@ -219,8 +220,8 @@ class TestApiEscolhasServiceEscolhasProdam:
                     dados_prodam=dados_prodam,
                 )
 
-    def test_enviar_escolhas_prodam_erro_http_parseia_detail_code_detalhes(self):
-        """Em erro HTTP, deve parsear detail/code/detalhes da resposta externa."""
+    def test_enviar_escolhas_prodam_erro_http_levanta_excecao_especifica(self):
+        """Em erro HTTP (status != 200), deve levantar ApiEscolhasException."""
         service = ApiEscolhasService(base_url='https://api.exemplo')
 
         dados_prodam = [
@@ -241,19 +242,19 @@ class TestApiEscolhasServiceEscolhasProdam:
         mock_response.text = '{"detail":"Erro externo de escolhas","code":"ERRO_ESCOLHAS","detalhes":"Payload inválido"}'
 
         with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
-            mock_post.return_value.raise_for_status.side_effect = HTTPError('bad request', response=mock_response)
+            mock_post.return_value = mock_response
 
-            with pytest.raises(RequestException) as exc_info:
+            with pytest.raises(ApiEscolhasException) as exc_info:
                 service.enviar_escolhas_prodam(
                     processo_uuid='123e4567-e89b-12d3-a456-426614174000',
                     concurso_uuid='223e4567-e89b-12d3-a456-426614174000',
                     dados_prodam=dados_prodam,
                 )
 
-            msg = str(exc_info.value)
-            assert '"detail": "Erro externo de escolhas"' in msg
-            assert '"code": "ERRO_ESCOLHAS"' in msg
-            assert '"detalhes": "Payload inválido"' in msg
+            exc = exc_info.value
+            assert exc.mensagem == 'Falha ao enviar escolhas para API externa'
+            assert exc.detalhes == mock_response.text
+            assert exc.status_code == 400
 
     def test_enviar_escolhas_prodam_registra_erro_quando_importacao_obj_fornecido(self):
         """Testa que erro é registrado quando importacao_obj é fornecido."""
@@ -286,7 +287,6 @@ class TestApiEscolhasServiceEscolhasProdam:
         assert ImportacaoErro.objects.filter(
             content_type=content_type,
             object_id=importacao.uuid,
-            mensagem='Erro ao enviar escolhas para MS-Escolhas',
         ).exists()
 
     def test_enviar_escolhas_prodam_nao_quebra_quando_registrar_erro_falha(self):
@@ -307,7 +307,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         ]
         
         with patch('importa_arquivos.services.api_escolhas.requests.post', side_effect=RequestException('Erro')):
-            with patch('importa_arquivos.services.api_escolhas.registrar_erro', side_effect=RuntimeError('Erro ao registrar')):
+            with patch('importa_arquivos.services.erros.registrar_erro', side_effect=RuntimeError('Erro ao registrar')):
                 with pytest.raises(RequestException):
                     service.enviar_escolhas_prodam(
                         processo_uuid='123e4567-e89b-12d3-a456-426614174000',
@@ -330,7 +330,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         
         with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
             mock_resp = Mock()
-            mock_resp.raise_for_status.return_value = None
+            mock_resp.status_code = 200
             mock_post.return_value = mock_resp
             
             service.enviar_escolhas_prodam(
