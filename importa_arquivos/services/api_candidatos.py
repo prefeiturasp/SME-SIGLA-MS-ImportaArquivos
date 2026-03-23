@@ -3,10 +3,11 @@ Serviços para integração com API de candidatos.
 """
 import logging
 from typing import List, Dict, Any, Optional
+from requests.exceptions import RequestException, Timeout
 
 import requests
-from requests import RequestException
-from importa_arquivos.services.erros import registrar_erro
+from importa_arquivos.services.erros import captura_erros_importacao, registrar_erro
+from importa_arquivos.services.exceptions import ApiCandidatosException
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,7 @@ class ApiCandidatosService:
             transformados.append(novo)
         return transformados
 
+    @captura_erros_importacao(param_nome_obj='importacao_obj')
     def enviar_habilitados(
         self,
         registros: List[Dict[str, Any]],
@@ -65,14 +67,16 @@ class ApiCandidatosService:
         }
         try:
             response = requests.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
-            response.raise_for_status()
-            logger.info('Candidatos enviados: %s (concurso=%s)', len(dados_transformados), concurso_uuid)
-            return response
         except RequestException as exc:
             logger.error('Erro ao enviar candidatos: %s', exc)
-            if importacao_obj is not None:
-                try:
-                    registrar_erro(importacao_obj, mensagem='Erro ao enviar candidatos para API externa', detalhes=str(exc), exc=exc)
-                except Exception:
-                    pass
             raise
+         
+        if response.status_code != 200:
+            raise ApiCandidatosException(
+                mensagem='Falha ao enviar candidatos para API externa',
+                detalhes=response.text or f'Status {response.status_code}',
+                status_code=response.status_code,
+            )
+            
+        logger.info('Candidatos enviados: %s (concurso=%s)', len(dados_transformados), concurso_uuid)
+        return response.json()

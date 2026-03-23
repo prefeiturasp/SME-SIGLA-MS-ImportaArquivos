@@ -32,3 +32,33 @@ class TipoUEDesabilitadoException(BaseImportacaoException):
     Erro retornado pela API de Escolhas quando o tipo_ue da escola está desabilitado.
     """
     pass
+
+
+class ApiCandidatosException(BaseImportacaoException):
+    """Erro de integração com o MS-Candidatos."""
+
+    def __init__(
+        self,
+        mensagem: str,
+        detalhes: str | None = None,
+        status_code: int = 400,
+        code: str | None = None,
+    ):
+        super().__init__(mensagem=mensagem, detalhes=detalhes)
+        self.status_code = status_code
+        self.code = code
+
+
+class ApiEscolhasException(BaseImportacaoException):
+    """Erro de integração com o MS-Escolhas."""
+
+    def __init__(
+        self,
+        mensagem: str,
+        detalhes: str | None = None,
+        status_code: int = 400,
+        code: str | None = None,
+    ):
+        super().__init__(mensagem=mensagem, detalhes=detalhes)
+        self.status_code = status_code
+        self.code = code

@@ -7,7 +7,12 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 import logging
 from ..services.validacao_habilitados import validar_csv_habilitados
 from ..services.api_candidatos import ApiCandidatosService
-from ..services.exceptions import ColunaCSVInvalidaException, LayoutNaoConfiguradoException, LeituraCSVException
+from ..services.exceptions import (
+    ColunaCSVInvalidaException,
+    LayoutNaoConfiguradoException,
+    LeituraCSVException,
+    ApiCandidatosException,
+)
 from ..models import ImportacaoArquivoHabilitado
 from ..serializers import (
     ImportacaoArquivoHabilitadosCreateSerializer, 
@@ -65,9 +70,20 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
                 concurso_nome=str(instance.concurso_nome) if instance.concurso_nome else '',
                 importacao_obj=instance,
             )
-        except Exception as exc:
-            logging.error('Falha ao enviar dados para API externa: %s', exc)
+        except ApiCandidatosException as exc:
             instance.refresh_from_db()
+            payload = {
+                'detail': exc.mensagem,
+                'detalhes': exc.detalhes or str(exc),
+                'status_code': exc.status_code,
+            }
+            return Response(payload, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as exc:
+            logging.error('Erro inesperado ao enviar candidatos: %s', exc)
+            return Response({'detail': 'Erro ao enviar candidatos para API externa.'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            instance.status = 'CONCLUIDO'
+            instance.save(update_fields=['status'])
 
         instance.refresh_from_db()
         serializer = ImportacaoArquivoHabilitadosListSerializer(instance)

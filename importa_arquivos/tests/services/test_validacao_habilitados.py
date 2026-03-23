@@ -109,3 +109,28 @@ def test_erros_agregados_mesma_linha():
     assert 'Linha 2' in detalhes
     assert 'Campos obrigatórios vazios' in detalhes and 'Nome' in detalhes
     assert 'Email inválido' in detalhes and 'CPF inválido' in detalhes
+
+
+def test_email_duplicado_com_mesmo_cpf_ok():
+    _criar_layout_minimo()
+    csv_text = (
+        "Inscricao,Nome,DataNascimento,CPF,Email\n"
+        "1,Fulano,05/29/1990,39053344705,dup@example.com\n"
+        "2,Ciclano,05/29/1990,39053344705,dup@example.com\n"
+    )
+    registros, _ = validar_csv_habilitados(_csv_bytes(csv_text))
+    assert len(registros) == 2
+
+
+def test_email_duplicado_com_cpfs_diferentes_erro_mensagem_linhas_divergentes():
+    _criar_layout_minimo()
+    csv_text = (
+        "Inscricao,Nome,DataNascimento,CPF,Email\n"
+        "1,Fulano,05/29/1990,39053344705,dup@example.com\n"
+        "2,Ciclano,05/29/1990,17888214088,dup@example.com\n"
+    )
+    with pytest.raises(ColunaCSVInvalidaException) as exc:
+        validar_csv_habilitados(_csv_bytes(csv_text))
+    detalhes = exc.value.detalhes
+    assert 'Linha 3' in detalhes
+    assert 'Email duplicado. CPF 17888214088 com o mesmo email que o CPF 39053344705' in detalhes

@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from datetime import datetime
 import logging
 from django.conf import settings
+from requests.exceptions import RequestException
 
 from ..models import ImportacaoEscolhas
 from ..serializers import (
@@ -20,6 +21,7 @@ from ..serializers import (
 from ..services.api_prodam import ApiProdamService
 from ..services.api_escolhas import ApiEscolhasService
 from ..services.erros import registrar_erro
+from ..services.exceptions import ApiEscolhasException
 from ..utils import CustomPagination
 
 logger = logging.getLogger(__name__)
@@ -131,6 +133,49 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             
             logger.info(f'Importação concluída com sucesso: {len(dados_prodam)} registros')
             
+        except ApiEscolhasException as exc:
+            logger.error(f'Erro da API de escolhas durante importação: {exc}', exc_info=True)
+            instance.status = 'ERRO'
+            instance.save()
+
+            try:
+                registrar_erro(
+                    instance,
+                    mensagem='Erro durante importação de escolhas',
+                    detalhes=exc.detalhes or str(exc),
+                    exc=exc
+                )
+            except Exception:
+                pass
+
+            resposta = {
+                'detail': exc.mensagem or 'Falha ao processar importação de escolhas',
+                'detalhes': exc.detalhes or str(exc),
+            }
+            if exc.code:
+                resposta['code'] = exc.code
+            return Response(
+                resposta,
+                status=exc.status_code or status.HTTP_400_BAD_REQUEST
+            )
+        except RequestException as exc:
+            logger.error(f'Erro de request durante importação de escolhas: {exc}', exc_info=True)
+            instance.status = 'ERRO'
+            instance.save()
+
+            try:
+                registrar_erro(
+                    instance,
+                    mensagem='Erro durante importação de escolhas',
+                    detalhes=str(exc),
+                    exc=exc
+                )
+            except Exception:
+                pass
+            return Response(
+                {'detail': f'Erro ao processar importação: {str(exc)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         except Exception as exc:
             logger.error(f'Erro durante importação de escolhas: {exc}', exc_info=True)
             instance.status = 'ERRO'

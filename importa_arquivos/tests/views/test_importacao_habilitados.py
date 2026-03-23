@@ -7,6 +7,7 @@ from unittest.mock import patch, Mock
 
 from importa_arquivos.models import ImportacaoArquivoHabilitado, ImportacaoErro
 from importa_arquivos.services.exceptions import (
+    ApiCandidatosException,
     ColunaCSVInvalidaException,
     LayoutNaoConfiguradoException,
     LeituraCSVException,
@@ -37,6 +38,7 @@ def test_importacao_habilitados_create_success(api_client, settings):
         }, format='multipart')
 
         assert resp.status_code in (200, 201)
+        assert resp.data['status'] == 'CONCLUIDO'
         mock_validar.assert_called_once()
         mock_api.return_value.enviar_habilitados.assert_called_once()
 
@@ -123,7 +125,12 @@ def test_importacao_habilitados_envio_api_exception(api_client, settings):
             [{'Inscricao': '123', 'Nome': 'Joao'}],
             [{'coluna': 'Inscricao', 'campo_payload': 'codigo_inscricao'}]
         )
-        mock_api.return_value.enviar_habilitados.side_effect = Exception('api fail')
+        mock_api.return_value.enviar_habilitados.side_effect = ApiCandidatosException(
+            mensagem='Erro externo',
+            detalhes='Detalhes do erro externo',
+            status_code=400,
+            code='ERRO_EXTERNO',
+        )
 
         url = reverse('importacao-arquivo-habilitados-list')
         resp = api_client.post(url, {
@@ -133,8 +140,10 @@ def test_importacao_habilitados_envio_api_exception(api_client, settings):
             'tipo': 'HABILITADOS',
         }, format='multipart')
 
-        # Mesmo com falha no envio à API externa, a criação deve ter sucesso
-        assert resp.status_code in (200, 201)
+        assert resp.status_code == 400
+        assert resp.data['detail'] == 'Erro externo'
+        assert resp.data['detalhes'] == 'Detalhes do erro externo'
+        assert resp.data['status_code'] == 400
         mock_validar.assert_called_once()
         mock_api.return_value.enviar_habilitados.assert_called_once()
 
