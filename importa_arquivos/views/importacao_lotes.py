@@ -19,6 +19,7 @@ from ..models import ImportacaoLotes
 from ..serializers import ImportacaoLotesCreateSerializer, ImportacaoLotesListSerializer
 from ..services.importacao_lotes import validar_txt_lotes
 from ..services.api_candidatos import ApiCandidatosService
+from ..services.erros import registrar_erro
 from ..services.exceptions import (
     BaseImportacaoException,
     ImportacaoBadRequestException,
@@ -39,7 +40,7 @@ def _montar_resumo_erros_linha(erros_por_linha: list[dict]) -> str:
         mensagem = erro.get('mensagem') or 'Erro nao identificado.'
         linhas.append(f"Linha {linha} | identificacao={identificacao}: {mensagem}")
 
-    return '\n'.join(linhas)
+    return ' | '.join(linhas)
 
 
 class ImportacaoLotesViewSet(viewsets.ModelViewSet):
@@ -67,33 +68,28 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
         instance = serializer.save()
 
         # 1. Validar e parsear o arquivo TXT
+        # Exceções estruturais são capturadas pelo decorator @captura_erros_importacao,
+        # que já persiste em ImportacaoErro e seta status=ERRO.
         try:
-            registros = validar_txt_lotes(instance.arquivo)
+            registros, erros_por_linha = validar_txt_lotes(instance.arquivo, importacao_obj=instance)
         except BaseImportacaoException as exc:
-            erros_por_linha = getattr(exc, 'erros_por_linha', []) or []
-            resumo_linhas = _montar_resumo_erros_linha(erros_por_linha)
-
-            instance.status = 'ERRO'
-            instance.erros = exc.mensagem if not resumo_linhas else f'{exc.mensagem}\n{resumo_linhas}'
-            instance.detalhes = {
-                'detalhes': exc.detalhes,
-                'erros_por_linha': erros_por_linha,
-            }
-            instance.save(update_fields=['status', 'erros', 'detalhes'])
             return Response(
-                {
-                    'detail': exc.mensagem,
-                    'detalhes': exc.detalhes,
-                    'erros_por_linha': erros_por_linha,
-                },
+                {'detail': exc.mensagem, 'detalhes': exc.detalhes},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as exc:
             logger.error('Erro inesperado ao validar arquivo de lotes: %s', exc)
-            instance.status = 'ERRO'
-            instance.erros = 'Erro ao validar arquivo.'
-            instance.save(update_fields=['status', 'erros'])
             return Response({'detail': 'Erro ao validar arquivo de lotes.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Erros de linha (validação Pydantic) não são exceções — registrar explicitamente.
+        if erros_por_linha:
+            mensagem = f'Arquivo possui {len(erros_por_linha)} erro(s) de validação.'
+            resumo_linhas = _montar_resumo_erros_linha(erros_por_linha)
+            registrar_erro(instance, mensagem=mensagem, detalhes=resumo_linhas)
+            return Response(
+                {'detail': mensagem, 'erros_por_linha': erros_por_linha},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Salvar registros parseados como detalhes da importação
         instance.detalhes = registros
@@ -111,34 +107,20 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
             logger.error('Erro de requisição ao salvar lotes: %s', exc)
             erros_por_linha = getattr(exc, 'erros_por_linha', []) or []
             resumo_linhas = _montar_resumo_erros_linha(erros_por_linha)
-
-            instance.status = 'ERRO'
-            instance.erros = exc.mensagem if not resumo_linhas else f'{exc.mensagem}\n{resumo_linhas}'
+            registrar_erro(instance, mensagem=exc.mensagem, detalhes=resumo_linhas or exc.detalhes)
             instance.detalhes = {
                 'registros_processados': registros,
                 'erros_por_linha': erros_por_linha,
             }
-            instance.save(update_fields=['status', 'erros', 'detalhes'])
+            instance.save(update_fields=['detalhes'])
             return Response({'detail': exc.mensagem}, status=status.HTTP_400_BAD_REQUEST)
         except ImportacaoServiceUnavailableException as exc:
             logger.error('Servico de candidatos indisponivel ao salvar lotes: %s', exc)
-            instance.status = 'ERRO'
-            instance.erros = exc.mensagem
-            instance.detalhes = {
-                'registros_processados': registros,
-                'erros_por_linha': [],
-            }
-            instance.save(update_fields=['status', 'erros', 'detalhes'])
+            registrar_erro(instance, mensagem=exc.mensagem, detalhes=exc.detalhes)
             return Response({'detail': exc.mensagem}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as exc:
             logger.error('Erro inesperado ao salvar lotes: %s', exc, exc_info=True)
-            instance.status = 'ERRO'
-            instance.erros = 'Erro inesperado ao salvar lotes.'
-            instance.detalhes = {
-                'registros_processados': registros,
-                'erros_por_linha': [],
-            }
-            instance.save(update_fields=['status', 'erros', 'detalhes'])
+            registrar_erro(instance, mensagem='Erro inesperado ao salvar lotes.', exc=exc)
             return Response({'detail': 'Erro inesperado ao salvar lotes.'}, status=status.HTTP_400_BAD_REQUEST)
 
         instance.status = 'CONCLUIDO'

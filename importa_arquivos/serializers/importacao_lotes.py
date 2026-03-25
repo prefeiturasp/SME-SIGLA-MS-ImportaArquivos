@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from ..models import ImportacaoLotes
+from django.contrib.contenttypes.models import ContentType
+from ..models import ImportacaoLotes, ImportacaoErro
 
 
 class ImportacaoLotesCreateSerializer(serializers.ModelSerializer):
@@ -17,6 +18,7 @@ class ImportacaoLotesCreateSerializer(serializers.ModelSerializer):
         nome_arquivo = getattr(arquivo, 'name', None) or 'Importação de Lotes'
         instance = ImportacaoLotes.objects.create(
             nome_arquivo=nome_arquivo,
+            tipo='LOTES',
             status='PENDENTE',
             **validated_data,
         )
@@ -26,7 +28,11 @@ class ImportacaoLotesCreateSerializer(serializers.ModelSerializer):
 class ImportacaoLotesListSerializer(serializers.ModelSerializer):
     """
     Serializer para listagem e detalhe de importações de lotes.
+    Erros são consultados na tabela ImportacaoErro (GenericForeignKey).
     """
+    erros = serializers.SerializerMethodField()
+
+    _content_type_cache = None
 
     class Meta:
         model = ImportacaoLotes
@@ -34,6 +40,7 @@ class ImportacaoLotesListSerializer(serializers.ModelSerializer):
             'uuid',
             'nome_arquivo',
             'arquivo',
+            'tipo',
             'concurso_uuid',
             'concurso_nome',
             'status',
@@ -43,4 +50,21 @@ class ImportacaoLotesListSerializer(serializers.ModelSerializer):
             'criado_em',
             'atualizado_em',
         ]
-        read_only_fields = ['uuid', 'criado_em', 'atualizado_em', 'status', 'total_atualizados', 'erros', 'detalhes']
+        read_only_fields = ['uuid', 'tipo', 'criado_em', 'atualizado_em', 'status', 'total_atualizados', 'detalhes']
+
+    def get_erros(self, obj):
+        if ImportacaoLotesListSerializer._content_type_cache is None:
+            ImportacaoLotesListSerializer._content_type_cache = ContentType.objects.get_for_model(ImportacaoLotes)
+
+        erros_qs = ImportacaoErro.objects.filter(
+            content_type=ImportacaoLotesListSerializer._content_type_cache,
+            object_id=obj.uuid,
+        ).order_by('-criado_em')
+
+        if not erros_qs.exists():
+            return None
+
+        return [
+            {'mensagem': e.mensagem, 'erros': e.erros, 'criado_em': e.criado_em}
+            for e in erros_qs
+        ]

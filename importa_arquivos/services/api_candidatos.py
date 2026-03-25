@@ -7,14 +7,13 @@ from typing import List, Dict, Any, Optional
 from requests.exceptions import RequestException, Timeout
 
 import requests
-<<<<<<< Updated upstream
+
 from importa_arquivos.services.erros import captura_erros_importacao, registrar_erro
 from importa_arquivos.services.exceptions import ApiCandidatosException
-=======
 from requests import RequestException
 from importa_arquivos.services.erros import registrar_erro
 from importa_arquivos.services.exceptions import ImportacaoBadRequestException, ImportacaoServiceUnavailableException
->>>>>>> Stashed changes
+
 
 logger = logging.getLogger(__name__)
 
@@ -77,8 +76,7 @@ class ApiCandidatosService:
         except RequestException as exc:
             logger.error('Erro ao enviar candidatos: %s', exc)
             raise
-<<<<<<< Updated upstream
-         
+
         if response.status_code >= 400:
             raise ApiCandidatosException(
                 mensagem='Falha ao enviar candidatos para API externa',
@@ -88,7 +86,7 @@ class ApiCandidatosService:
             
         logger.info('Candidatos enviados: %s (concurso=%s)', len(dados_transformados), concurso_uuid)
         return response.json()
-=======
+
 
     def salvar_lotes(self, concurso_uuid: str, lotes: list) -> int:
         """
@@ -148,4 +146,3 @@ class ApiCandidatosService:
             )
 
         return int(response.json().get('total_atualizados', 0))
->>>>>>> Stashed changes

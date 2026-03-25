@@ -12,6 +12,7 @@ class BaseImportacaoException(Exception):
 class ColunaCSVInvalidaException(BaseImportacaoException):
     pass
 
+
 class CamposObrigatoriosNaoPreenchidosException(BaseImportacaoException):
     pass
 
@@ -35,7 +36,6 @@ class TipoUEDesabilitadoException(BaseImportacaoException):
     pass
 
 
-<<<<<<< Updated upstream
 class ApiCandidatosException(BaseImportacaoException):
     """Erro de integração com o MS-Candidatos."""
 
@@ -64,7 +64,8 @@ class ApiEscolhasException(BaseImportacaoException):
         super().__init__(mensagem=mensagem, detalhes=detalhes)
         self.status_code = status_code
         self.code = code
-=======
+
+
 class ImportacaoBadRequestException(BaseImportacaoException):
     pass
 
@@ -77,10 +78,9 @@ class ArquivoLotesVazioException(BaseImportacaoException):
     """Arquivo de lotes vazio ou sem dados validos."""
 
 
-class CampoObrigatorioLotesException(BaseImportacaoException):
-    """Campo obrigatorio nao preenchido no arquivo de lotes."""
+class ErrosValidacaoLotesException(BaseImportacaoException):
+    """Arquivo de lotes contém erros de validação por linha."""
 
 
 class MultiplosLotesException(BaseImportacaoException):
     """Arquivo de lotes contem mais de um valor na coluna LOTE."""
->>>>>>> Stashed changes
