@@ -1,8 +1,9 @@
 class BaseImportacaoException(Exception):
-    def __init__(self, mensagem: str, detalhes: str | None = None):
+    def __init__(self, mensagem: str, detalhes: str | None = None, erros_por_linha: list[dict] | None = None):
         super().__init__(mensagem)
         self.mensagem = mensagem
         self.detalhes = detalhes or ''
+        self.erros_por_linha = erros_por_linha or []
 
     def __str__(self) -> str:
         return self.mensagem
@@ -34,6 +35,7 @@ class TipoUEDesabilitadoException(BaseImportacaoException):
     pass
 
 
+<<<<<<< Updated upstream
 class ApiCandidatosException(BaseImportacaoException):
     """Erro de integração com o MS-Candidatos."""
 
@@ -62,3 +64,23 @@ class ApiEscolhasException(BaseImportacaoException):
         super().__init__(mensagem=mensagem, detalhes=detalhes)
         self.status_code = status_code
         self.code = code
+=======
+class ImportacaoBadRequestException(BaseImportacaoException):
+    pass
+
+
+class ImportacaoServiceUnavailableException(BaseImportacaoException):
+    pass
+
+
+class ArquivoLotesVazioException(BaseImportacaoException):
+    """Arquivo de lotes vazio ou sem dados validos."""
+
+
+class CampoObrigatorioLotesException(BaseImportacaoException):
+    """Campo obrigatorio nao preenchido no arquivo de lotes."""
+
+
+class MultiplosLotesException(BaseImportacaoException):
+    """Arquivo de lotes contem mais de um valor na coluna LOTE."""
+>>>>>>> Stashed changes

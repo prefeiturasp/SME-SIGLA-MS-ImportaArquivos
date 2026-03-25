@@ -4,3 +4,4 @@ from .layout import LayoutArquivoImportacao
 from .importacao_erro import ImportacaoErro
 from .importacao_escolhas import ImportacaoEscolhas
 from .log_request_http import LogRequestHttp
+from .importacao_lotes import ImportacaoLotes

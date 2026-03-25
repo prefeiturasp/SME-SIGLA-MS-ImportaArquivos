@@ -3,6 +3,7 @@ from .importacao_vagas import ImportacaoArquivoVagasViewSet
 from .layout import LayoutArquivoImportacaoViewSet
 from .importacao_escolhas import ImportacaoEscolhasViewSet
 from .swagger import SwaggerFromFileView
+from .importacao_lotes import ImportacaoLotesViewSet
 
 __all__ = [
     'ImportacaoArquivoHabilitadosViewSet',
@@ -10,4 +11,5 @@ __all__ = [
     'ImportacaoArquivoVagasViewSet',
     'LayoutArquivoImportacaoViewSet',
     'ImportacaoEscolhasViewSet',
+    'ImportacaoLotesViewSet',
 ]
