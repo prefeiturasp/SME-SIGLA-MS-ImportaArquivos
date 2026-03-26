@@ -88,7 +88,8 @@ class ApiCandidatosService:
         return response.json()
 
 
-    def salvar_lotes(self, concurso_uuid: str, lotes: list) -> int:
+    @captura_erros_importacao(param_nome_obj='importacao_obj')
+    def salvar_lotes(self, concurso_uuid: str, lotes: list, importacao_obj=None) -> int:
         """
         POST {base_url}/api/v1/habilitados/salvar-lotes/
 
@@ -116,20 +117,15 @@ class ApiCandidatosService:
         if response.status_code == 400:
             logger.error("API salvar-lotes retornou status %s: %s", response.status_code, response.text)
             mensagem = "Erro na requisição ao salvar lotes."
-            erros_por_linha: list[dict[str, Any]] = []
+            detail = mensagem
             try:
                 payload_erro = response.json()
-                mensagem = payload_erro.get('mensagem') or payload_erro.get('detail') or mensagem
-                if isinstance(payload_erro.get('erros_por_linha'), list):
-                    erros_por_linha = payload_erro.get('erros_por_linha')
+                mensagem = payload_erro.get('mensagem', mensagem)
+                detail = payload_erro.get('detail', mensagem)
             except (ValueError, json.JSONDecodeError):
-                payload_erro = None
+                detail = "Erro JSONDecodeError"
 
-            raise ImportacaoBadRequestException(
-                mensagem=mensagem,
-                detalhes=f"Status {response.status_code}: {response.text}",
-                erros_por_linha=erros_por_linha,
-            )
+            raise ImportacaoBadRequestException(mensagem=mensagem, detalhes=detail)
 
         if response.status_code >= 500:
             logger.error("API salvar-lotes retornou status %s: %s", response.status_code, response.text)

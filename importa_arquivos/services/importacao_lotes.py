@@ -11,49 +11,30 @@ import io
 import logging
 from typing import Any
 
-from pydantic import BaseModel, ValidationError, field_validator
+from pydantic import ValidationError
 
 from importa_arquivos.services.erros import captura_erros_importacao
 from importa_arquivos.services.exceptions import (
     ArquivoLotesVazioException,
     ColunaCSVInvalidaException,
+    ErrosValidacaoLotesException,
     LeituraCSVException,
 )
+from importa_arquivos.services.schema import COLUNAS_ESPERADAS, LinhaLoteSIGPEC
 
 logger = logging.getLogger(__name__)
-
-COLUNAS_ESPERADAS = {'LOTE', 'EMPRESA', 'VAGA', 'IDENTIFICACAO', 'CHAVE_INSCRITO', 'NUMFUNC', 'NUMVINC'}
-
-
-class LinhaLoteSIGPEC(BaseModel):
-    """Schema de validação de uma linha do arquivo TXT de lotes SIGPEC."""
-
-    lote: int
-    empresa: str
-    vaga: str
-    identificacao: int
-    chave_inscrito: str = ''  # opcional — ignorado na integração
-    numfunc: int
-    numvinc: int | None = None  # opcional
-
-    @field_validator('empresa', 'vaga', mode='before')
-    @classmethod
-    def nao_vazio(cls, v: str) -> str:
-        if not v or not str(v).strip():
-            raise ValueError('Campo não pode estar vazio.')
-        return str(v).strip()
 
 
 def _validar_linha_lote(
     row: dict,
     num_linha: int,
     lote_referencia: int | None,
-) -> tuple[LinhaLoteSIGPEC | None, list[dict], int | None]:
+) -> tuple[LinhaLoteSIGPEC | None, str, int | None]:
     """
     Valida uma linha do arquivo de lotes via schema Pydantic.
 
-    Retorna (objeto_valido, erros, lote_referencia).
-    Se houver erros de validação, objeto_valido é None e erros contém os detalhes.
+    Retorna (objeto_valido, erro, lote_referencia).
+    Se houver erros de validação, objeto_valido é None e erro contém a descrição.
     """
     identificacao = row.get('IDENTIFICACAO', '').strip()
 
@@ -68,31 +49,23 @@ def _validar_linha_lote(
             numvinc=row.get('NUMVINC', '').strip() or None,
         )
     except ValidationError as exc:
-        erros = [
-            {
-                'linha': num_linha,
-                'identificacao': identificacao,
-                'mensagem': f"Campo '{e['loc'][0]}': {e['msg']}",
-            }
+        erros = "\n".join([
+            f"Linha: {num_linha} | Identificacao: {identificacao} - Campo '{e['loc'][0]}': {e['msg']}"
             for e in exc.errors()
-        ]
+        ])
         return None, erros, lote_referencia
 
     # Validação de unicidade do lote (cross-row — não pertence ao schema Pydantic)
     if lote_referencia is None:
         lote_referencia = obj.lote
     elif obj.lote != lote_referencia:
-        return None, [{
-            'linha': num_linha,
-            'identificacao': identificacao,
-            'mensagem': f"Lote '{obj.lote}' diverge do lote inicial '{lote_referencia}'.",
-        }], lote_referencia
+        return None, f"Linha: {num_linha} | Identificacao: {identificacao} - Lote {obj.lote} diverge do lote inicial {lote_referencia}.", lote_referencia
 
-    return obj, [], lote_referencia
+    return obj, '', lote_referencia
 
 
 @captura_erros_importacao(param_nome_obj='importacao_obj')
-def validar_txt_lotes(arquivo, importacao_obj=None) -> tuple[list[dict[str, Any]], list[dict]]:
+def validar_txt_lotes(arquivo, importacao_obj=None) -> list[dict[str, Any]]:
     """
     Lê e valida o arquivo TXT de lotes.
 
@@ -100,13 +73,13 @@ def validar_txt_lotes(arquivo, importacao_obj=None) -> tuple[list[dict[str, Any]
     - Header fixo: LOTE;EMPRESA;VAGA;IDENTIFICACAO;CHAVE_INSCRITO;NUMFUNC;NUMVINC
     - Linhas vazias são ignoradas
     - Todos os registros devem possuir o mesmo valor na coluna LOTE
-    - Todos os erros de linha são coletados antes de retornar (sem fail-fast)
+    - Todos os erros de linha são coletados antes de lançar exceção (sem fail-fast)
 
     Retorna:
-        (registros_validos, erros_por_linha)
+        registros_validos
 
     Lança exceções de domínio para erros estruturais (encoding, arquivo vazio, header inválido)
-    que impedem o processamento linha a linha.
+    ou ErrosValidacaoLotesException se houver erros de validação por linha.
     """
     try:
         file_bytes = arquivo.read()
@@ -138,7 +111,7 @@ def validar_txt_lotes(arquivo, importacao_obj=None) -> tuple[list[dict[str, Any]
         )
 
     registros: list[dict[str, Any]] = []
-    erros_por_linha: list[dict] = []
+    erros: list[str] = []
     lote_referencia: int | None = None
 
     for row in reader:
@@ -147,24 +120,26 @@ def validar_txt_lotes(arquivo, importacao_obj=None) -> tuple[list[dict[str, Any]
         if not valores:
             continue
 
-        obj, erros_linha, lote_referencia = _validar_linha_lote(
+        obj, erro, lote_referencia = _validar_linha_lote(
             row, reader.line_num, lote_referencia
         )
 
-        if erros_linha:
-            erros_por_linha.extend(erros_linha)
+        if erro:
+            erros.append(erro)
         else:
             registros.append(obj.model_dump())
 
-    if not registros and not erros_por_linha:
+    if not registros:
         raise ArquivoLotesVazioException(
             mensagem='O arquivo nao contem registros validos.',
             detalhes='Apenas cabecalho ou linhas vazias foram encontradas.',
         )
 
-    logger.info(
-        'validar_txt_lotes: %d registros validos, %d erros encontrados.',
-        len(registros),
-        len(erros_por_linha),
-    )
-    return registros, erros_por_linha
+    if erros:
+        raise ErrosValidacaoLotesException(
+            mensagem='Erro ao validar os dados do arquivo.',
+            detalhes="\n".join(erros),
+        )
+
+    logger.info('validar_txt_lotes: %d registros validos.', len(registros))
+    return registros
