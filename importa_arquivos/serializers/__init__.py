@@ -19,3 +19,7 @@ from .importacao_escolhas import (
     ResponseSerializer,
     EscolhasImportacaoSerializer,
 )
+from .importacao_lotes import (
+    ImportacaoLotesCreateSerializer,
+    ImportacaoLotesListSerializer,
+)

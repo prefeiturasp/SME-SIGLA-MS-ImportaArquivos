@@ -11,6 +11,7 @@ class BaseImportacaoException(Exception):
 class ColunaCSVInvalidaException(BaseImportacaoException):
     pass
 
+
 class CamposObrigatoriosNaoPreenchidosException(BaseImportacaoException):
     pass
 
@@ -62,3 +63,23 @@ class ApiEscolhasException(BaseImportacaoException):
         super().__init__(mensagem=mensagem, detalhes=detalhes)
         self.status_code = status_code
         self.code = code
+
+
+class ImportacaoBadRequestException(BaseImportacaoException):
+    pass
+
+
+class ImportacaoServiceUnavailableException(BaseImportacaoException):
+    pass
+
+
+class ArquivoLotesVazioException(BaseImportacaoException):
+    """Arquivo de lotes vazio ou sem dados validos."""
+
+
+class ErrosValidacaoLotesException(BaseImportacaoException):
+    """Arquivo de lotes contém erros de validação por linha."""
+
+
+class MultiplosLotesException(BaseImportacaoException):
+    """Arquivo de lotes contem mais de um valor na coluna LOTE."""
