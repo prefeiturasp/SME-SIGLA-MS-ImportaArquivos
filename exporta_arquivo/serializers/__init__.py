@@ -12,6 +12,11 @@ from .exportacao_candidatos_processo import (
     ExportacaoCandidatosProcessoCreateSerializer,
     ExportacaoCandidatosProcessoListSerializer,
 )
+from .exportacao_lote import (
+    ExportacaoLoteCreateSerializer,
+    ExportacaoLoteListSerializer,
+    CabecalhoExportacaoLoteSerializer,
+)
 
 __all__ = [
     'VagasPayloadSerializer',
@@ -21,4 +26,7 @@ __all__ = [
     'ExportacaoVagasProcessoListSerializer',
     'ExportacaoCandidatosProcessoCreateSerializer',
     'ExportacaoCandidatosProcessoListSerializer',
+    'ExportacaoLoteCreateSerializer',
+    'ExportacaoLoteListSerializer',
+    'CabecalhoExportacaoLoteSerializer',
 ]

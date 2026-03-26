@@ -3,6 +3,8 @@ from .views import (
     ExportacaoVagasSigpecViewSet,
     ExportacaoVagasProcessoViewSet,
     ExportacaoCandidatosProcessoViewSet,
+    ExportacaoLoteViewSet,
+    CabecalhoExportacaoLoteViewSet,
 )
 
 router = DefaultRouter()
@@ -20,6 +22,16 @@ router.register(
     r'exportacao/candidatos-processo',
     ExportacaoCandidatosProcessoViewSet,
     basename='exportacao-candidatos-processo',
+)
+router.register(
+    r'exportacao/lote',
+    ExportacaoLoteViewSet,
+    basename='exportacao-lote',
+)
+router.register(
+    r'exportacao/cabecalho-lote',
+    CabecalhoExportacaoLoteViewSet,
+    basename='cabecalho-exportacao-lote',
 )
 
 urlpatterns = router.urls
