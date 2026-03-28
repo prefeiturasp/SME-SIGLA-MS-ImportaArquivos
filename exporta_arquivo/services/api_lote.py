@@ -29,20 +29,8 @@ class ApiLoteCandidatosService:
         self.timeout_seconds = timeout_seconds or getattr(settings, "CANDIDATOS_API_TIMEOUT", 30)
         self._default_headers = {"Accept": "application/json"}
 
-    def get_candidatos_lote(self, lote_uuid: str) -> List[Dict[str, Any]]:
-        """
-        GET {CANDIDATOS_API_URL}/api/v1/habilitados/?lote__uuid=<uuid>
-
-        Retorna lista de ConcursoCandidato do lote com todos os campos,
-        incluindo numero_lote, codigo_sigpec e chave_inscrito.
-
-        Raises:
-            ExportacaoNotFoundException: em 404.
-            ExportacaoServiceUnavailableException: em 5xx, timeout ou resposta inválida.
-        """
-        url = f"{self.base_url}/api/v1/habilitados/"
-        params = {"lote__uuid": str(lote_uuid)}
-
+    def _fazer_request_get(self, url: str, params: dict, descricao_contexto: str) -> List[Dict[str, Any]]:
+        """Método comum para realizar requisições GET padronizadas na API de candidatos."""
         try:
             response = requests.get(
                 url,
@@ -51,7 +39,7 @@ class ApiLoteCandidatosService:
                 timeout=self.timeout_seconds,
             )
         except RequestException as exc:
-            logger.exception("Erro ao chamar API de candidatos (lote): %s", exc)
+            logger.exception("Erro ao chamar API de candidatos (%s): %s", descricao_contexto, exc)
             raise ExportacaoServiceUnavailableException(
                 mensagem="Serviço de candidatos indisponível.",
                 detalhes=str(exc),
@@ -59,8 +47,8 @@ class ApiLoteCandidatosService:
 
         if response.status_code == 404:
             raise ExportacaoNotFoundException(
-                mensagem="Lote não encontrado.",
-                detalhes=f"lote_uuid={lote_uuid}",
+                mensagem=f"Dados não encontrados ({descricao_contexto}).",
+                detalhes=f"Parâmetros: {params}",
             )
 
         if response.status_code >= 500:
@@ -76,7 +64,7 @@ class ApiLoteCandidatosService:
 
         if response.status_code != 200:
             raise ExportacaoServiceUnavailableException(
-                mensagem="Erro ao obter candidatos do lote.",
+                mensagem=f"Erro ao obter dados: {descricao_contexto}.",
                 detalhes=f"Status {response.status_code}",
             )
 
@@ -95,6 +83,44 @@ class ApiLoteCandidatosService:
             results = data["results"]
             return results if isinstance(results, list) else []
         return []
+
+    def get_candidatos_lote(self, lote_uuid: str) -> List[Dict[str, Any]]:
+        """
+        GET {CANDIDATOS_API_URL}/api/v1/habilitados/?lote__uuid=<uuid>
+
+        Retorna lista de ConcursoCandidato do lote com todos os campos,
+        incluindo numero_lote, codigo_sigpec e chave_inscrito.
+
+        Raises:
+            ExportacaoNotFoundException: em 404.
+            ExportacaoServiceUnavailableException: em 5xx, timeout ou resposta inválida.
+        """
+        url = f"{self.base_url}/api/v1/habilitados/"
+        params = {"lote__uuid": str(lote_uuid)}
+        return self._fazer_request_get(url, params, "lote")
+
+    def get_candidatos_por_numero_lote(
+        self,
+        concurso_uuid: str,
+        numero_lote: int  
+    ) -> List[Dict[str, Any]]:
+        """
+        GET {CANDIDATOS_API_URL}/api/v1/habilitados/?lote__concurso_uuid=<uuid>&numero_lote=<int>
+
+        Busca apenas os ConcursoCandidato com o numero_lote especificado dentro do
+        último lote de importação do concurso, opcionalmente filtrado por codigo_cargo.
+
+        Raises:
+            ExportacaoNotFoundException: em 404.
+            ExportacaoServiceUnavailableException: em 5xx, timeout ou resposta inválida.
+        """
+        url = f"{self.base_url}/api/v1/habilitados/"
+        params: Dict[str, Any] = {
+            "lote__concurso_uuid": str(concurso_uuid),
+            "numero_lote": numero_lote,
+        }   
+        
+        return self._fazer_request_get(url, params, "numero_lote")
 
 
 class ApiLoteEscolhasService:
