@@ -70,7 +70,7 @@ def gerar_conteudo_lote(
         if escolha.get("situacao") == "escolha":            
             vaga_escola = escolha.get("vaga_escola") or {}
             escola = (vaga_escola.get("escola") or {}) if isinstance(vaga_escola, dict) else {}
-            codigo_integracao = escola.get("codigo_integracao")
+            codigo_integracao = escola.get("codigo_integracao", '')
             escolheu = "S" 
         else:            
             escolheu = "R"
