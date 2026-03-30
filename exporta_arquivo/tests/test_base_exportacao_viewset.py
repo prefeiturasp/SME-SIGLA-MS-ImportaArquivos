@@ -193,8 +193,8 @@ class TestBaseExportacaoCreate:
             )
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
-        assert "cargo_codigo" in data["detail"].lower() or "inválido" in data["detail"].lower()
+        assert "mensagem" in data
+        assert "cargo_codigo" in data["mensagem"].lower() or "inválido" in data["mensagem"].lower()
 
     def test_create_executar_levanta_not_found_retorna_404(self, api_client):
         """executar_exportacao levanta ExportacaoNotFoundException → 404 e detail."""
