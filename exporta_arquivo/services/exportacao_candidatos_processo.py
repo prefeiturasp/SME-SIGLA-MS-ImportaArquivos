@@ -113,8 +113,8 @@ def exportar_candidatos_processo(
     instance.save(update_fields=['concurso_codigo', 'concurso_data_criacao'])
 
     lista_habilitados = ApiCandidatosService().get_habilitados(
-        instance.processo_uuid, 
-        instance.cargo_codigo, 
+        processo_uuid=instance.processo_uuid, 
+        codigo_cargo=instance.cargo_codigo, 
         lote__concurso_uuid=instance.concurso_uuid
         )
     _chave = lambda i: (i.get('ranking_escolha') is None, i.get('ranking_escolha') or 0)

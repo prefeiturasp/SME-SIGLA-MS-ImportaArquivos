@@ -11,7 +11,7 @@ from requests.exceptions import RequestException
 
 from django.conf import settings
 
-from .exceptions import ExportacaoNotFoundException, ExportacaoServiceUnavailableException
+from .exceptions import CandidatosNotFoundException, CandidatosServiceUnavailableException
 
 logger = logging.getLogger(__name__)
 
@@ -32,28 +32,21 @@ class ApiCandidatosService:
 
     def get_habilitados(
         self,
-        processo_uuid: str,
-        codigo_cargo: str | int,
-        lote__concurso_uuid: Optional[str] = None,
+        **kwargs: Any,
     ) -> List[Dict[str, Any]]:
         """
-        GET {CANDIDATOS_API_URL}/api/v1/habilitados/ com query params processo_uuid, codigo_cargo
-        e opcionalmente lote__concurso_uuid. Retorna a lista de habilitados.
+        GET {CANDIDATOS_API_URL}/api/v1/habilitados/ com query params dinâmicos informados
+        via kwargs. Retorna a lista de habilitados.
 
         A API pode retornar lista direta ou objeto paginado com 'results'; este método
         normaliza para sempre retornar uma lista.
 
         Raises:
-            ExportacaoNotFoundException: Em 404.
-            ExportacaoServiceUnavailableException: Em 5xx, timeout ou resposta não-JSON.
+            CandidatosNotFoundException: Em 404.
+            CandidatosServiceUnavailableException: Em 5xx, timeout ou resposta não-JSON.
         """
         url = f"{self.base_url}/api/v1/habilitados/"
-        params = {
-            'processo_uuid': processo_uuid,
-            'codigo_cargo': str(codigo_cargo),
-        }
-        if lote__concurso_uuid:
-            params['lote__concurso_uuid'] = lote__concurso_uuid
+        params = {k: str(v) for k, v in kwargs.items() if v is not None}
 
         try:
             response = requests.get(
@@ -64,13 +57,13 @@ class ApiCandidatosService:
             )
         except RequestException as exc:
             logger.exception("Erro ao chamar API de habilitados: %s", exc)
-            raise ExportacaoServiceUnavailableException(
+            raise CandidatosServiceUnavailableException(
                 mensagem="Serviço de candidatos (habilitados) indisponível.",
                 detalhes=str(exc),
             ) from exc
 
         if response.status_code == 404:
-            raise ExportacaoNotFoundException(
+            raise CandidatosNotFoundException(
                 mensagem="Recurso de habilitados não encontrado.",
                 detalhes="Habilitados não encontrado.",
             )
@@ -81,13 +74,13 @@ class ApiCandidatosService:
                 response.status_code,
                 response.text[:500],
             )
-            raise ExportacaoServiceUnavailableException(
+            raise CandidatosServiceUnavailableException(
                 mensagem="Serviço de candidatos (habilitados) indisponível.",
                 detalhes=f"Status {response.status_code}",
             )
 
         if response.status_code != 200:
-            raise ExportacaoServiceUnavailableException(
+            raise CandidatosServiceUnavailableException(
                 mensagem="Erro ao obter habilitados.",
                 detalhes=f"Status {response.status_code}",
             )
@@ -96,7 +89,7 @@ class ApiCandidatosService:
             data = response.json()
         except ValueError as exc:
             logger.exception("Resposta da API de habilitados não é JSON válido.")
-            raise ExportacaoServiceUnavailableException(
+            raise CandidatosServiceUnavailableException(
                 mensagem="Resposta inválida do serviço de candidatos.",
                 detalhes=str(exc),
             ) from exc

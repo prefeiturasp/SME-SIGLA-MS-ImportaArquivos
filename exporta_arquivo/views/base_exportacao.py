@@ -6,6 +6,7 @@ Centraliza list/create/retrieve, get_serializer_class, list com query params
 download e tratamento de exceções (404/502).
 """
 import re
+import logging
 
 from django.http import HttpResponse
 from rest_framework import viewsets, status
@@ -22,6 +23,8 @@ from ..services.exceptions import (
     ExportacaoNotFoundException,
     ExportacaoServiceUnavailableException,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _sanitizar_nome_arquivo(texto: str, max_len: int = 80) -> str:
@@ -129,19 +132,28 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
         try:
             self.executar_exportacao(instance)
         except ExportacaoBadRequestException as exc:
+            logger.warning("Erro de validação (400) na exportação %s: %s", instance.uuid, exc.mensagem)
             return Response(
-                {"detail": exc.mensagem},
+                {"mensagem": exc.mensagem, "detail": exc.detalhes},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except ExportacaoNotFoundException as exc:
+            logger.warning("Dados não encontrados (404) na exportação %s: %s", instance.uuid, exc.mensagem)
             return Response(
-                {"detail": exc.mensagem},
+                {"mensagem": exc.mensagem, "detail": exc.detalhes},
                 status=status.HTTP_404_NOT_FOUND,
             )
         except ExportacaoServiceUnavailableException as exc:
+            logger.error("Serviço indisponível (502) na exportação %s: %s", instance.uuid, exc.mensagem)
             return Response(
-                {"detail": exc.mensagem},
+                {"mensagem": exc.mensagem, "detail": exc.detalhes},
                 status=status.HTTP_502_BAD_GATEWAY,
+            )
+        except Exception as exc:
+            logger.exception("Erro interno (500) inesperado na exportação %s: %s", instance.uuid, exc)
+            return Response(
+                {"mensagem": "Erro interno ao gerar exportação.", "detail": str(exc)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         return self.gerar_arquivo(instance)
 
