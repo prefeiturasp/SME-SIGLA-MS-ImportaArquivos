@@ -13,8 +13,13 @@ from ..serializers import (
 )
 from ..services.validacao_vagas import validar_csv_vagas
 from ..services.api_escolhas import ApiEscolhasService
-from ..services.exceptions import ColunaCSVInvalidaException, LayoutNaoConfiguradoException, LeituraCSVException
-from ..services.exceptions import TipoUEDesabilitadoException
+from ..services.exceptions import (
+    ColunaCSVInvalidaException,
+    LayoutNaoConfiguradoException,
+    LeituraCSVException,
+    TipoUEDesabilitadoException,
+    ApiEscolhasException,
+)
 from ..utils import CustomPagination
 from rest_framework.decorators import action
 from django.http import HttpResponse
@@ -70,9 +75,17 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
         except TipoUEDesabilitadoException as exc:
             logging.error('Tipo UE desabilitado ao enviar dados: %s', exc)
             return Response({'detail': str(exc), 'code': 'TIPO_UE_DESABILITADO'}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as exc:
-            logging.error('Falha ao enviar dados para API externa: %s', exc)
+        except ApiEscolhasException as exc:
             instance.refresh_from_db()
+            payload = {
+                'detail': exc.mensagem,
+                'detalhes': exc.detalhes or str(exc),
+                'status_code': exc.status_code,
+            }
+            return Response(payload, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as exc:
+            logging.error('Erro inesperado ao enviar vagas: %s', exc)
+            return Response({'detail': 'Erro ao enviar vagas para API externa.'}, status=status.HTTP_400_BAD_REQUEST)
 
         instance.refresh_from_db()
         serializer = ImportacaoArquivoVagasListSerializer(instance)

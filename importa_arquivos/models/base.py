@@ -5,6 +5,7 @@ from django.db import models
 CHOICES_TIPO_IMPORTACAO_ARQUIVO = [
     ('HABILITADOS', 'Habilitados'),
     ('VAGAS', 'Vagas'),
+    ('LOTES', 'Lotes'),
 ]
 
 

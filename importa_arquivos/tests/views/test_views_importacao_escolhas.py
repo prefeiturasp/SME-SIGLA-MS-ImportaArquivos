@@ -3,11 +3,13 @@ Testes unitários para ImportacaoEscolhasViewSet.
 """
 import pytest
 import uuid
+import json
 from django.urls import reverse
 from unittest.mock import patch, Mock
 from requests import RequestException
 
 from importa_arquivos.models import ImportacaoEscolhas, ImportacaoErro
+from importa_arquivos.services.exceptions import ApiEscolhasException
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -224,6 +226,58 @@ class TestImportacaoEscolhasViewSet:
             
             importacao = ImportacaoEscolhas.objects.get(processo_uuid=processo_uuid)
             assert importacao.status == 'ERRO'
+
+    def test_create_erro_ao_enviar_para_ms_escolhas_com_payload_estruturado_retorna_400(self, api_client, settings):
+        """Quando o serviço externo envia payload estruturado, deve retornar status e campos corretos."""
+        settings.ESCOLHA_API_URL = 'https://api.exemplo'
+        settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
+        settings.PRODAM_API_TOKEN = 'token123'
+        settings.PRODAM_API_USUARIO = 'usuario'
+        settings.PRODAM_API_SENHA = 'senha'
+
+        processo_uuid = uuid.uuid4()
+        processo_id = 123
+        concurso_uuid = uuid.uuid4()
+
+        resposta_prodam = {
+            'retorno': 'TRUE',
+            'mensagem': 'Sucesso',
+            'lstDadosResultadoConvocacaoIngresso': [
+                {
+                    'codigoPessoaFisica': '12345678901',
+                    'codigoCargo': '123',
+                    'descricaoStatus': 'ALOCADO',
+                }
+            ],
+        }
+
+        with patch('importa_arquivos.views.importacao_escolhas.ApiProdamService') as mock_prodam, \
+             patch('importa_arquivos.views.importacao_escolhas.ApiEscolhasService') as mock_escolhas:
+
+            mock_prodam_instance = Mock()
+            mock_prodam_instance.consultar_resultado_convocacao_ingresso.return_value = resposta_prodam
+            mock_prodam.return_value = mock_prodam_instance
+
+            mock_escolhas_instance = Mock()
+            mock_escolhas_instance.enviar_escolhas_prodam.side_effect = ApiEscolhasException(
+                mensagem='Falha ao enviar escolhas para API externa',
+                detalhes='Candidato não encontrado',
+                status_code=400,
+                code='ERRO_ESCOLHAS',
+            )
+            mock_escolhas.return_value = mock_escolhas_instance
+
+            url = reverse('importacao-escolhas-list')
+            resp = api_client.post(url, {
+                'processo_uuid': str(processo_uuid),
+                'processo_id': processo_id,
+                'concurso_uuid': str(concurso_uuid),
+            }, format='json')
+
+            assert resp.status_code == 400
+            assert resp.data['detail'] == 'Falha ao enviar escolhas para API externa'
+            assert resp.data['detalhes'] == 'Candidato não encontrado'
+            assert resp.data['code'] == 'ERRO_ESCOLHAS'
 
     def test_create_validacao_serializer_invalido(self, api_client):
         """Testa que dados inválidos retornam erro de validação."""
