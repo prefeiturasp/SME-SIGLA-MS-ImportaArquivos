@@ -56,27 +56,45 @@ def gerar_conteudo_lote(
 
     for candidato in candidatos:
         candidato_uuid = str(candidato.get("uuid") or candidato.get("concurso_candidato_uuid") or "")
-        # Tenta obter pelo UUID do candidato (candidato.candidato.uuid ou candidato_uuid do campo)
         candidato_data = candidato.get("candidato") or {}
         candidato_uuid_real = str(candidato_data.get("uuid") or "")
 
-        escolha = escolhas_por_candidato.get(candidato_uuid_real) or escolhas_por_candidato.get(candidato_uuid)
+        escolha = (
+            escolhas_por_candidato.get(candidato_uuid_real)
+            or escolhas_por_candidato.get(candidato_uuid)
+            or {}
+        )
 
         numero_lote = candidato.get("numero_lote")
         codigo_sigpec = candidato.get("codigo_sigpec")
         chave_inscrito = candidato.get("chave_inscrito")
 
-        data_escolha = _data_para_ddmmyyyy(escolha.get("criado_em"))
-        if escolha.get("situacao") == "escolha":            
+        criado_em = escolha.get("criado_em")
+        data_escolha = _data_para_ddmmyyyy(criado_em) if criado_em else ""
+
+        situacao = escolha.get("situacao")
+        mapa_escolheu = {
+            "escolha": "S",
+            "nao-escolha": "N",
+            "reconvocacao": "R",
+        }
+        escolheu = mapa_escolheu.get(situacao, "R")
+        codigo_integracao = ""
+
+        if situacao == "escolha":
             vaga_escola = escolha.get("vaga_escola") or {}
-            escola = (vaga_escola.get("escola") or {}) if isinstance(vaga_escola, dict) else {}
-            codigo_integracao = escola.get("codigo_integracao", '') or ""
-            escolheu = "S" 
-        else:            
-            escolheu = "R"
-            codigo_integracao = ""
-        linha = (
-            f"{numero_lote};{codigo_sigpec};{chave_inscrito};{data_escolha};{escolheu};{codigo_integracao};"       
+            escola = vaga_escola.get("escola") if isinstance(vaga_escola, dict) else {}
+            escola = escola or {}
+            codigo_integracao = escola.get("codigo_integracao") or ""
+
+        if situacao not in mapa_escolheu:
+            logger.warning(
+                "Situacao inesperada na exportacao de lote: candidato_uuid=%s situacao=%s",
+                candidato_uuid or candidato_uuid_real,
+                situacao,
+            )
+
+        linha = (f"{numero_lote};{codigo_sigpec};{chave_inscrito};{data_escolha};{escolheu};{codigo_integracao};"
         )
         linhas.append(linha)
 
