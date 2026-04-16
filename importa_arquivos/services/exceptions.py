@@ -83,3 +83,8 @@ class ErrosValidacaoLotesException(BaseImportacaoException):
 
 class MultiplosLotesException(BaseImportacaoException):
     """Arquivo de lotes contem mais de um valor na coluna LOTE."""
+
+
+class CargoConcursoInvalidoException(BaseImportacaoException):
+    """Erro quando Codigo_do_Cargo não pertence ao concurso selecionado ou é inválido."""
+    pass
