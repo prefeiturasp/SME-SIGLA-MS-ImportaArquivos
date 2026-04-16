@@ -12,6 +12,7 @@ from ..services.exceptions import (
     LayoutNaoConfiguradoException,
     LeituraCSVException,
     ApiCandidatosException,
+    CargoConcursoInvalidoException,
 )
 from ..models import ImportacaoArquivoHabilitado
 from ..serializers import (
@@ -34,7 +35,7 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
     search_fields = ['concurso_uuid', 'concurso_nome']
     ordering_fields = ['nome_arquivo', 'status', 'criado_em']
     ordering = ['-criado_em']
-    pagination_class = CustomPagination
+    pagination_class = None
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -51,7 +52,7 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
 
         try:
             registros, estrutura = validar_csv_habilitados(instance.arquivo, importacao_obj=instance)
-        except (ColunaCSVInvalidaException, LayoutNaoConfiguradoException, LeituraCSVException) as exc:
+        except (ColunaCSVInvalidaException, LayoutNaoConfiguradoException, LeituraCSVException, CargoConcursoInvalidoException) as exc:
             mensagem = getattr(exc, 'mensagem', 'Erro ao validar arquivo de Habilitados')
             detalhes = getattr(exc, 'detalhes', str(exc))
             logging.error('Erro na validação do CSV de Habilitados: %s - %s', mensagem, detalhes)
