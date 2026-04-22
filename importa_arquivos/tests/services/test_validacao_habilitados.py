@@ -5,9 +5,22 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from importa_arquivos.services.validacao_habilitados import validar_csv_habilitados
 from importa_arquivos.services.exceptions import LayoutNaoConfiguradoException, ColunaCSVInvalidaException
 from importa_arquivos.models import LayoutArquivoImportacao
+from unittest.mock import patch, MagicMock
+from importa_arquivos.services.exceptions import CargoConcursoInvalidoException
 
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def layout_com_cargo():
+    estrutura = [
+        {'coluna': 'Inscricao', 'campo_payload': 'codigo_inscricao', 'obrigatorio': '1'},
+        {'coluna': 'Nome', 'campo_payload': 'nome', 'obrigatorio': '1'},
+        {'coluna': 'CPF', 'campo_payload': 'cpf', 'obrigatorio': '1'},
+        {'coluna': 'Codigo_do_Cargo', 'campo_payload': 'codigo_cargo', 'obrigatorio': '1'},
+    ]
+    LayoutArquivoImportacao.objects.create(tipo='HABILITADOS', estrutura=estrutura)
 
 
 def test_validar_csv_habilitados_sucesso(layout_habilitados):
@@ -237,24 +250,6 @@ def test_validar_codigo_cargo_identificado_por_campo_payload():
     assert any('não possui relação' in m for m in erros[2])
 
 
-# ---------------------------------------------------------------------------
-# Testes de integração: validar_csv_habilitados com Codigo_do_Cargo
-# ---------------------------------------------------------------------------
-
-from unittest.mock import patch, MagicMock
-from importa_arquivos.services.exceptions import CargoConcursoInvalidoException
-
-
-def _criar_layout_com_cargo():
-    estrutura = [
-        {'coluna': 'Inscricao', 'campo_payload': 'codigo_inscricao', 'obrigatorio': '1'},
-        {'coluna': 'Nome', 'campo_payload': 'nome', 'obrigatorio': '1'},
-        {'coluna': 'CPF', 'campo_payload': 'cpf', 'obrigatorio': '1'},
-        {'coluna': 'Codigo_do_Cargo', 'campo_payload': 'codigo_cargo', 'obrigatorio': '1'},
-    ]
-    LayoutArquivoImportacao.objects.create(tipo='HABILITADOS', estrutura=estrutura)
-
-
 def _mock_concursos_service(codigos: set):
     mock_service = MagicMock()
     mock_service.obter_codigos_cargo_do_concurso.return_value = codigos
@@ -273,8 +268,7 @@ class _FakeImportacaoObj:
 
 
 @pytest.mark.django_db
-def test_validar_csv_habilitados_codigo_cargo_valido():
-    _criar_layout_com_cargo()
+def test_validar_csv_habilitados_codigo_cargo_valido(layout_com_cargo):
     csv_text = (
         "Inscricao,Nome,CPF,Codigo_do_Cargo\n"
         "1,Fulano,39053344705,10\n"
@@ -288,8 +282,7 @@ def test_validar_csv_habilitados_codigo_cargo_valido():
 
 
 @pytest.mark.django_db
-def test_validar_csv_habilitados_codigo_cargo_vazio_lanca_excecao():
-    _criar_layout_com_cargo()
+def test_validar_csv_habilitados_codigo_cargo_vazio_lanca_excecao(layout_com_cargo):
     csv_text = (
         "Inscricao,Nome,CPF,Codigo_do_Cargo\n"
         "1,Fulano,39053344705,\n"
@@ -304,8 +297,7 @@ def test_validar_csv_habilitados_codigo_cargo_vazio_lanca_excecao():
 
 
 @pytest.mark.django_db
-def test_validar_csv_habilitados_codigo_cargo_sem_relacao_lanca_excecao():
-    _criar_layout_com_cargo()
+def test_validar_csv_habilitados_codigo_cargo_sem_relacao_lanca_excecao(layout_com_cargo):
     csv_text = (
         "Inscricao,Nome,CPF,Codigo_do_Cargo\n"
         "1,Fulano,39053344705,999\n"
@@ -322,8 +314,7 @@ def test_validar_csv_habilitados_codigo_cargo_sem_relacao_lanca_excecao():
 
 
 @pytest.mark.django_db
-def test_validar_csv_habilitados_multiplos_cargos_validos():
-    _criar_layout_com_cargo()
+def test_validar_csv_habilitados_multiplos_cargos_validos(layout_com_cargo):
     csv_text = (
         "Inscricao,Nome,CPF,Codigo_do_Cargo\n"
         "1,Fulano,39053344705,10\n"
@@ -338,8 +329,7 @@ def test_validar_csv_habilitados_multiplos_cargos_validos():
 
 
 @pytest.mark.django_db
-def test_validar_csv_habilitados_api_concursos_indisponivel_lanca_excecao():
-    _criar_layout_com_cargo()
+def test_validar_csv_habilitados_api_concursos_indisponivel_lanca_excecao(layout_com_cargo):
     csv_text = (
         "Inscricao,Nome,CPF,Codigo_do_Cargo\n"
         "1,Fulano,39053344705,10\n"
