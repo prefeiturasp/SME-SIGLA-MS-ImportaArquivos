@@ -1,5 +1,7 @@
 import uuid
 from django.db import models
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 from .base import BaseModel
 
@@ -8,6 +10,7 @@ class ExportacaoCandidatosProcesso(BaseModel):
     """
     Registro de exportação de candidatos por processo.
     """
+    history = AuditlogHistoryField()
     concurso_codigo = models.IntegerField(
         verbose_name="Código do concurso",
         null=True,
@@ -27,3 +30,6 @@ class ExportacaoCandidatosProcesso(BaseModel):
 
     def __str__(self):
         return f"Exportação {self.uuid} (processo={self.processo_uuid}, cargo={self.cargo_uuid})"
+
+
+auditlog.register(ExportacaoCandidatosProcesso)

@@ -9,8 +9,8 @@ Contém dois clientes:
 import logging
 from typing import Any, Dict, List
 
-import requests
 from requests.exceptions import RequestException
+from sigla_sdk.http.api_client import http_client
 
 from django.conf import settings
 
@@ -32,7 +32,7 @@ class ApiLoteCandidatosService:
     def _fazer_request_get(self, url: str, params: dict, descricao_contexto: str) -> List[Dict[str, Any]]:
         """Método comum para realizar requisições GET padronizadas na API de candidatos."""
         try:
-            response = requests.get(
+            response = http_client.get(
                 url,
                 params=params,
                 headers=self._default_headers,
@@ -157,7 +157,7 @@ class ApiLoteEscolhasService:
         }
 
         try:
-            response = requests.post(
+            response = http_client.post(
                 url,
                 json=payload,
                 headers=self._default_headers,

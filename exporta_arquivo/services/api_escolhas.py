@@ -7,8 +7,8 @@ import logging
 from typing import Any, Dict, List
 from urllib import response
 
-import requests
 from requests.exceptions import RequestException
+from sigla_sdk.http.api_client import http_client
 
 from django.conf import settings
 
@@ -50,7 +50,7 @@ class ApiEscolhasService:
         }
 
         try:
-            response = requests.get(
+            response = http_client.get(
                 url,
                 params=params,
                 headers=self._default_headers,
@@ -119,7 +119,7 @@ class ApiEscolhasService:
         }
 
         try:
-            response = requests.post(
+            response = http_client.post(
                 url,
                 json=payload,
                 headers=self._default_headers,

@@ -1,9 +1,9 @@
 import logging
 from typing import List, Dict, Any, Optional
 
-import requests
 from datetime import datetime
 from requests.exceptions import RequestException
+from sigla_sdk.http.api_client import http_client
 from importa_arquivos.services.exceptions import TipoUEDesabilitadoException, ApiEscolhasException
 from .erros import captura_erros_importacao
 
@@ -67,7 +67,7 @@ class ApiEscolhasService:
             'processo_nome': processo_nome,
         }
         try:
-            response = requests.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
+            response = http_client.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
             # Tratamento específico para erro de tipo_ue desabilitado
             if response.status_code == 400:
                 try:
@@ -153,7 +153,7 @@ class ApiEscolhasService:
         
         try:
             logger.info(f'Enviando {len(escolhas)} escolhas para MS-Escolhas (processo_uuid={processo_uuid})')
-            response = requests.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
+            response = http_client.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
         except RequestException as exc:
             logger.error(f'Erro ao enviar escolhas para MS-Escolhas: {exc}')
             raise
