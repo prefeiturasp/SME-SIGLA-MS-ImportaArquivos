@@ -63,6 +63,3 @@ class ExportacaoLote(models.Model):
 
 
 auditlog.register(ExportacaoLote)
-
-
-auditlog.register(ExportacaoLote)
