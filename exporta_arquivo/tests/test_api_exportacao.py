@@ -28,7 +28,7 @@ class TestApiCandidatosService:
         return ApiCandidatosService(base_url="http://test", timeout_seconds=5)
 
     def test_timeout_levanta_service_unavailable(self, service):
-        with patch("exporta_arquivo.services.api_candidatos.requests.get", side_effect=Timeout()):
+        with patch("sigla_sdk.http.api_client.http_client.get", side_effect=Timeout()):
             with pytest.raises(CandidatosServiceUnavailableException) as exc_info:
                 service.get_habilitados(processo_uuid="proc-uuid", cargo_codigo=100)
             assert "indisponível" in exc_info.value.mensagem.lower() or "habilitados" in exc_info.value.mensagem.lower()
@@ -37,7 +37,7 @@ class TestApiCandidatosService:
         resp = MagicMock()
         resp.status_code = 503
         resp.text = "Service Unavailable"
-        with patch("exporta_arquivo.services.api_candidatos.requests.get", return_value=resp):
+        with patch("sigla_sdk.http.api_client.http_client.get", return_value=resp):
             with pytest.raises(CandidatosServiceUnavailableException) as exc_info:
                 service.get_habilitados(processo_uuid="proc-uuid", cargo_codigo=100)
             assert "503" in exc_info.value.detalhes or "indisponível" in exc_info.value.mensagem.lower()
@@ -46,7 +46,7 @@ class TestApiCandidatosService:
         resp = MagicMock()
         resp.status_code = 200
         resp.json.side_effect = ValueError("Invalid JSON")
-        with patch("exporta_arquivo.services.api_candidatos.requests.get", return_value=resp):
+        with patch("sigla_sdk.http.api_client.http_client.get", return_value=resp):
             with pytest.raises(CandidatosServiceUnavailableException) as exc_info:
                 service.get_habilitados(processo_uuid="proc-uuid", cargo_codigo=100)
             assert "inválida" in exc_info.value.mensagem.lower() or "resposta" in exc_info.value.mensagem.lower()
@@ -54,7 +54,7 @@ class TestApiCandidatosService:
     def test_404_levanta_not_found(self, service):
         resp = MagicMock()
         resp.status_code = 404
-        with patch("exporta_arquivo.services.api_candidatos.requests.get", return_value=resp):
+        with patch("sigla_sdk.http.api_client.http_client.get", return_value=resp):
             with pytest.raises(CandidatosNotFoundException) as exc_info:
                 service.get_habilitados(processo_uuid="proc-uuid", cargo_codigo=100)
             assert "não encontrado" in exc_info.value.mensagem.lower() or "habilitados" in exc_info.value.mensagem.lower()
@@ -63,7 +63,7 @@ class TestApiCandidatosService:
         resp = MagicMock()
         resp.status_code = 200
         resp.json.return_value = [{"id": 1}]
-        with patch("exporta_arquivo.services.api_candidatos.requests.get", return_value=resp):
+        with patch("sigla_sdk.http.api_client.http_client.get", return_value=resp):
             out = service.get_habilitados(processo_uuid="proc-uuid", cargo_codigo=100)
         assert out == [{"id": 1}]
 
@@ -71,7 +71,7 @@ class TestApiCandidatosService:
         resp = MagicMock()
         resp.status_code = 200
         resp.json.return_value = {"results": [{"id": 1}]}
-        with patch("exporta_arquivo.services.api_candidatos.requests.get", return_value=resp):
+        with patch("sigla_sdk.http.api_client.http_client.get", return_value=resp):
             out = service.get_habilitados(processo_uuid="proc-uuid", cargo_codigo=100)
         assert out == [{"id": 1}]
 
@@ -87,7 +87,7 @@ class TestApiEscolhasService:
         return ApiEscolhasService(base_url="http://test", timeout_seconds=5)
 
     def test_timeout_levanta_service_unavailable(self, service):
-        with patch("exporta_arquivo.services.api_escolhas.requests.get", side_effect=Timeout()):
+        with patch("sigla_sdk.http.api_client.http_client.get", side_effect=Timeout()):
             with pytest.raises(EscolhasServiceUnavailableException) as exc_info:
                 service.get_vagas_escolas("proc-uuid", 100)
             assert "indisponível" in exc_info.value.mensagem.lower() or "vagas" in exc_info.value.mensagem.lower()
@@ -96,7 +96,7 @@ class TestApiEscolhasService:
         resp = MagicMock()
         resp.status_code = 502
         resp.text = "Bad Gateway"
-        with patch("exporta_arquivo.services.api_escolhas.requests.get", return_value=resp):
+        with patch("sigla_sdk.http.api_client.http_client.get", return_value=resp):
             with pytest.raises(EscolhasServiceUnavailableException) as exc_info:
                 service.get_vagas_escolas("proc-uuid", 100)
             assert "502" in exc_info.value.detalhes or "indisponível" in exc_info.value.mensagem.lower()
@@ -105,7 +105,7 @@ class TestApiEscolhasService:
         resp = MagicMock()
         resp.status_code = 200
         resp.json.side_effect = ValueError("Invalid JSON")
-        with patch("exporta_arquivo.services.api_escolhas.requests.get", return_value=resp):
+        with patch("sigla_sdk.http.api_client.http_client.get", return_value=resp):
             with pytest.raises(EscolhasServiceUnavailableException) as exc_info:
                 service.get_vagas_escolas("proc-uuid", 100)
             assert "inválida" in exc_info.value.mensagem.lower() or "resposta" in exc_info.value.mensagem.lower()
@@ -114,6 +114,6 @@ class TestApiEscolhasService:
         resp = MagicMock()
         resp.status_code = 200
         resp.json.return_value = {"vagas": []}
-        with patch("exporta_arquivo.services.api_escolhas.requests.get", return_value=resp):
+        with patch("sigla_sdk.http.api_client.http_client.get", return_value=resp):
             out = service.get_vagas_escolas("proc-uuid", 100)
         assert out == {"vagas": []}

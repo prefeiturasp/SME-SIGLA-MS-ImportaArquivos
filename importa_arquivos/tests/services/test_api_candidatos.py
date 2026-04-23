@@ -35,7 +35,7 @@ def test_api_candidatos_enviar_habilitados_payload_ok(settings):
         {'coluna': 'Nome', 'campo_payload': 'nome'},
     ]
 
-    with patch('importa_arquivos.services.api_candidatos.requests.post') as mock_post:
+    with patch('sigla_sdk.http.api_client.http_client.post') as mock_post:
         mock_resp = Mock()
         mock_resp.status_code = 200
         mock_resp.json.return_value = {'ok': True}
@@ -65,7 +65,7 @@ def test_api_candidatos_cria_erro_quando_request_falha():
 
     service = ApiCandidatosService(base_url='http://example.com')
 
-    with patch('importa_arquivos.services.api_candidatos.requests.post', side_effect=RequestException('boom')):
+    with patch('sigla_sdk.http.api_client.http_client.post', side_effect=RequestException('boom')):
         with pytest.raises(RequestException):
             service.enviar_habilitados(
                 registros=[{'x': 'y'}],
@@ -86,7 +86,7 @@ def test_api_candidatos_levanta_excecao_especifica_quando_status_nao_for_200():
     mock_resp.json.return_value = {'detail': 'Erro externo', 'code': 'ERRO_EXTERNO'}
     mock_resp.text = '{"detail":"Erro externo","code":"ERRO_EXTERNO"}'
 
-    with patch('importa_arquivos.services.api_candidatos.requests.post', return_value=mock_resp):
+    with patch('sigla_sdk.http.api_client.http_client.post', return_value=mock_resp):
         with pytest.raises(ApiCandidatosException) as exc_info:
             service.enviar_habilitados(
                 registros=[{'x': 'y'}],
