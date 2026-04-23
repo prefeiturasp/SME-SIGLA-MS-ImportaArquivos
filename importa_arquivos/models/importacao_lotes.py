@@ -1,11 +1,16 @@
 from django.db import models
 from .base import BaseModelArquivoImportacao
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
+
 
 
 class ImportacaoLotes(BaseModelArquivoImportacao):
     """
     Registro de importação de arquivo de lotes de classificação (SIGPEC).
     """
+    
+    history = AuditlogHistoryField()
     concurso_uuid = models.UUIDField(verbose_name="UUID do Concurso")
     concurso_nome = models.CharField(max_length=255, null=True, blank=True, verbose_name="Nome do Concurso")
     total_atualizados = models.IntegerField(null=True, blank=True, verbose_name="Total de Candidatos Atualizados")
@@ -19,3 +24,6 @@ class ImportacaoLotes(BaseModelArquivoImportacao):
 
     def __str__(self):
         return self.nome_arquivo
+    
+
+auditlog.register(ImportacaoLotes)

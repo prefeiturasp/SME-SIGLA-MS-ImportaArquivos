@@ -7,8 +7,8 @@ usando o MS-Concurso configurado via CONCURSOS_API_URL.
 import logging
 from typing import Any, Dict, Optional, Tuple
 
-import requests
 from requests.exceptions import RequestException
+from sigla_sdk.http.api_client import http_client
 
 from django.conf import settings
 
@@ -48,7 +48,7 @@ class ApiConcursosService:
         logger.info(f"Chamando API de concursos: {url}")
 
         try:
-            response = requests.get(
+            response = http_client.get(
                 url,
                 headers=self._default_headers,
                 timeout=self.timeout_seconds,

@@ -141,7 +141,7 @@ class TestApiEscolhasServiceEscolhasProdam:
             }
         ]
         
-        with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
+        with patch('sigla_sdk.http.api_client.http_client.post') as mock_post:
             mock_resp = Mock()
             mock_resp.status_code = 200
             mock_resp.json.return_value = {'ok': True}
@@ -181,7 +181,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         
         custom_headers = {'X-Custom-Header': 'custom-value'}
         
-        with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
+        with patch('sigla_sdk.http.api_client.http_client.post') as mock_post:
             mock_resp = Mock()
             mock_resp.status_code = 200
             mock_post.return_value = mock_resp
@@ -212,7 +212,7 @@ class TestApiEscolhasServiceEscolhasProdam:
             }
         ]
         
-        with patch('importa_arquivos.services.api_escolhas.requests.post', side_effect=RequestException('Erro de conexão')):
+        with patch('sigla_sdk.http.api_client.http_client.post', side_effect=RequestException('Erro de conexão')):
             with pytest.raises(RequestException):
                 service.enviar_escolhas_prodam(
                     processo_uuid='123e4567-e89b-12d3-a456-426614174000',
@@ -241,7 +241,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         }
         mock_response.text = '{"detail":"Erro externo de escolhas","code":"ERRO_ESCOLHAS","detalhes":"Payload inválido"}'
 
-        with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
+        with patch('sigla_sdk.http.api_client.http_client.post') as mock_post:
             mock_post.return_value = mock_response
 
             with pytest.raises(ApiEscolhasException) as exc_info:
@@ -273,7 +273,7 @@ class TestApiEscolhasServiceEscolhasProdam:
             }
         ]
         
-        with patch('importa_arquivos.services.api_escolhas.requests.post', side_effect=RequestException('Erro de conexão')):
+        with patch('sigla_sdk.http.api_client.http_client.post', side_effect=RequestException('Erro de conexão')):
             with pytest.raises(RequestException):
                 service.enviar_escolhas_prodam(
                     processo_uuid='123e4567-e89b-12d3-a456-426614174000',
@@ -306,7 +306,7 @@ class TestApiEscolhasServiceEscolhasProdam:
             }
         ]
         
-        with patch('importa_arquivos.services.api_escolhas.requests.post', side_effect=RequestException('Erro')):
+        with patch('sigla_sdk.http.api_client.http_client.post', side_effect=RequestException('Erro')):
             with patch('importa_arquivos.services.erros.registrar_erro', side_effect=RuntimeError('Erro ao registrar')):
                 with pytest.raises(RequestException):
                     service.enviar_escolhas_prodam(
@@ -328,7 +328,7 @@ class TestApiEscolhasServiceEscolhasProdam:
             }
         ]
         
-        with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
+        with patch('sigla_sdk.http.api_client.http_client.post') as mock_post:
             mock_resp = Mock()
             mock_resp.status_code = 200
             mock_post.return_value = mock_resp

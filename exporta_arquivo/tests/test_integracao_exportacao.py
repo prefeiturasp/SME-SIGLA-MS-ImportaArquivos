@@ -66,9 +66,7 @@ class TestIntegracaoCreateCandidatosProcesso:
                 return mock_concursos
             return mock_candidatos
 
-        with patch("exporta_arquivo.services.api_concursos.requests.get", side_effect=fake_get), patch(
-            "exporta_arquivo.services.api_candidatos.requests.get", side_effect=fake_get
-        ):
+        with patch("sigla_sdk.http.api_client.http_client.get", side_effect=fake_get):
             response = api_client.post(
                 self.URL,
                 {
