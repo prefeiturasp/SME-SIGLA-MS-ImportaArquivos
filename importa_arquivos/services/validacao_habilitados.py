@@ -5,172 +5,144 @@ from typing import List, Dict, Tuple
 from datetime import datetime
 from validate_docbr import CPF
 
+from django.conf import settings
+
 from importa_arquivos.models import LayoutArquivoImportacao
-from importa_arquivos.services.exceptions import ColunaCSVInvalidaException, LayoutNaoConfiguradoException, LeituraCSVException
+from importa_arquivos.services.api_concursos import ApiConcursosService
+from importa_arquivos.services.exceptions import (
+    ColunaCSVInvalidaException,
+    LayoutNaoConfiguradoException,
+    LeituraCSVException,
+    CargoConcursoInvalidoException,
+)
 from .erros import captura_erros_importacao
 
 
 logger = logging.getLogger(__name__)
 
 
-def _validar_obrigatoriedade_linhas(estrutura: List[Dict], registros: List[Dict]) -> Dict[int, List[str]]:
+def _resolver_colunas(estrutura: List[Dict]) -> Dict:
     """
-    Valida campos obrigatórios linha a linha conforme a estrutura do layout.
-    Retorna a lista de registros (dicts) quando não há erros; caso contrário lança exceção.
+    Percorre estrutura uma única vez e retorna as colunas mapeadas por papel.
     """
-    erros_por_linha: Dict[int, List[str]] = {}
-
     def _eh_obrigatorio(valor):
         try:
             return str(valor).strip() in ('1', 'true', 'True')
         except Exception:
             return False
 
-    colunas_obrigatorias = [
-        (item.get('coluna'), item)
-        for item in estrutura if isinstance(item, dict) and _eh_obrigatorio(item.get('obrigatorio'))
-        if item.get('coluna')
-    ]
+    email_col = None
+    cpf_col = None
+    dn_col = None
+    cargo_col = None
+    obrigatorias: List[str] = []
 
-    for idx, row in enumerate(registros, start=2):  # Header na linha 1
-
-        faltantes = []
-        for coluna, _item in colunas_obrigatorias:
-            valor = row.get(coluna)
-            if valor is None or str(valor).strip() == '':
-                faltantes.append(coluna)
-
-        if faltantes:
-            erros_por_linha.setdefault(idx, []).append(
-                f"Campos obrigatórios vazios: {', '.join(sorted(faltantes))}"
-            )
-    return erros_por_linha
-
-
-def _validar_formato_email(estrutura: List[Dict], registros: List[Dict]) -> Dict[int, List[str]]:
-    """
-    Valida o formato de e-mail conforme coluna definida no layout (campo_payload='email' ou coluna 'Email').
-    Lança EmailFormatoInvalidoException com detalhe agregando linhas com e-mail inválido.
-    """
-    email_coluna = None
     for item in estrutura:
         if not isinstance(item, dict):
             continue
-        campo = str(item.get('campo_payload', '')).lower()
         coluna = item.get('coluna')
-        if campo == 'email' or (isinstance(coluna, str) and coluna.lower() in ('email', 'e-mail')):
-            email_coluna = coluna
-            break
-    if not email_coluna:
-        return {}
+        campo = str(item.get('campo_payload', '')).lower()
 
+        if coluna and _eh_obrigatorio(item.get('obrigatorio')):
+            obrigatorias.append(coluna)
+
+        if email_col is None:
+            if campo == 'email' or (isinstance(coluna, str) and coluna.lower() in ('email', 'e-mail')):
+                email_col = coluna
+
+        if cpf_col is None:
+            if campo == 'cpf' or (isinstance(coluna, str) and coluna.lower() == 'cpf'):
+                cpf_col = coluna
+
+        if dn_col is None:
+            if campo == 'data_nascimento' or (
+                isinstance(coluna, str) and coluna.lower() in ('datanascimento',)
+            ):
+                dn_col = coluna
+
+        if cargo_col is None:
+            if campo == 'codigo_cargo' or coluna == 'Codigo_do_Cargo':
+                cargo_col = coluna
+
+    return {
+        'email_col': email_col,
+        'cpf_col': cpf_col,
+        'dn_col': dn_col,
+        'cargo_col': cargo_col,
+        'obrigatorias': obrigatorias,
+    }
+
+
+def _validar_linhas(colunas: Dict, registros: List[Dict]) -> Dict[int, List[str]]:
+    """
+    Percorre registros uma única vez aplicando todas as validações stateless:
+    obrigatoriedade, formato de email, CPF e data de nascimento.
+    """
     import re
-    regex = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-    erros_por_linha: Dict[int, List[str]] = {}
-    for idx, row in enumerate(registros, start=2):
-        valor = row.get(email_coluna)
-        if valor is None or str(valor).strip() == '':
-            continue
-        if not regex.match(str(valor).strip()):
-            erros_por_linha.setdefault(idx, []).append(
-                f"Email inválido -> '{valor}'"
-            )
-    return erros_por_linha
+    _re_email = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+    _cpf_validator = CPF()
 
-
-def _validar_cpf(estrutura: List[Dict], registros: List[Dict]) -> Dict[int, List[str]]:
-    """
-    Valida CPF usando validate_docbr.CPF(). Aceita valores com máscara; remove não dígitos.
-    Coluna identificada por campo_payload='cpf' ou coluna 'CPF'.
-    """
-    cpf_coluna = None
-    for item in estrutura:
-        if not isinstance(item, dict):
-            continue
-        campo = str(item.get('campo_payload', '')).lower()
-        coluna = item.get('coluna')
-        # Valida CPF sempre que a coluna/campo esteja mapeada no layout
-        if (campo == 'cpf' or (isinstance(coluna, str) and coluna.lower() == 'cpf')):
-            cpf_coluna = coluna
-            break
-    if not cpf_coluna:
-        return {}
-
-    validator = CPF()
-    erros_por_linha: Dict[int, List[str]] = {}
-    for idx, row in enumerate(registros, start=2):
-        valor = row.get(cpf_coluna)
-        if valor is None or str(valor).strip() == '':
-            continue
-        digits = ''.join(ch for ch in str(valor) if ch.isdigit())
-        if not validator.validate(digits):
-            erros_por_linha.setdefault(idx, []).append(
-                f"CPF inválido -> '{valor}'"
-            )
-
-    return erros_por_linha
-
-
-def _validar_data_nascimento(estrutura: List[Dict], registros: List[Dict]) -> Dict[int, List[str]]:
-    """
-    Valida a coluna de data de nascimento no padrão mm/dd/yyyy.
-    Coluna identificada por campo_payload='data_nascimento' ou nomes de coluna
-    como 'DataNascimento'/'dataNascimento' (case-insensitive).
-    """
-    coluna_dn = None
-    for item in estrutura:
-        if not isinstance(item, dict):
-            continue
-        payload = str(item.get('campo_payload', '')).lower()
-        coluna = item.get('coluna')
-        if payload == 'data_nascimento' or (
-            isinstance(coluna, str) and coluna.lower() in ('datanascimento', 'datanascimento')
-        ):
-            coluna_dn = coluna
-            break
-    if not coluna_dn:
-        return {}
+    obrigatorias = colunas['obrigatorias']
+    email_col = colunas['email_col']
+    cpf_col = colunas['cpf_col']
+    dn_col = colunas['dn_col']
 
     erros_por_linha: Dict[int, List[str]] = {}
+
     for idx, row in enumerate(registros, start=2):
-        valor = row.get(coluna_dn)
-        if valor is None or str(valor).strip() == '':
-            continue
-        try:
-            datetime.strptime(str(valor).strip(), '%m/%d/%Y')
-        except Exception:
-            erros_por_linha.setdefault(idx, []).append(
-                f"dataNascimento inválida -> '{valor}' (esperado mm/dd/yyyy)"
-            )
+        erros: List[str] = []
+
+        # 1. Obrigatoriedade
+        faltantes = [
+            col for col in obrigatorias
+            if row.get(col) is None or str(row.get(col)).strip() == ''
+        ]
+        if faltantes:
+            erros.append(f"Campos obrigatórios vazios: {', '.join(sorted(faltantes))}")
+
+        # 2. Formato de email
+        if email_col:
+            valor_email = row.get(email_col)
+            if valor_email is not None and str(valor_email).strip() != '':
+                if not _re_email.match(str(valor_email).strip()):
+                    erros.append(f"Email inválido -> '{valor_email}'")
+
+        # 3. CPF
+        if cpf_col:
+            valor_cpf = row.get(cpf_col)
+            if valor_cpf is not None and str(valor_cpf).strip() != '':
+                digits = ''.join(ch for ch in str(valor_cpf) if ch.isdigit())
+                if not _cpf_validator.validate(digits):
+                    erros.append(f"CPF inválido -> '{valor_cpf}'")
+
+        # 4. Data de nascimento
+        if dn_col:
+            valor_dn = row.get(dn_col)
+            if valor_dn is not None and str(valor_dn).strip() != '':
+                try:
+                    datetime.strptime(str(valor_dn).strip(), '%m/%d/%Y')
+                except Exception:
+                    erros.append(f"dataNascimento inválida -> '{valor_dn}' (esperado mm/dd/yyyy)")
+
+        if erros:
+            erros_por_linha[idx] = erros
 
     return erros_por_linha
 
 
-def _validar_email_duplicado_por_cpf(estrutura: List[Dict], registros: List[Dict]) -> Dict[int, List[str]]:
+def _validar_email_duplicado_por_cpf(colunas: Dict, registros: List[Dict]) -> Dict[int, List[str]]:
     """
     Valida regra:
     - Se o mesmo email aparecer em múltiplas linhas, então o CPF dessas linhas precisa ser o mesmo.
     - Caso contrário, registra erro apenas nas linhas divergentes.
-    
+
     Mensagem esperada (sem prefixo "Linha X", pois o agregador adiciona):
     "Email duplicado. Esperado CPF <cpf1> mas encontrado <cpf2>"
     """
-    email_coluna = None
-    cpf_coluna = None
+    email_col = colunas.get('email_col')
+    cpf_col = colunas.get('cpf_col')
 
-    for item in estrutura:
-        if not isinstance(item, dict):
-            continue
-        campo = str(item.get('campo_payload', '')).lower()
-        coluna = item.get('coluna')
-        if campo == 'email' or (isinstance(coluna, str) and coluna.lower() in ('email', 'e-mail')):
-            email_coluna = coluna
-        if campo == 'cpf' or (isinstance(coluna, str) and coluna.lower() == 'cpf'):
-            cpf_coluna = coluna
-        if email_coluna and cpf_coluna:
-            break
-
-    if not email_coluna or not cpf_coluna:
+    if not email_col or not cpf_col:
         return {}
 
     def _normalizar_email(valor: object) -> str:
@@ -190,11 +162,11 @@ def _validar_email_duplicado_por_cpf(estrutura: List[Dict], registros: List[Dict
     erros_por_linha: Dict[int, List[str]] = {}
 
     for idx, row in enumerate(registros, start=2):
-        email_norm = _normalizar_email(row.get(email_coluna))
+        email_norm = _normalizar_email(row.get(email_col))
         if not email_norm:
             continue
 
-        cpf_norm = _normalizar_cpf(row.get(cpf_coluna))
+        cpf_norm = _normalizar_cpf(row.get(cpf_col))
 
         if email_norm not in expected_cpf_por_email:
             expected_cpf_por_email[email_norm] = cpf_norm
@@ -206,6 +178,46 @@ def _validar_email_duplicado_por_cpf(estrutura: List[Dict], registros: List[Dict
                 f"Email duplicado. CPF {cpf_norm} com o mesmo email que o CPF {expected}"
             )
 
+    return erros_por_linha
+
+
+def _validar_codigo_cargo(
+    colunas: Dict,
+    registros: List[Dict],
+    codigos_cargo_concurso: set,
+) -> Dict[int, List[str]]:
+    """
+    Valida o campo Codigo_do_Cargo linha a linha:
+    - deve ser não-vazio
+    - deve ser conversível para int
+    - deve pertencer ao conjunto de códigos de cargo do concurso selecionado
+    Coluna identificada via colunas['cargo_col'].
+    """
+    cargo_col = colunas.get('cargo_col')
+
+    if not cargo_col:
+        return {}
+
+    erros_por_linha: Dict[int, List[str]] = {}
+    for idx, row in enumerate(registros, start=2):
+        valor = row.get(cargo_col)
+        if valor is None or str(valor).strip() == '':
+            erros_por_linha.setdefault(idx, []).append(
+                'Codigo_do_Cargo não pode estar em branco'
+            )
+            continue
+        try:
+            codigo_int = int(str(valor).strip())
+        except (ValueError, TypeError):
+            erros_por_linha.setdefault(idx, []).append(
+                f"Codigo_do_Cargo deve ser um número inteiro válido -> '{valor}'"
+            )
+            continue
+        if codigo_int not in codigos_cargo_concurso:
+            codigos_validos = ', '.join(str(c) for c in sorted(codigos_cargo_concurso))
+            erros_por_linha.setdefault(idx, []).append(
+                f"Codigo_do_Cargo '{valor}' não possui relação com o concurso selecionado. Códigos válidos: {codigos_validos}"
+            )
     return erros_por_linha
 
 
@@ -247,14 +259,25 @@ def validar_csv_habilitados(arquivo, importacao_obj=None) -> Tuple[List[Dict], L
     for row in reader:
         if isinstance(row, dict):
             registros.append(row)
-    erros_obrig = _validar_obrigatoriedade_linhas(estrutura, registros)
-    erros_email = _validar_formato_email(estrutura, registros)
-    erros_cpf = _validar_cpf(estrutura, registros)
-    erros_dn = _validar_data_nascimento(estrutura, registros)
-    erros_email_duplicado = _validar_email_duplicado_por_cpf(estrutura, registros)
+
+    colunas = _resolver_colunas(estrutura)
+
+    erros_linhas = _validar_linhas(colunas, registros)
+    erros_email_duplicado = _validar_email_duplicado_por_cpf(colunas, registros)
+
+    concurso_uuid = str(importacao_obj.concurso_uuid) if importacao_obj and getattr(importacao_obj, 'concurso_uuid', None) else None
+    codigos_cargo_concurso: set = set()
+    if concurso_uuid:
+        service = ApiConcursosService(
+            base_url=settings.CONCURSOS_API_URL,
+            timeout_seconds=getattr(settings, 'CONCURSOS_API_TIMEOUT', 10),
+        )
+        codigos_cargo_concurso = service.obter_codigos_cargo_do_concurso(concurso_uuid)
+
+    erros_cargo = _validar_codigo_cargo(colunas, registros, codigos_cargo_concurso)
 
     erros_agrupados: Dict[int, List[str]] = {}
-    for src in (erros_obrig, erros_email, erros_cpf, erros_dn, erros_email_duplicado):
+    for src in (erros_linhas, erros_email_duplicado, erros_cargo):
         for linha, msgs in src.items():
             erros_agrupados.setdefault(linha, []).extend(msgs)
 

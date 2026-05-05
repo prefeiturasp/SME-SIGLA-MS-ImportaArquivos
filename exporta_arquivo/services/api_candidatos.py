@@ -6,8 +6,8 @@ Faz GET em habilitados com processo_uuid, codigo_cargo e opcionalmente lote__con
 import logging
 from typing import Any, Dict, List, Optional
 
-import requests
 from requests.exceptions import RequestException
+from sigla_sdk.http.api_client import http_client
 
 from django.conf import settings
 
@@ -49,7 +49,7 @@ class ApiCandidatosService:
         params = {k: str(v) for k, v in kwargs.items() if v is not None}
 
         try:
-            response = requests.get(
+            response = http_client.get(
                 url,
                 params=params,
                 headers=self._default_headers,

@@ -4,9 +4,10 @@ Serviços para integração com API de candidatos.
 import json
 import logging
 from typing import List, Dict, Any, Optional
+from requests import Response
 from requests.exceptions import RequestException, Timeout
 
-import requests
+from sigla_sdk.http.api_client import http_client
 
 from importa_arquivos.services.erros import captura_erros_importacao, registrar_erro
 from importa_arquivos.services.exceptions import ApiCandidatosException
@@ -60,7 +61,7 @@ class ApiCandidatosService:
         concurso_nome: str,
         headers: Optional[Dict[str, str]] = None,
         importacao_obj: Optional[Any] = None,
-    ) -> requests.Response:
+    ) -> Response:
         url = f"{self.base_url}/api/v1/candidatos/"
         merged_headers = {**self._default_headers, **(headers or {})}
 
@@ -72,7 +73,7 @@ class ApiCandidatosService:
             'candidatos': dados_transformados,
         }
         try:
-            response = requests.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
+            response = http_client.post(url, json=payload, headers=merged_headers, timeout=self.timeout_seconds)
         except RequestException as exc:
             logger.error('Erro ao enviar candidatos: %s', exc)
             raise
@@ -106,7 +107,7 @@ class ApiCandidatosService:
         }
 
         try:
-            response = requests.post(url, json=payload, headers=self._default_headers, timeout=self.timeout_seconds)
+            response = http_client.post(url, json=payload, headers=self._default_headers, timeout=self.timeout_seconds)
         except RequestException as exc:
             logger.exception("Erro ao chamar API salvar-lotes: %s", exc)
             raise ImportacaoServiceUnavailableException(

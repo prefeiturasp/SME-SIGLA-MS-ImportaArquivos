@@ -33,7 +33,7 @@ def test_api_vagas_enviar_payload_ok(settings):
     registros = [{'DataFechamentoModulo': '05/09/2025'}]
     estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
 
-    with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
+    with patch('sigla_sdk.http.api_client.http_client.post') as mock_post:
         mock_resp = Mock()
         mock_resp.status_code = 200
         mock_resp.json.return_value = {'ok': True}
@@ -43,7 +43,7 @@ def test_api_vagas_enviar_payload_ok(settings):
         assert resp == {'ok': True}
         args, kwargs = mock_post.call_args
         assert args[0].endswith('/api/v1/vagas-escolas/')
-        assert kwargs['json']['vagas'][0]['data_fechamento_modulo'] == '05/09/2025' 
+        assert kwargs['json']['vagas'][0]['data_fechamento_modulo'] == '05/09/2025'
 
 
 def test_api_vagas_cria_erro_quando_request_falha():
@@ -53,7 +53,7 @@ def test_api_vagas_cria_erro_quando_request_falha():
 
     service = ApiEscolhasService(base_url='http://example.com')
 
-    with patch('importa_arquivos.services.api_escolhas.requests.post', side_effect=RequestException('boom')):
+    with patch('sigla_sdk.http.api_client.http_client.post', side_effect=RequestException('boom')):
         with pytest.raises(RequestException):
             service.enviar_vagas(
                 registros=[{'A': '1'}],
@@ -88,7 +88,7 @@ def test_api_vagas_nao_quebra_quando_registrar_erro_falha():
     )
     service = ApiEscolhasService(base_url='http://example.com')
 
-    with patch('importa_arquivos.services.api_escolhas.requests.post', side_effect=RequestException('boom')):
+    with patch('sigla_sdk.http.api_client.http_client.post', side_effect=RequestException('boom')):
         with pytest.raises(RequestException):
             service.enviar_vagas(
                 registros=[{'A': '1'}],
@@ -106,11 +106,11 @@ class TestApiVagasConcursoFields:
         service = ApiEscolhasService(base_url='https://api.exemplo')
         processo_uuid = str(uuid.uuid4())
         processo_nome = 'Processo Teste 2025'
-        
+
         registros = [{'DataFechamentoModulo': '05/09/2025'}]
         estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
 
-        with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
+        with patch('sigla_sdk.http.api_client.http_client.post') as mock_post:
             mock_resp = Mock()
             mock_resp.status_code = 200
             mock_resp.raise_for_status.return_value = None
@@ -123,7 +123,6 @@ class TestApiVagasConcursoFields:
                 processo_nome=processo_nome
             )
 
-            # Verifica se os campos de concurso foram incluídos no payload
             args, kwargs = mock_post.call_args
             payload = kwargs['json']
             assert payload['processo_uuid'] == processo_uuid
@@ -136,11 +135,11 @@ def test_enviar_vagas_erro_tipo_ue_desabilitado():
     registros = [{'DataFechamentoModulo': '05/09/2025'}]
     estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
 
-    with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
+    with patch('sigla_sdk.http.api_client.http_client.post') as mock_post:
         mock_resp = Mock()
         mock_resp.status_code = 400
         mock_resp.json.return_value = {'code': 'TIPO_UE_DESABILITADO', 'detail': 'Tipo de UE desabilitado'}
-        mock_resp.raise_for_status.return_value = None  # não deve ser chamado antes do raise custom
+        mock_resp.raise_for_status.return_value = None
         mock_post.return_value = mock_resp
 
         with pytest.raises(TipoUEDesabilitadoException):
@@ -152,7 +151,7 @@ def test_enviar_vagas_erro_400_outro_codigo_gatilha_request_exception():
     registros = [{'DataFechamentoModulo': '05/09/2025'}]
     estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
 
-    with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
+    with patch('sigla_sdk.http.api_client.http_client.post') as mock_post:
         mock_resp = Mock()
         mock_resp.status_code = 400
         mock_resp.json.return_value = {'code': 'OUTRO', 'detail': 'erro genérico'}
@@ -166,79 +165,3 @@ def test_enviar_vagas_erro_400_outro_codigo_gatilha_request_exception():
         assert exc.status_code == 400
         assert exc.mensagem == 'Falha ao enviar vagas para API externa'
         assert 'erro genérico' in (exc.detalhes or '')
-
-    def test_enviar_vagas_com_campos_concurso_vazios(self):
-        """Testa envio de vagas com campos de concurso vazios (valores padrão)."""
-        service = ApiEscolhasService(base_url='https://api.exemplo')
-        registros = [{'DataFechamentoModulo': '05/09/2025'}]
-        estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
-
-        with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
-            mock_resp = Mock()
-            mock_resp.status_code = 200
-            mock_resp.raise_for_status.return_value = None
-            mock_post.return_value = mock_resp
-
-            service.enviar_vagas(registros=registros, estrutura=estrutura)
-
-            # Verifica se os campos de concurso vazios foram incluídos no payload
-            args, kwargs = mock_post.call_args
-            payload = kwargs['json']
-            assert payload['processo_uuid'] == ''
-            assert payload['processo_nome'] == ''
-            assert 'vagas' in payload
-
-    def test_enviar_vagas_com_apenas_concurso_uuid(self):
-        """Testa envio de vagas com apenas concurso_uuid preenchido."""
-        import uuid
-        service = ApiEscolhasService(base_url='https://api.exemplo')
-        processo_uuid = str(uuid.uuid4())
-        
-        registros = [{'DataFechamentoModulo': '05/09/2025'}]
-        estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
-
-        with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
-            mock_resp = Mock()
-            mock_resp.status_code = 200
-            mock_resp.raise_for_status.return_value = None
-            mock_post.return_value = mock_resp
-
-            service.enviar_vagas(
-                registros=registros,
-                estrutura=estrutura,
-                processo_uuid=processo_uuid
-            )
-
-            # Verifica se apenas concurso_uuid foi preenchido
-            args, kwargs = mock_post.call_args
-            payload = kwargs['json']
-            assert payload['processo_uuid'] == processo_uuid
-            assert payload['processo_nome'] == ''
-            assert 'vagas' in payload
-
-    def test_enviar_vagas_com_apenas_concurso_nome(self):
-        """Testa envio de vagas com apenas concurso_nome preenchido."""
-        service = ApiEscolhasService(base_url='https://api.exemplo')
-        processo_nome = 'Processo Teste 2025'
-        
-        registros = [{'DataFechamentoModulo': '05/09/2025'}]
-        estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
-
-        with patch('importa_arquivos.services.api_escolhas.requests.post') as mock_post:
-            mock_resp = Mock()
-            mock_resp.status_code = 200
-            mock_resp.raise_for_status.return_value = None
-            mock_post.return_value = mock_resp
-
-            service.enviar_vagas(
-                registros=registros,
-                estrutura=estrutura,
-                processo_nome=processo_nome
-            )
-
-            # Verifica se apenas concurso_nome foi preenchido
-            args, kwargs = mock_post.call_args
-            payload = kwargs['json']
-            assert payload['processo_uuid'] == ''
-            assert payload['processo_nome'] == processo_nome
-            assert 'vagas' in payload

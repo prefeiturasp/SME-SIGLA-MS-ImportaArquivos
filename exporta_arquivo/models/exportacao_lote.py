@@ -1,5 +1,7 @@
 import uuid
 from django.db import models
+from auditlog.models import AuditlogHistoryField
+from auditlog.registry import auditlog
 
 
 class StatusExportacao(models.TextChoices):
@@ -14,6 +16,7 @@ class ExportacaoLote(models.Model):
     """
     Histórico de exportações de lotes (SIGPEC/ERGON).
     """
+    history = AuditlogHistoryField()
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Data de Criação")
     atualizado_em = models.DateTimeField(auto_now=True, verbose_name="Data de Atualização")
@@ -57,3 +60,6 @@ class ExportacaoLote(models.Model):
 
     def __str__(self):
         return f"Exportação Lote {self.uuid} (concurso={self.concurso_uuid}, lote={self.lote_uuid})"
+
+
+auditlog.register(ExportacaoLote)
