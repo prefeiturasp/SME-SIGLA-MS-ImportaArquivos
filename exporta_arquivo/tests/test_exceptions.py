@@ -2,6 +2,7 @@
 Testes do módulo exporta_arquivo.services.exceptions.
 Sem DB, sem mocks; testes rápidos e estáveis.
 """
+
 from exporta_arquivo.services.exceptions import (
     BaseExportacaoException,
     ExportacaoBadRequestException,
@@ -36,7 +37,9 @@ class TestExportacaoNotFoundException:
     """ExportacaoNotFoundException herda e str(exc) é a mensagem."""
 
     def test_herda_de_base(self):
-        exc = ExportacaoNotFoundException(mensagem="Não encontrado", detalhes="id inválido")
+        exc = ExportacaoNotFoundException(
+            mensagem="Não encontrado", detalhes="id inválido"
+        )
         assert isinstance(exc, BaseExportacaoException)
 
     def test_mensagem_e_str(self):
@@ -45,7 +48,9 @@ class TestExportacaoNotFoundException:
         assert str(exc) == "recurso não encontrado"
 
     def test_detalhes_persistem(self):
-        exc = ExportacaoNotFoundException(mensagem="404", detalhes="uuid inválido")
+        exc = ExportacaoNotFoundException(
+            mensagem="404", detalhes="uuid inválido"
+        )
         assert exc.detalhes == "uuid inválido"
 
 
@@ -73,5 +78,7 @@ class TestExportacaoBadRequestException:
         assert isinstance(exc, BaseExportacaoException)
 
     def test_mensagem_e_str(self):
-        exc = ExportacaoBadRequestException(mensagem="cargo_codigo é obrigatório")
+        exc = ExportacaoBadRequestException(
+            mensagem="cargo_codigo é obrigatório"
+        )
         assert str(exc) == "cargo_codigo é obrigatório"

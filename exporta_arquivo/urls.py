@@ -1,37 +1,38 @@
 from rest_framework.routers import DefaultRouter
+
 from .views import (
-    ExportacaoVagasSigpecViewSet,
-    ExportacaoVagasProcessoViewSet,
+    CabecalhoExportacaoLoteViewSet,
     ExportacaoCandidatosProcessoViewSet,
     ExportacaoLoteViewSet,
-    CabecalhoExportacaoLoteViewSet,
+    ExportacaoVagasProcessoViewSet,
+    ExportacaoVagasSigpecViewSet,
 )
 
 router = DefaultRouter()
 router.register(
-    r'exportacao/vagas-sigpec',
+    r"exportacao/vagas-sigpec",
     ExportacaoVagasSigpecViewSet,
-    basename='exportacao-vagas-sigpec',
+    basename="exportacao-vagas-sigpec",
 )
 router.register(
-    r'exportacao/vagas-processo',
+    r"exportacao/vagas-processo",
     ExportacaoVagasProcessoViewSet,
-    basename='exportacao-vagas-processo',
+    basename="exportacao-vagas-processo",
 )
 router.register(
-    r'exportacao/candidatos-processo',
+    r"exportacao/candidatos-processo",
     ExportacaoCandidatosProcessoViewSet,
-    basename='exportacao-candidatos-processo',
+    basename="exportacao-candidatos-processo",
 )
 router.register(
-    r'exportacao/lote',
+    r"exportacao/lote",
     ExportacaoLoteViewSet,
-    basename='exportacao-lote',
+    basename="exportacao-lote",
 )
 router.register(
-    r'exportacao/cabecalho-lote',
+    r"exportacao/cabecalho-lote",
     CabecalhoExportacaoLoteViewSet,
-    basename='cabecalho-exportacao-lote',
+    basename="cabecalho-exportacao-lote",
 )
 
 urlpatterns = router.urls

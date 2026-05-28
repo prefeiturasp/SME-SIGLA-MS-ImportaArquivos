@@ -2,29 +2,39 @@
 Testes do serviço exportacao_lote.py:
 - _data_para_ddmmyyyy: formatos ISO e legado
 - gerar_conteudo_lote: cabeçalho, linhas escolha/recusa, lookup por uuid
-- exportar_lote: orquestração (mocks de ApiCandidatosService e ApiEscolhasService)
+- exportar_lote: orquestração (mocks de ApiCandidatosService e
+ApiEscolhasService)
 Sem HTTP/DB.
 """
+
 import uuid
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
+from exporta_arquivo.services.exceptions import (
+    ExportacaoLoteIncompletaException,
+)
 from exporta_arquivo.services.exportacao_lote import (
     _data_para_ddmmyyyy,
     exportar_lote,
     gerar_conteudo_lote,
 )
-from exporta_arquivo.services.exceptions import ExportacaoLoteIncompletaException
-
 
 # ─── helpers ────────────────────────────────────────────────────────────────
+
 
 def _uuid():
     return str(uuid.uuid4())
 
 
-def _candidato(cand_uuid=None, numero_lote=1, codigo_sigpec="SIG001", chave_inscrito="123", nome="João"):
+def _candidato(
+    cand_uuid=None,
+    numero_lote=1,
+    codigo_sigpec="SIG001",
+    chave_inscrito="123",
+    nome="João",
+):
     cand_uuid = cand_uuid or _uuid()
     return {
         "uuid": cand_uuid,
@@ -69,7 +79,10 @@ class TestDataParaDdmmyyyy:
         assert _data_para_ddmmyyyy("2024-12-01T12:00:00-05:00") == "01122024"
 
     def test_formato_legado_com_microsegundos(self):
-        assert _data_para_ddmmyyyy("2024-03-07 08:30:00.000000 +0000") == "07032024"
+        assert (
+            _data_para_ddmmyyyy("2024-03-07 08:30:00.000000 +0000")
+            == "07032024"
+        )
 
     def test_dia_e_mes_com_zero_a_esquerda(self):
         assert _data_para_ddmmyyyy("2024-05-03T00:00:00Z") == "03052024"
@@ -79,7 +92,10 @@ class TestDataParaDdmmyyyy:
 
 
 class TestGerarConteudoLote:
-    """Cabeçalho ERGON + linhas no formato numero_lote;codigo_sigpec;chave;data;S|R;integracao;"""
+    """
+    Cabeçalho ERGON + linhas no formato
+    numero_lote;codigo_sigpec;chave;data;S|R;integracao;
+    """
 
     def test_cabecalho_ergon_presente(self):
         out = gerar_conteudo_lote([], {})
@@ -94,13 +110,24 @@ class TestGerarConteudoLote:
     def test_lista_vazia_retorna_so_cabecalho(self):
         out = gerar_conteudo_lote([], {})
         # cabeçalho tem várias linhas @, mas nenhuma linha de dado
-        linhas_dados = [l for l in out.strip().split("\n") if not l.strip().startswith("@") and l.strip()]
+        linhas_dados = [
+            l
+            for l in out.strip().split("\n")  # noqa: E741
+            if not l.strip().startswith("@") and l.strip()
+        ]
         assert linhas_dados == []
 
     def test_escolha_gera_linha_com_s_e_codigo_integracao(self):
         cand_uuid = _uuid()
-        candidato = _candidato(cand_uuid=cand_uuid, numero_lote=5, codigo_sigpec="SIG99", chave_inscrito="777")
-        escolha = _escolha(cand_uuid, situacao="escolha", codigo_integracao="SETOR42")
+        candidato = _candidato(
+            cand_uuid=cand_uuid,
+            numero_lote=5,
+            codigo_sigpec="SIG99",
+            chave_inscrito="777",
+        )
+        escolha = _escolha(
+            cand_uuid, situacao="escolha", codigo_integracao="SETOR42"
+        )
 
         out = gerar_conteudo_lote([candidato], {cand_uuid: escolha})
 
@@ -109,7 +136,12 @@ class TestGerarConteudoLote:
 
     def test_recusa_gera_linha_com_r_e_sem_codigo_integracao(self):
         cand_uuid = _uuid()
-        candidato = _candidato(cand_uuid=cand_uuid, numero_lote=2, codigo_sigpec="SIG01", chave_inscrito="100")
+        candidato = _candidato(
+            cand_uuid=cand_uuid,
+            numero_lote=2,
+            codigo_sigpec="SIG01",
+            chave_inscrito="100",
+        )
         recusa = _recusa(cand_uuid)
 
         out = gerar_conteudo_lote([candidato], {cand_uuid: recusa})
@@ -133,8 +165,18 @@ class TestGerarConteudoLote:
     def test_varios_candidatos_geram_varias_linhas(self):
         c1, c2 = _uuid(), _uuid()
         candidatos = [
-            _candidato(cand_uuid=c1, numero_lote=1, codigo_sigpec="SIG1", chave_inscrito="1"),
-            _candidato(cand_uuid=c2, numero_lote=1, codigo_sigpec="SIG2", chave_inscrito="2"),
+            _candidato(
+                cand_uuid=c1,
+                numero_lote=1,
+                codigo_sigpec="SIG1",
+                chave_inscrito="1",
+            ),
+            _candidato(
+                cand_uuid=c2,
+                numero_lote=1,
+                codigo_sigpec="SIG2",
+                chave_inscrito="2",
+            ),
         ]
         escolhas = {
             c1: _escolha(c1, codigo_integracao="A"),
@@ -147,7 +189,9 @@ class TestGerarConteudoLote:
         assert ";B;" in out
 
     def test_lookup_por_uuid_do_campo_candidato(self):
-        """Candidato com uuid aninhado em 'candidato.uuid' deve ser encontrado."""
+        """
+        Candidato com uuid aninhado em 'candidato.uuid' deve ser encontrado.
+        """
         inner_uuid = _uuid()
         outer_uuid = _uuid()
         candidato = {
@@ -190,6 +234,7 @@ class TestExportarLote:
     @pytest.fixture
     def instance(self):
         from exporta_arquivo.models import ExportacaoLote
+
         return ExportacaoLote.objects.create(
             concurso_uuid=uuid.uuid4(),
             concurso_nome="Concurso Teste",
@@ -202,8 +247,14 @@ class TestExportarLote:
         candidatos = [_candidato(cand_uuid=cand_uuid)]
         escolhas = [_escolha(cand_uuid, codigo_integracao="SCL01")]
 
-        with patch("exporta_arquivo.services.exportacao_lote.ApiCandidatosService") as MockCand, \
-             patch("exporta_arquivo.services.exportacao_lote.ApiEscolhasService") as MockEsc:
+        with (
+            patch(
+                "exporta_arquivo.services.exportacao_lote.ApiCandidatosService"
+            ) as MockCand,
+            patch(
+                "exporta_arquivo.services.exportacao_lote.ApiEscolhasService"
+            ) as MockEsc,
+        ):
             MockCand.return_value.get_habilitados.return_value = candidatos
             MockEsc.return_value.get_escolhas.return_value = escolhas
 
@@ -216,10 +267,18 @@ class TestExportarLote:
         cand_uuid = _uuid()
         candidatos = [_candidato(cand_uuid=cand_uuid)]
 
-        with patch("exporta_arquivo.services.exportacao_lote.ApiCandidatosService") as MockCand, \
-             patch("exporta_arquivo.services.exportacao_lote.ApiEscolhasService") as MockEsc:
+        with (
+            patch(
+                "exporta_arquivo.services.exportacao_lote.ApiCandidatosService"
+            ) as MockCand,
+            patch(
+                "exporta_arquivo.services.exportacao_lote.ApiEscolhasService"
+            ) as MockEsc,
+        ):
             MockCand.return_value.get_habilitados.return_value = candidatos
-            MockEsc.return_value.get_escolhas.return_value = [_escolha(cand_uuid)]
+            MockEsc.return_value.get_escolhas.return_value = [
+                _escolha(cand_uuid)
+            ]
 
             exportar_lote(instance)
 
@@ -228,14 +287,24 @@ class TestExportarLote:
             numero_lote=instance.numero_lote,
         )
 
-    def test_chama_escolhas_com_candidato_uuids_e_concurso_uuid(self, instance):
+    def test_chama_escolhas_com_candidato_uuids_e_concurso_uuid(
+        self, instance
+    ):
         cand_uuid = _uuid()
         candidatos = [_candidato(cand_uuid=cand_uuid)]
 
-        with patch("exporta_arquivo.services.exportacao_lote.ApiCandidatosService") as MockCand, \
-             patch("exporta_arquivo.services.exportacao_lote.ApiEscolhasService") as MockEsc:
+        with (
+            patch(
+                "exporta_arquivo.services.exportacao_lote.ApiCandidatosService"
+            ) as MockCand,
+            patch(
+                "exporta_arquivo.services.exportacao_lote.ApiEscolhasService"
+            ) as MockEsc,
+        ):
             MockCand.return_value.get_habilitados.return_value = candidatos
-            MockEsc.return_value.get_escolhas.return_value = [_escolha(cand_uuid)]
+            MockEsc.return_value.get_escolhas.return_value = [
+                _escolha(cand_uuid)
+            ]
 
             exportar_lote(instance)
 
@@ -248,45 +317,75 @@ class TestExportarLote:
         cand_uuid = _uuid()
         candidatos = [_candidato(cand_uuid=cand_uuid, nome="Maria")]
 
-        with patch("exporta_arquivo.services.exportacao_lote.ApiCandidatosService") as MockCand, \
-             patch("exporta_arquivo.services.exportacao_lote.ApiEscolhasService") as MockEsc:
+        with (
+            patch(
+                "exporta_arquivo.services.exportacao_lote.ApiCandidatosService"
+            ) as MockCand,
+            patch(
+                "exporta_arquivo.services.exportacao_lote.ApiEscolhasService"
+            ) as MockEsc,
+        ):
             MockCand.return_value.get_habilitados.return_value = candidatos
-            MockEsc.return_value.get_escolhas.return_value = []  # nenhuma escolha
+            MockEsc.return_value.get_escolhas.return_value = []  # nenhuma escolha  # noqa: E501
 
             with pytest.raises(ExportacaoLoteIncompletaException) as exc_info:
                 exportar_lote(instance)
 
         assert "Maria" in exc_info.value.candidatos_sem_escolha
 
-    def test_candidato_sem_uuid_nao_incluido_na_lista_enviada_a_api_escolhas(self, instance):
-        """Candidatos com uuid vazio não entram na lista enviada à API de escolhas."""
+    def test_candidato_sem_uuid_nao_incluido_na_lista_enviada_a_api_escolhas(
+        self, instance
+    ):
+        """
+        Candidatos com uuid vazio não entram na lista enviada à API de
+        escolhas.
+        """
         cand_uuid = _uuid()
         candidatos = [
-            {"uuid": "", "concurso_candidato_uuid": "", "numero_lote": 1,
-             "codigo_sigpec": "X", "chave_inscrito": "1", "candidato": {}},
+            {
+                "uuid": "",
+                "concurso_candidato_uuid": "",
+                "numero_lote": 1,
+                "codigo_sigpec": "X",
+                "chave_inscrito": "1",
+                "candidato": {},
+            },
             _candidato(cand_uuid=cand_uuid),
         ]
 
-        with patch("exporta_arquivo.services.exportacao_lote.ApiCandidatosService") as MockCand, \
-             patch("exporta_arquivo.services.exportacao_lote.ApiEscolhasService") as MockEsc:
+        with (
+            patch(
+                "exporta_arquivo.services.exportacao_lote.ApiCandidatosService"
+            ) as MockCand,
+            patch(
+                "exporta_arquivo.services.exportacao_lote.ApiEscolhasService"
+            ) as MockEsc,
+        ):
             MockCand.return_value.get_habilitados.return_value = candidatos
-            # Candidato com uuid vazio é excluído da lista de UUIDs mas ainda entra na validação;
-            # precisamos fornecer escolha para ele não acontecer. Como uuid="" não tem escolha,
-            # verificamos apenas os parâmetros da chamada antes da validação levantar exceção.
-            MockEsc.return_value.get_escolhas.return_value = [_escolha(cand_uuid)]
+            # Candidato com uuid vazio é excluído da lista de UUIDs mas ainda entra na validação;  # noqa: E501
+            # precisamos fornecer escolha para ele não acontecer. Como uuid="" não tem escolha,  # noqa: E501
+            # verificamos apenas os parâmetros da chamada antes da validação levantar exceção.  # noqa: E501
+            MockEsc.return_value.get_escolhas.return_value = [
+                _escolha(cand_uuid)
+            ]
 
-            try:
+            try:  # noqa: SIM105
                 exportar_lote(instance)
             except ExportacaoLoteIncompletaException:
                 pass  # esperado - candidato com uuid="" não tem escolha
 
         chamada = MockEsc.return_value.get_escolhas.call_args
-        uuids_enviados = chamada.kwargs.get("candidato_uuids") or chamada[1].get("candidato_uuids", [])
+        uuids_enviados = chamada.kwargs.get("candidato_uuids") or chamada[
+            1
+        ].get("candidato_uuids", [])
         assert "" not in uuids_enviados
         assert cand_uuid in uuids_enviados
 
     def test_primeira_escolha_por_candidato_prevalece(self, instance):
-        """Mantém apenas a primeira escolha por candidato (lista já ordenada por -criado_em)."""
+        """
+        Mantém apenas a primeira escolha por candidato (lista já ordenada por
+        -criado_em).
+        """
         cand_uuid = _uuid()
         candidatos = [_candidato(cand_uuid=cand_uuid)]
         escolha_recente = {
@@ -302,10 +401,19 @@ class TestExportarLote:
             "vaga_escola": None,
         }
 
-        with patch("exporta_arquivo.services.exportacao_lote.ApiCandidatosService") as MockCand, \
-             patch("exporta_arquivo.services.exportacao_lote.ApiEscolhasService") as MockEsc:
+        with (
+            patch(
+                "exporta_arquivo.services.exportacao_lote.ApiCandidatosService"
+            ) as MockCand,
+            patch(
+                "exporta_arquivo.services.exportacao_lote.ApiEscolhasService"
+            ) as MockEsc,
+        ):
             MockCand.return_value.get_habilitados.return_value = candidatos
-            MockEsc.return_value.get_escolhas.return_value = [escolha_recente, escolha_antiga]
+            MockEsc.return_value.get_escolhas.return_value = [
+                escolha_recente,
+                escolha_antiga,
+            ]
 
             resultado = exportar_lote(instance)
 

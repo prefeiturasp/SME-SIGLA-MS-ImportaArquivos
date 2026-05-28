@@ -1,7 +1,8 @@
 import uuid
-from django.db import models
+
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+from django.db import models
 
 
 class CabecalhoExportacaoLote(models.Model):
@@ -9,10 +10,15 @@ class CabecalhoExportacaoLote(models.Model):
     Cabeçalho configurável para o arquivo de exportação de lotes.
     Cada linha @-prefixada do arquivo é um campo editável.
     """
+
     history = AuditlogHistoryField()
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
-    criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Data de Criação")
-    atualizado_em = models.DateTimeField(auto_now=True, verbose_name="Data de Atualização")
+    criado_em = models.DateTimeField(
+        auto_now_add=True, verbose_name="Data de Criação"
+    )
+    atualizado_em = models.DateTimeField(
+        auto_now=True, verbose_name="Data de Atualização"
+    )
 
     tabela = models.CharField(
         max_length=500,
@@ -63,7 +69,9 @@ class CabecalhoExportacaoLote(models.Model):
         ordering = ["-criado_em"]
 
     def __str__(self):
-        return f"Cabeçalho {self.uuid} ({'ativo' if self.ativo else 'inativo'})"
+        return (
+            f"Cabeçalho {self.uuid} ({'ativo' if self.ativo else 'inativo'})"
+        )
 
     def render(self) -> str:
         """Gera o bloco de cabeçalho completo para o arquivo exportado."""

@@ -1,18 +1,24 @@
 """
-Teste de integração opcional: create de candidatos processo com mock apenas da API externa.
-Fluxo real: view → serializer → executar_exportacao → exportar_candidatos_processo → formatar_arquivo.
-Só requests.get (API Candidatos) é mockado; service, formatter e view rodam de verdade.
+Teste de integração opcional: create de candidatos processo com mock apenas da
+API externa.
+Fluxo real: view → serializer → executar_exportacao →
+exportar_candidatos_processo → formatar_arquivo.
+Só requests.get (API Candidatos) é mockado; service, formatter e view rodam de
+verdade.
 Garante que o pipeline não quebra.
 """
+
 import uuid
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from exporta_arquivo.models import ExportacaoCandidatosProcesso
 
-
-pytestmark = [pytest.mark.django_db, pytest.mark.urls("exporta_arquivo.tests.urls")]
+pytestmark = [
+    pytest.mark.django_db,
+    pytest.mark.urls("exporta_arquivo.tests.urls"),
+]
 
 
 def _uuid():
@@ -22,11 +28,14 @@ def _uuid():
 @pytest.fixture
 def api_client():
     from rest_framework.test import APIClient
+
     return APIClient()
 
 
 def _resposta_habilitados_api():
-    """Payload mínimo que a API de habilitados pode retornar e o service mapeia."""
+    """
+    Payload mínimo que a API de habilitados pode retornar e o service mapeia.
+    """
     return [
         {
             "candidato": {
@@ -42,20 +51,30 @@ def _resposta_habilitados_api():
 
 
 class TestIntegracaoCreateCandidatosProcesso:
-    """Create candidatos processo: mock só da API externa; resto do fluxo real."""
+    """
+    Create candidatos processo: mock só da API externa; resto do fluxo real.
+    """
 
     URL = "/api/v1/exportacao/candidatos-processo/"
 
-    def test_create_mockando_apenas_api_externa_retorna_200_e_arquivo_txt(self, api_client):
+    def test_create_mockando_apenas_api_externa_retorna_200_e_arquivo_txt(
+        self, api_client
+    ):
         """
-        POST create com payload válido; mock de requests.get para API Concursos e API Candidatos.
-        Service exportar_candidatos_processo e formatar_arquivo_candidatos_processo rodam de verdade.
-        Verifica: 200, Content-Type text/plain, registro com conteudo_arquivo e nome_arquivo, conteúdo com pipe.
+        POST create com payload válido; mock de requests.get para API Concursos
+        e API Candidatos.
+        Service exportar_candidatos_processo e
+        formatar_arquivo_candidatos_processo rodam de verdade.
+        Verifica: 200, Content-Type text/plain, registro com conteudo_arquivo e
+        nome_arquivo, conteúdo com pipe.
         """
         concurso_uuid = _uuid()
         mock_concursos = MagicMock()
         mock_concursos.status_code = 200
-        mock_concursos.json.return_value = {"codigo": 10, "criado_em": "2024-01-01T00:00:00"}
+        mock_concursos.json.return_value = {
+            "codigo": 10,
+            "criado_em": "2024-01-01T00:00:00",
+        }
 
         mock_candidatos = MagicMock()
         mock_candidatos.status_code = 200
@@ -66,7 +85,9 @@ class TestIntegracaoCreateCandidatosProcesso:
                 return mock_concursos
             return mock_candidatos
 
-        with patch("sigla_sdk.http.api_client.http_client.get", side_effect=fake_get):
+        with patch(
+            "sigla_sdk.http.api_client.http_client.get", side_effect=fake_get
+        ):
             response = api_client.post(
                 self.URL,
                 {
@@ -85,7 +106,9 @@ class TestIntegracaoCreateCandidatosProcesso:
         assert "attachment" in response.get("Content-Disposition", "")
         assert "candidatos_processo" in response.get("Content-Disposition", "")
 
-        registro = ExportacaoCandidatosProcesso.objects.order_by("-criado_em").first()
+        registro = ExportacaoCandidatosProcesso.objects.order_by(
+            "-criado_em"
+        ).first()
         assert registro is not None
         assert registro.conteudo_arquivo
         assert registro.nome_arquivo.startswith("candidatos_processo_")
