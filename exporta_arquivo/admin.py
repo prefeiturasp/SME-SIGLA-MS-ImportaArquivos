@@ -1,18 +1,33 @@
 from django.contrib import admin
-from .models import ExportacaoVagasSigpec, ExportacaoVagasProcesso
+
+from .models import ExportacaoVagasProcesso, ExportacaoVagasSigpec
 
 
 @admin.register(ExportacaoVagasSigpec)
 class ExportacaoVagasSigpecAdmin(admin.ModelAdmin):
-    list_display = ('uuid', 'processo_uuid', 'cargo_uuid', 'concurso_uuid', 'concurso_nome', 'criado_em')
-    list_filter = ('criado_em',)
-    search_fields = ('concurso_nome',)
-    readonly_fields = ('uuid', 'criado_em', 'atualizado_em')
+    list_display = (
+        "uuid",
+        "processo_uuid",
+        "cargo_uuid",
+        "concurso_uuid",
+        "concurso_nome",
+        "criado_em",
+    )
+    list_filter = ("criado_em",)
+    search_fields = ("concurso_nome",)
+    readonly_fields = ("uuid", "criado_em", "atualizado_em")
 
 
 @admin.register(ExportacaoVagasProcesso)
 class ExportacaoVagasProcessoAdmin(admin.ModelAdmin):
-    list_display = ('uuid', 'processo_uuid', 'cargo_uuid', 'concurso_uuid', 'concurso_nome', 'criado_em')
-    list_filter = ('criado_em',)
-    search_fields = ('concurso_nome',)
-    readonly_fields = ('uuid', 'criado_em', 'atualizado_em')
+    list_display = (
+        "uuid",
+        "processo_uuid",
+        "cargo_uuid",
+        "concurso_uuid",
+        "concurso_nome",
+        "criado_em",
+    )
+    list_filter = ("criado_em",)
+    search_fields = ("concurso_nome",)
+    readonly_fields = ("uuid", "criado_em", "atualizado_em")

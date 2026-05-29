@@ -3,14 +3,13 @@ Serviço de API para o módulo de escolhas (vagas-escolas).
 
 Faz GET em vagas-escolas com processo_uuid e cargo_codigo.
 """
-import logging
-from typing import Any, Dict, List
-from urllib import response
 
-from requests.exceptions import RequestException
-from sigla_sdk.http.api_client import http_client
+import logging
+from typing import Any
 
 from django.conf import settings
+from requests.exceptions import RequestException
+from sigla_sdk.http.api_client import http_client
 
 from .exceptions import EscolhasServiceUnavailableException
 
@@ -25,28 +24,35 @@ class ApiEscolhasService:
         base_url: str | None = None,
         timeout_seconds: int | None = None,
     ):
-        self.base_url = (base_url or getattr(settings, 'ESCOLHA_API_URL', 'http://localhost:8004')).rstrip('/')
-        self.timeout_seconds = timeout_seconds or getattr(settings, 'ESCOLHA_API_TIMEOUT', 30)
+        self.base_url = (
+            base_url
+            or getattr(settings, "ESCOLHA_API_URL", "http://localhost:8004")
+        ).rstrip("/")
+        self.timeout_seconds = timeout_seconds or getattr(
+            settings, "ESCOLHA_API_TIMEOUT", 30
+        )
         self._default_headers = {
-            'Accept': 'application/json',
+            "Accept": "application/json",
         }
 
     def get_vagas_escolas(
         self,
         processo_uuid: str,
         cargo_codigo: str | int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
-        GET {ESCOLHA_API_URL}/api/v1/vagas-escolas/ com query params processo_uuid e cargo_codigo.
+        GET {ESCOLHA_API_URL}/api/v1/vagas-escolas/ com query params
+        processo_uuid e cargo_codigo.
         Retorna o corpo da resposta (dict, ex.: com chave 'vagas').
 
         Raises:
-            EscolhasServiceUnavailableException: Em 5xx, timeout ou resposta não-JSON.
+            EscolhasServiceUnavailableException: Em 5xx, timeout ou resposta
+            não-JSON.
         """
         url = f"{self.base_url}/api/v1/vagas-escolas/"
         params = {
-            'processo_uuid': processo_uuid,
-            'cargo_codigo': str(cargo_codigo),
+            "processo_uuid": processo_uuid,
+            "cargo_codigo": str(cargo_codigo),
         }
 
         try:
@@ -57,7 +63,9 @@ class ApiEscolhasService:
                 timeout=self.timeout_seconds,
             )
         except RequestException as exc:
-            logger.exception("Erro ao chamar API de escolha (vagas-escolas): %s", exc)
+            logger.exception(
+                "Erro ao chamar API de escolha (vagas-escolas): %s", exc
+            )
             raise EscolhasServiceUnavailableException(
                 mensagem="Serviço de vagas por escola indisponível.",
                 detalhes=str(exc),
@@ -96,13 +104,12 @@ class ApiEscolhasService:
             )
 
         return data
-    
-    
+
     def get_escolhas(
         self,
-        candidato_uuids: List[str],
+        candidato_uuids: list[str],
         concurso_uuid: str,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         POST {ESCOLHA_API_URL}/api/v1/escolhas/busca/
         Body: {"candidato_uuid": [...], "concurso_uuid": "..."}
@@ -110,7 +117,8 @@ class ApiEscolhasService:
         Retorna lista de Escolha com vaga_escola.escola.codigo_integracao.
 
         Raises:
-            EscolhasServiceUnavailableException: em 5xx, timeout ou resposta inválida.
+            EscolhasServiceUnavailableException: em 5xx, timeout ou resposta
+            inválida.
         """
         url = f"{self.base_url}/api/v1/escolhas/busca/"
         payload = {
@@ -126,7 +134,9 @@ class ApiEscolhasService:
                 timeout=self.timeout_seconds,
             )
         except RequestException as exc:
-            logger.exception("Erro ao chamar API de escolhas (busca lote): %s", exc)
+            logger.exception(
+                "Erro ao chamar API de escolhas (busca lote): %s", exc
+            )
             raise EscolhasServiceUnavailableException(
                 mensagem="Serviço de escolhas indisponível.",
                 detalhes=str(exc),

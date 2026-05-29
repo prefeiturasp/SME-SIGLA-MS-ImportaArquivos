@@ -1,18 +1,22 @@
 """
 Serviço de API para o módulo de concursos.
 
-Consulta detalhes de concurso (código, data de criação) a partir do concurso_uuid,
+Consulta detalhes de concurso (código, data de criação) a partir do
+concurso_uuid,
 usando o MS-Concurso configurado via CONCURSOS_API_URL.
 """
-import logging
-from typing import Any, Dict, Optional, Tuple
 
+import logging
+from typing import Any
+
+from django.conf import settings
 from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
-from django.conf import settings
-
-from .exceptions import ExportacaoNotFoundException, ExportacaoServiceUnavailableException
+from .exceptions import (
+    ExportacaoNotFoundException,
+    ExportacaoServiceUnavailableException,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,16 +26,21 @@ class ApiConcursosService:
 
     def __init__(
         self,
-        base_url: Optional[str] = None,
-        timeout_seconds: Optional[int] = None,
+        base_url: str | None = None,
+        timeout_seconds: int | None = None,
     ) -> None:
-        self.base_url = (base_url or getattr(settings, "CONCURSOS_API_URL", "http://localhost:8001")).rstrip("/")
-        self.timeout_seconds = timeout_seconds or getattr(settings, "CONCURSOS_API_TIMEOUT", 30)
-        self._default_headers: Dict[str, str] = {
+        self.base_url = (
+            base_url
+            or getattr(settings, "CONCURSOS_API_URL", "http://localhost:8001")
+        ).rstrip("/")
+        self.timeout_seconds = timeout_seconds or getattr(
+            settings, "CONCURSOS_API_TIMEOUT", 30
+        )
+        self._default_headers: dict[str, str] = {
             "Accept": "application/json",
         }
 
-    def get_concurso(self, concurso_uuid: str) -> Dict[str, Any]:
+    def get_concurso(self, concurso_uuid: str) -> dict[str, Any]:
         """
         GET {CONCURSOS_API_URL}/api/v1/concursos/{concurso_uuid}/
 
@@ -41,7 +50,8 @@ class ApiConcursosService:
 
         Raises:
             ExportacaoNotFoundException: em 404.
-            ExportacaoServiceUnavailableException: em timeout, 5xx ou resposta inválida.
+            ExportacaoServiceUnavailableException: em timeout, 5xx ou resposta
+            inválida.
         """
         url = f"{self.base_url}/api/v1/concursos/{concurso_uuid}/"
 

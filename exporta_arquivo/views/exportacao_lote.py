@@ -2,7 +2,8 @@
 Views para exportação de lotes e gerenciamento do cabeçalho.
 
 ExportacaoLoteViewSet:
-  - POST /exportacao/lote/  → exporta lote; retorna arquivo .txt (200) ou arquivo de erro (422)
+  - POST /exportacao/lote/  → exporta lote; retorna arquivo .txt (200) ou
+  arquivo de erro (422)
   - GET  /exportacao/lote/  → lista histórico paginado
   - GET  /exportacao/lote/<uuid>/         → detalhe
   - GET  /exportacao/lote/<uuid>/download/ → redownload do arquivo
@@ -10,33 +11,29 @@ ExportacaoLoteViewSet:
 CabecalhoExportacaoLoteViewSet:
   - CRUD completo para edição do cabeçalho configurável
 """
-import re
+
 import logging
 
 from django.http import HttpResponse
-from rest_framework import viewsets, status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
 
 from importa_arquivos.utils import CustomPagination
 
-from ..models import ExportacaoLote, CabecalhoExportacaoLote
+from ..models import CabecalhoExportacaoLote, ExportacaoLote
 from ..serializers import (
+    CabecalhoExportacaoLoteSerializer,
     ExportacaoLoteCreateSerializer,
     ExportacaoLoteListSerializer,
-    CabecalhoExportacaoLoteSerializer,
+)
+from ..services.exceptions import (
+    ExportacaoLoteIncompletaException,
 )
 from ..services.exportacao_lote import exportar_lote
-from ..services.exceptions import (
-    ExportacaoBadRequestException,
-    ExportacaoNotFoundException,
-    ExportacaoServiceUnavailableException,
-    ExportacaoLoteIncompletaException,
-    ExportacaoLoteVazioException,
-)
 from .base_exportacao import _sanitizar_nome_arquivo
 
 logger = logging.getLogger(__name__)
@@ -52,12 +49,19 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
     - retrieve: detalhe de uma exportação.
     - download (GET /<uuid>/download/): redownload do arquivo exportado.
     """
+
     queryset = ExportacaoLote.objects.all()
     lookup_field = "uuid"
     lookup_url_kwarg = "uuid"
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["concurso_uuid", "lote_uuid", "concurso_nome", "numero_lote", "codigo_cargo"]
+    filterset_fields = [
+        "concurso_uuid",
+        "lote_uuid",
+        "concurso_nome",
+        "numero_lote",
+        "codigo_cargo",
+    ]
     search_fields = ["concurso_nome"]
     ordering_fields = ["criado_em", "atualizado_em"]
     ordering = ["-criado_em"]
@@ -76,45 +80,70 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
         try:
             conteudo = exportar_lote(instance)
         except ExportacaoLoteIncompletaException as exc:
-            logger.warning("Exportação incompleta (422) para o lote %s: %s", instance.uuid, exc.mensagem)
+            logger.warning(
+                "Exportação incompleta (422) para o lote %s: %s",
+                instance.uuid,
+                exc.mensagem,
+            )
             nomes = exc.candidatos_sem_escolha
             conteudo_erro = self._gerar_conteudo_erro(nomes, instance)
-            lote_id = instance.numero_lote if instance.numero_lote is not None else str(instance.lote_uuid)
-            nome_arquivo_erro = f"candidatos_sem_escolha_lote_{_sanitizar_nome_arquivo(str(lote_id))}.txt"
+            lote_id = (
+                instance.numero_lote
+                if instance.numero_lote is not None
+                else str(instance.lote_uuid)
+            )
+            nome_arquivo_erro = f"candidatos_sem_escolha_lote_{_sanitizar_nome_arquivo(str(lote_id))}.txt"  # noqa: E501
 
             instance.conteudo_arquivo = conteudo_erro
             instance.nome_arquivo = nome_arquivo_erro
             instance.status = "ATENCAO"
-            instance.save(update_fields=["conteudo_arquivo", "nome_arquivo", "status"])
+            instance.save(
+                update_fields=["conteudo_arquivo", "nome_arquivo", "status"]
+            )
 
             response = HttpResponse(
                 conteudo_erro.encode("utf-8"),
                 content_type="text/plain; charset=utf-8",
                 status=422,
             )
-            response["Content-Disposition"] = f'attachment; filename="{nome_arquivo_erro}"'
+            response["Content-Disposition"] = (
+                f'attachment; filename="{nome_arquivo_erro}"'
+            )
             return response
-        
+
         except Exception as exc:
-            logger.warning(f"Exportação: {instance.uuid} | {exc.mensagem} | {exc.detalhes}")
+            logger.warning(
+                f"Exportação: {instance.uuid} | {exc.mensagem} | {exc.detalhes}"  # noqa: E501
+            )
             instance.status = "ERRO"
             instance.save(update_fields=["status"])
-            return Response({"mensagem": exc.mensagem, "detail": exc.detalhes}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"mensagem": exc.mensagem, "detail": exc.detalhes},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        lote_id = instance.numero_lote if instance.numero_lote is not None else str(instance.lote_uuid)
+        lote_id = (
+            instance.numero_lote
+            if instance.numero_lote is not None
+            else str(instance.lote_uuid)
+        )
         nome_arquivo = (
             f"exportacao_lote_{_sanitizar_nome_arquivo(str(lote_id))}.txt"
         )
         instance.conteudo_arquivo = conteudo
         instance.nome_arquivo = nome_arquivo
         instance.status = "SUCESSO"
-        instance.save(update_fields=["conteudo_arquivo", "nome_arquivo", "status"])
+        instance.save(
+            update_fields=["conteudo_arquivo", "nome_arquivo", "status"]
+        )
 
         response = HttpResponse(
             conteudo.encode("utf-8"),
             content_type="text/plain; charset=utf-8",
         )
-        response["Content-Disposition"] = f'attachment; filename="{nome_arquivo}"'
+        response["Content-Disposition"] = (
+            f'attachment; filename="{nome_arquivo}"'
+        )
         return response
 
     @action(detail=True, methods=["get"], url_path="download")
@@ -130,12 +159,18 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
             instance.conteudo_arquivo.encode("utf-8"),
             content_type="text/plain; charset=utf-8",
         )
-        response["Content-Disposition"] = f'attachment; filename="{instance.nome_arquivo}"'
+        response["Content-Disposition"] = (
+            f'attachment; filename="{instance.nome_arquivo}"'
+        )
         return response
 
     @staticmethod
     def _gerar_conteudo_erro(nomes: list, instance: ExportacaoLote) -> str:
-        lote_id = instance.numero_lote if instance.numero_lote is not None else instance.lote_uuid
+        lote_id = (
+            instance.numero_lote
+            if instance.numero_lote is not None
+            else instance.lote_uuid
+        )
         linhas = [
             f"Candidatos sem escolha realizada no lote {lote_id}:",
         ]
@@ -149,6 +184,7 @@ class CabecalhoExportacaoLoteViewSet(viewsets.ModelViewSet):
     CRUD para o cabeçalho configurável de exportação de lotes.
     Use GET / para listar, POST para criar, PATCH/<uuid>/ para editar.
     """
+
     queryset = CabecalhoExportacaoLote.objects.all()
     serializer_class = CabecalhoExportacaoLoteSerializer
     lookup_field = "uuid"

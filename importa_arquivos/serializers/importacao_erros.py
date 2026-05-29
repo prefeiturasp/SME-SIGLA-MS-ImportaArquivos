@@ -1,10 +1,10 @@
-from rest_framework import serializers
 from django.contrib.contenttypes.models import ContentType
+from rest_framework import serializers
 
 from ..models import (
-    ImportacaoErro,
     ImportacaoArquivoHabilitado,
     ImportacaoArquivoVagas,
+    ImportacaoErro,
     ImportacaoEscolhas,
     ImportacaoLotes,
 )
@@ -18,10 +18,10 @@ class ImportacaoErrosListSerializer(serializers.Serializer):
 
     def to_representation(self, instance: ImportacaoErro):
         data = {
-            'mensagem': instance.mensagem,
-            'erros': instance.erros,
-            'concurso_uuid': None,
-            'processo_uuid': None,
+            "mensagem": instance.mensagem,
+            "erros": instance.erros,
+            "concurso_uuid": None,
+            "processo_uuid": None,
         }
 
         # Resolve objeto relacionado via GenericForeignKey
@@ -29,13 +29,13 @@ class ImportacaoErrosListSerializer(serializers.Serializer):
             obj = instance.importacao_obj
             if obj is not None:
                 if isinstance(obj, ImportacaoArquivoHabilitado):
-                    data['concurso_uuid'] = obj.concurso_uuid
-                elif isinstance(obj, ImportacaoArquivoVagas):
-                    data['processo_uuid'] = obj.processo_uuid
-                elif isinstance(obj, ImportacaoEscolhas):
-                    data['processo_uuid'] = obj.processo_uuid
+                    data["concurso_uuid"] = obj.concurso_uuid
+                elif isinstance(
+                    obj, ImportacaoArquivoVagas | ImportacaoEscolhas
+                ):
+                    data["processo_uuid"] = obj.processo_uuid
                 elif isinstance(obj, ImportacaoLotes):
-                    data['concurso_uuid'] = obj.concurso_uuid
+                    data["concurso_uuid"] = obj.concurso_uuid
         except Exception:
             # Se o objeto foi deletado ou não existe, mantém None
             pass
@@ -49,5 +49,3 @@ def queryset_erros_por_modelo(model_cls, importacao_uuid=None):
     if importacao_uuid:
         qs = qs.filter(object_id=importacao_uuid)
     return qs
-
-

@@ -9,10 +9,10 @@ Uso:
     python manage.py criar_cabecalho_exportacao_lote
     python manage.py criar_cabecalho_exportacao_lote --force
 """
+
 from django.core.management.base import BaseCommand
 
 from exporta_arquivo.models import CabecalhoExportacaoLote
-
 
 TABELA_PADRAO = "[c_ERGON][PMSP_ESCOLHA_VAGA_SME][1.0]"
 CHAVE_PADRAO = "[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER]"
@@ -23,13 +23,13 @@ COLUNAS_PADRAO = (
 
 
 class Command(BaseCommand):
-    help = "Cria o cabeçalho padrão para exportação de lotes (formato ERGON/SIGPEC)"
+    help = "Cria o cabeçalho padrão para exportação de lotes (formato ERGON/SIGPEC)"  # noqa: E501
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--force",
             action="store_true",
-            help="Desativa registros existentes e cria um novo cabeçalho padrão",
+            help="Desativa registros existentes e cria um novo cabeçalho padrão",  # noqa: E501
         )
 
     def handle(self, *args, **options):
@@ -47,7 +47,9 @@ class Command(BaseCommand):
             return
 
         if force and existente:
-            CabecalhoExportacaoLote.objects.filter(ativo=True).update(ativo=False)
+            CabecalhoExportacaoLote.objects.filter(ativo=True).update(
+                ativo=False
+            )
             self.stdout.write(
                 self.style.WARNING(
                     f"Cabeçalho anterior (UUID={existente.uuid}) desativado."
@@ -65,9 +67,11 @@ class Command(BaseCommand):
             ativo=True,
         )
 
-        self.stdout.write(self.style.SUCCESS(
-            f"Cabeçalho criado com sucesso! UUID={cabecalho.uuid}"
-        ))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Cabeçalho criado com sucesso! UUID={cabecalho.uuid}"
+            )
+        )
         self.stdout.write("")
         self.stdout.write("Conteúdo gerado:")
         self.stdout.write(cabecalho.render())

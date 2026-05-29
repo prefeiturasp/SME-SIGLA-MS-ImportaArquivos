@@ -1,4 +1,5 @@
 import uuid
+
 from django.db import models
 
 
@@ -6,10 +7,17 @@ class BaseModel(models.Model):
     """
     Model base com UUID, criado_em e atualizado_em.
     """
+
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
-    criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Data de Criação")
-    atualizado_em = models.DateTimeField(auto_now=True, verbose_name="Data de Atualização")
-    processo_uuid = models.UUIDField(verbose_name="UUID do processo de convocação")
+    criado_em = models.DateTimeField(
+        auto_now_add=True, verbose_name="Data de Criação"
+    )
+    atualizado_em = models.DateTimeField(
+        auto_now=True, verbose_name="Data de Atualização"
+    )
+    processo_uuid = models.UUIDField(
+        verbose_name="UUID do processo de convocação"
+    )
     cargo_uuid = models.UUIDField(verbose_name="UUID do cargo")
     concurso_uuid = models.UUIDField(
         verbose_name="UUID do concurso",
@@ -50,8 +58,6 @@ class BaseModel(models.Model):
         null=True,
         blank=True,
     )
-
-
 
     class Meta:
         abstract = True

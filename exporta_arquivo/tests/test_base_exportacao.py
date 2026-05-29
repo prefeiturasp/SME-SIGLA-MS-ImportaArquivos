@@ -2,14 +2,17 @@
 Testes de utilitários da exportação: sanitizar_nome_arquivo.
 Sem HTTP/DB; usa BaseExportacaoViewSet.sanitizar_nome_arquivo (estático).
 """
-from exporta_arquivo.views.base_exportacao import BaseExportacaoViewSet
 
+from exporta_arquivo.views.base_exportacao import BaseExportacaoViewSet
 
 sanitizar = BaseExportacaoViewSet.sanitizar_nome_arquivo
 
 
 class TestSanitizarNomeArquivo:
-    """Casos: None, vazio, normal, especiais, acentos, só espaços, max_len, fallback 'arquivo'."""
+    """
+    Casos: None, vazio, normal, especiais, acentos, só espaços, max_len,
+    fallback 'arquivo'.
+    """
 
     def test_none_retorna_arquivo(self):
         assert sanitizar(None) == "arquivo"
@@ -18,7 +21,9 @@ class TestSanitizarNomeArquivo:
         assert sanitizar("") == "arquivo"
 
     def test_texto_normal_permanece(self):
-        assert sanitizar("Relatório Processo 2024") == "Relatório_Processo_2024"
+        assert (
+            sanitizar("Relatório Processo 2024") == "Relatório_Processo_2024"
+        )
 
     def test_caracteres_especiais_removidos(self):
         # @ # . são removidos (apenas \w \s - são mantidos)
@@ -26,7 +31,9 @@ class TestSanitizarNomeArquivo:
 
     def test_acentos_preservados(self):
         # \w em re.UNICODE inclui letras acentuadas
-        assert "São" in sanitizar("Relatório São Paulo") or "Paulo" in sanitizar("Relatório São Paulo")
+        assert "São" in sanitizar(
+            "Relatório São Paulo"
+        ) or "Paulo" in sanitizar("Relatório São Paulo")
 
     def test_espacos_internos_viram_underscore(self):
         assert sanitizar("a b c") == "a_b_c"
@@ -48,4 +55,6 @@ class TestSanitizarNomeArquivo:
         assert len(sanitizar(texto)) == 80
 
     def test_hifen_preservado(self):
-        assert "2024" in sanitizar("export-2024") and "-" in sanitizar("export-2024")
+        assert "2024" in sanitizar("export-2024") and "-" in sanitizar(
+            "export-2024"
+        )
