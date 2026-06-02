@@ -2,29 +2,32 @@
 Testes de ExportacaoLoteViewSet e CabecalhoExportacaoLoteViewSet.
 
 Cobre:
-- create: sucesso (200 + arquivo), ExportacaoLoteIncompletaException (422), outras exceções (400)
+- create: sucesso (200 + arquivo), ExportacaoLoteIncompletaException (422),
+outras exceções (400)
 - download: com arquivo (200), sem arquivo (404)
 - list: 200 paginado, filtros básicos
 - retrieve: 200 com campos corretos
 - _gerar_conteudo_erro: geração de mensagem de erro
 - CabecalhoExportacaoLoteViewSet: list e create
 """
+
 import uuid
 from unittest.mock import patch
 
 import pytest
 from rest_framework.test import APIClient
 
-from exporta_arquivo.models import ExportacaoLote, CabecalhoExportacaoLote
+from exporta_arquivo.models import CabecalhoExportacaoLote, ExportacaoLote
 from exporta_arquivo.services.exceptions import (
     ExportacaoBadRequestException,
     ExportacaoLoteIncompletaException,
-    ExportacaoServiceUnavailableException,
 )
 from exporta_arquivo.views.exportacao_lote import ExportacaoLoteViewSet
 
-
-pytestmark = [pytest.mark.django_db, pytest.mark.urls("exporta_arquivo.tests.urls")]
+pytestmark = [
+    pytest.mark.django_db,
+    pytest.mark.urls("exporta_arquivo.tests.urls"),
+]
 
 LOTE_URL = "/api/v1/exportacao/lote/"
 CABECALHO_URL = "/api/v1/exportacao/cabecalho-lote/"
@@ -68,9 +71,14 @@ def registro_exportado():
 class TestExportacaoLoteCreate:
     """POST /exportacao/lote/"""
 
-    def test_sucesso_retorna_200_e_arquivo_txt(self, api_client, payload_valido):
+    def test_sucesso_retorna_200_e_arquivo_txt(
+        self, api_client, payload_valido
+    ):
         conteudo = "@TABELA=...\n1;SIG;999;15062024;S;ESCOLA;\n"
-        with patch("exporta_arquivo.views.exportacao_lote.exportar_lote", return_value=conteudo):
+        with patch(
+            "exporta_arquivo.views.exportacao_lote.exportar_lote",
+            return_value=conteudo,
+        ):
             response = api_client.post(LOTE_URL, payload_valido, format="json")
 
         assert response.status_code == 200
@@ -78,9 +86,14 @@ class TestExportacaoLoteCreate:
         assert "attachment" in response.get("Content-Disposition", "")
         assert "exportacao_lote_" in response.get("Content-Disposition", "")
 
-    def test_sucesso_persiste_status_sucesso_e_conteudo(self, api_client, payload_valido):
+    def test_sucesso_persiste_status_sucesso_e_conteudo(
+        self, api_client, payload_valido
+    ):
         conteudo = "@TABELA=...\n1;SIG;999;15062024;S;ESCOLA;\n"
-        with patch("exporta_arquivo.views.exportacao_lote.exportar_lote", return_value=conteudo):
+        with patch(
+            "exporta_arquivo.views.exportacao_lote.exportar_lote",
+            return_value=conteudo,
+        ):
             api_client.post(LOTE_URL, payload_valido, format="json")
 
         registro = ExportacaoLote.objects.order_by("-criado_em").first()
@@ -89,9 +102,16 @@ class TestExportacaoLoteCreate:
         assert registro.nome_arquivo.startswith("exportacao_lote_")
         assert registro.nome_arquivo.endswith(".txt")
 
-    def test_incompleto_retorna_422_e_arquivo_de_erro(self, api_client, payload_valido):
-        exc = ExportacaoLoteIncompletaException(candidatos_sem_escolha=["Pedro", "Ana"])
-        with patch("exporta_arquivo.views.exportacao_lote.exportar_lote", side_effect=exc):
+    def test_incompleto_retorna_422_e_arquivo_de_erro(
+        self, api_client, payload_valido
+    ):
+        exc = ExportacaoLoteIncompletaException(
+            candidatos_sem_escolha=["Pedro", "Ana"]
+        )
+        with patch(
+            "exporta_arquivo.views.exportacao_lote.exportar_lote",
+            side_effect=exc,
+        ):
             response = api_client.post(LOTE_URL, payload_valido, format="json")
 
         assert response.status_code == 422
@@ -100,9 +120,16 @@ class TestExportacaoLoteCreate:
         assert "Pedro" in conteudo
         assert "Ana" in conteudo
 
-    def test_incompleto_persiste_status_atencao(self, api_client, payload_valido):
-        exc = ExportacaoLoteIncompletaException(candidatos_sem_escolha=["Carlos"])
-        with patch("exporta_arquivo.views.exportacao_lote.exportar_lote", side_effect=exc):
+    def test_incompleto_persiste_status_atencao(
+        self, api_client, payload_valido
+    ):
+        exc = ExportacaoLoteIncompletaException(
+            candidatos_sem_escolha=["Carlos"]
+        )
+        with patch(
+            "exporta_arquivo.views.exportacao_lote.exportar_lote",
+            side_effect=exc,
+        ):
             api_client.post(LOTE_URL, payload_valido, format="json")
 
         registro = ExportacaoLote.objects.order_by("-criado_em").first()
@@ -110,9 +137,16 @@ class TestExportacaoLoteCreate:
         assert "Carlos" in registro.conteudo_arquivo
         assert "candidatos_sem_escolha_lote_" in registro.nome_arquivo
 
-    def test_excecao_generica_retorna_400_e_persiste_status_erro(self, api_client, payload_valido):
-        exc = ExportacaoBadRequestException(mensagem="Parâmetro inválido.", detalhes="numero_lote")
-        with patch("exporta_arquivo.views.exportacao_lote.exportar_lote", side_effect=exc):
+    def test_excecao_generica_retorna_400_e_persiste_status_erro(
+        self, api_client, payload_valido
+    ):
+        exc = ExportacaoBadRequestException(
+            mensagem="Parâmetro inválido.", detalhes="numero_lote"
+        )
+        with patch(
+            "exporta_arquivo.views.exportacao_lote.exportar_lote",
+            side_effect=exc,
+        ):
             response = api_client.post(LOTE_URL, payload_valido, format="json")
 
         assert response.status_code == 400
@@ -128,7 +162,10 @@ class TestExportacaoLoteCreate:
 
     def test_nome_arquivo_usa_numero_lote(self, api_client, payload_valido):
         conteudo = "@TABELA=...\n"
-        with patch("exporta_arquivo.views.exportacao_lote.exportar_lote", return_value=conteudo):
+        with patch(
+            "exporta_arquivo.views.exportacao_lote.exportar_lote",
+            return_value=conteudo,
+        ):
             response = api_client.post(LOTE_URL, payload_valido, format="json")
 
         assert "3" in response.get("Content-Disposition", "")
@@ -140,14 +177,18 @@ class TestExportacaoLoteCreate:
 class TestExportacaoLoteDownload:
     """GET /exportacao/lote/<uuid>/download/"""
 
-    def test_com_arquivo_retorna_200_e_conteudo(self, api_client, registro_exportado):
+    def test_com_arquivo_retorna_200_e_conteudo(
+        self, api_client, registro_exportado
+    ):
         url = f"{LOTE_URL}{registro_exportado.uuid}/download/"
         response = api_client.get(url)
 
         assert response.status_code == 200
         assert b"@TABELA=" in response.content
         assert "attachment" in response.get("Content-Disposition", "")
-        assert registro_exportado.nome_arquivo in response.get("Content-Disposition", "")
+        assert registro_exportado.nome_arquivo in response.get(
+            "Content-Disposition", ""
+        )
 
     def test_sem_arquivo_retorna_404(self, api_client):
         registro = ExportacaoLote.objects.create(
@@ -175,7 +216,10 @@ class TestExportacaoLoteList:
 
     def test_lista_paginada_retorna_200(self, api_client):
         ExportacaoLote.objects.create(
-            concurso_uuid=uuid.uuid4(), concurso_nome="A", numero_lote=1, lote_uuid=uuid.uuid4()
+            concurso_uuid=uuid.uuid4(),
+            concurso_nome="A",
+            numero_lote=1,
+            lote_uuid=uuid.uuid4(),
         )
         response = api_client.get(LOTE_URL)
 
@@ -184,21 +228,38 @@ class TestExportacaoLoteList:
         assert "results" in data
         assert "count" in data
 
-    def test_lista_retorna_campos_do_list_serializer(self, api_client, registro_exportado):
+    def test_lista_retorna_campos_do_list_serializer(
+        self, api_client, registro_exportado
+    ):
         response = api_client.get(LOTE_URL)
 
         assert response.status_code == 200
         item = response.json()["results"][0]
-        for campo in ("uuid", "criado_em", "atualizado_em", "concurso_uuid", "concurso_nome",
-                      "numero_lote", "lote_uuid", "nome_arquivo", "status"):
+        for campo in (
+            "uuid",
+            "criado_em",
+            "atualizado_em",
+            "concurso_uuid",
+            "concurso_nome",
+            "numero_lote",
+            "lote_uuid",
+            "nome_arquivo",
+            "status",
+        ):
             assert campo in item
 
     def test_filtro_por_numero_lote(self, api_client):
         ExportacaoLote.objects.create(
-            concurso_uuid=uuid.uuid4(), concurso_nome="B", numero_lote=77, lote_uuid=uuid.uuid4()
+            concurso_uuid=uuid.uuid4(),
+            concurso_nome="B",
+            numero_lote=77,
+            lote_uuid=uuid.uuid4(),
         )
         ExportacaoLote.objects.create(
-            concurso_uuid=uuid.uuid4(), concurso_nome="C", numero_lote=88, lote_uuid=uuid.uuid4()
+            concurso_uuid=uuid.uuid4(),
+            concurso_nome="C",
+            numero_lote=88,
+            lote_uuid=uuid.uuid4(),
         )
         response = api_client.get(LOTE_URL, {"numero_lote": 77})
 
@@ -213,7 +274,9 @@ class TestExportacaoLoteList:
 class TestExportacaoLoteRetrieve:
     """GET /exportacao/lote/<uuid>/"""
 
-    def test_retrieve_retorna_200_com_campos(self, api_client, registro_exportado):
+    def test_retrieve_retorna_200_com_campos(
+        self, api_client, registro_exportado
+    ):
         url = f"{LOTE_URL}{registro_exportado.uuid}/"
         response = api_client.get(url)
 
@@ -235,7 +298,9 @@ class TestGerarConteudoErro:
 
     def test_inclui_nome_do_lote_e_candidatos(self):
         instance = ExportacaoLote(numero_lote=5, lote_uuid=uuid.uuid4())
-        out = ExportacaoLoteViewSet._gerar_conteudo_erro(["João", "Maria"], instance)
+        out = ExportacaoLoteViewSet._gerar_conteudo_erro(
+            ["João", "Maria"], instance
+        )
 
         assert "lote 5" in out.lower() or "5" in out
         assert "- João" in out

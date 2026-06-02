@@ -2,7 +2,7 @@ class BaseImportacaoException(Exception):
     def __init__(self, mensagem: str, detalhes: str | None = None):
         super().__init__(mensagem)
         self.mensagem = mensagem
-        self.detalhes = detalhes or ''
+        self.detalhes = detalhes or ""
 
     def __str__(self) -> str:
         return self.mensagem
@@ -30,8 +30,10 @@ class EmailFormatoInvalidoException(BaseImportacaoException):
 
 class TipoUEDesabilitadoException(BaseImportacaoException):
     """
-    Erro retornado pela API de Escolhas quando o tipo_ue da escola está desabilitado.
+    Erro retornado pela API de Escolhas quando o tipo_ue da escola está
+    desabilitado.
     """
+
     pass
 
 
@@ -86,5 +88,9 @@ class MultiplosLotesException(BaseImportacaoException):
 
 
 class CargoConcursoInvalidoException(BaseImportacaoException):
-    """Erro quando Codigo_do_Cargo não pertence ao concurso selecionado ou é inválido."""
+    """
+    Erro quando Codigo_do_Cargo não pertence ao concurso selecionado ou é
+    inválido.
+    """
+
     pass

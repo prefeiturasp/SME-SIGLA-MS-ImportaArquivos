@@ -1,7 +1,9 @@
-import pytest
-from rest_framework.test import APIClient
 import uuid
+
+import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
+from rest_framework.test import APIClient
+
 from importa_arquivos.models import ImportacaoArquivoVagas
 
 
@@ -29,9 +31,10 @@ def cria_vagas():
             objetos.append(
                 ImportacaoArquivoVagas.objects.create(
                     nome_arquivo=nome,
-                    arquivo=SimpleUploadedFile(nome, b'content'),
+                    arquivo=SimpleUploadedFile(nome, b"content"),
                     status=status,
                 )
             )
         return objetos
+
     return _cria
