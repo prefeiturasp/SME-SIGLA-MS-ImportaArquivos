@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 class ApiCandidatosService:
     def __init__(
-        self, base_url: str = "https://example.com", timeout_seconds: int = 30
+        self, base_url: str = "https://example.com", timeout_seconds: int = 150
     ):
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
