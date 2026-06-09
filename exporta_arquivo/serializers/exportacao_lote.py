@@ -1,4 +1,5 @@
 """Módulo serializers/exportacao_lote."""
+
 from rest_framework import serializers
 
 from ..models import CabecalhoExportacaoLote, ExportacaoLote
@@ -9,6 +10,7 @@ class ExportacaoLoteCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         """Define Meta."""
+
         model = ExportacaoLote
         fields = [
             "concurso_uuid",
@@ -23,6 +25,7 @@ class ExportacaoLoteListSerializer(serializers.ModelSerializer):
 
     class Meta:
         """Define Meta."""
+
         model = ExportacaoLote
         fields = [
             "uuid",
@@ -43,6 +46,7 @@ class CabecalhoExportacaoLoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         """Define Meta."""
+
         model = CabecalhoExportacaoLote
         fields = [
             "uuid",

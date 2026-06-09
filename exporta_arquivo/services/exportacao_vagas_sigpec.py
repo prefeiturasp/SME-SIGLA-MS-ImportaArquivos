@@ -24,14 +24,14 @@ SIGPEC_HEADER_LINES = [
 
 
 def formatar_arquivo_sigpec(vagas_listas: list[dict[str, Any]]) -> str:
-    """Recebe lista de dicts com chaves 'codigo_integracao', 'vagas_definitivas',.
-    
+    """Recebe lista de dicts com chaves 'codigo_integracao',.
+
     Args:
-        vagas_listas: Parâmetro vagas listas da operação.
-    
+        vagas_listas: Parâmetro vagas listas.
+
     Returns:
         Texto resultante da operação.
-    
+
     Raises:
         Nenhuma exceção específica documentada.
     """
@@ -49,15 +49,15 @@ def buscar_vagas_escolas(
     processo_uuid: str,
     cargo_codigo: int,
 ) -> list[dict[str, Any]]:
-    """Chama ApiEscolhasService (vagas-escolas) com processo_uuid e cargo_codigo.
-    
+    """Chama ApiEscolhasService (vagas-escolas) com processo_uuid e.
+
     Args:
-        processo_uuid: Parâmetro processo uuid da operação.
-        cargo_codigo: Parâmetro cargo codigo da operação.
-    
+        processo_uuid: Parâmetro processo uuid.
+        cargo_codigo: Parâmetro cargo codigo.
+
     Returns:
         Lista com os registros resultantes.
-    
+
     Raises:
         Nenhuma exceção específica documentada.
     """

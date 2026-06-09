@@ -1,6 +1,7 @@
 # Views do app exporta_arquivo
 
 """Módulo views/__init__."""
+
 from .exportacao_candidatos_processo import ExportacaoCandidatosProcessoViewSet
 from .exportacao_lote import (
     CabecalhoExportacaoLoteViewSet,

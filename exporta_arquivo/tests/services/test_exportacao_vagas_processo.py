@@ -4,121 +4,113 @@ formatar_arquivo_vagas_processo + buscar_vagas_escolas (mock de
 ApiEscolhasService).
 Sem HTTP/DB.
 """
+
 from __future__ import annotations
-from typing import Any
+
 from unittest.mock import MagicMock, patch
+
 import pytest
-from exporta_arquivo.services.exportacao_vagas_processo import buscar_vagas_escolas, formatar_arquivo_vagas_processo
+
+from exporta_arquivo.services.exportacao_vagas_processo import (
+    buscar_vagas_escolas,
+    formatar_arquivo_vagas_processo,
+)
+
 
 class TestFormatarArquivoVagasProcesso:
-    """Formato esperado: codigo_cargo|codigo_eol|v_def|v_prec por linha, sem."""
+    """Formato esperado: codigo_cargo|codigo_eol|v_def|v_prec por linha,."""
 
     def test_lista_vazia_retorna_string_vazia(self) -> None:
-        """Verifica lista vazia retorna string vazia.
-        
-        Args:
-            self: Instância do objeto.
-        
-        Returns:
-            Não retorna valor.
-        
-        Raises:
-            Nenhuma exceção específica documentada.
-        """
-        assert formatar_arquivo_vagas_processo(1001, []) == ''
+        """Verifica lista vazia retorna string vazia."""
+        assert formatar_arquivo_vagas_processo(1001, []) == ""
 
     def test_uma_linha_formato_correto(self) -> None:
-        """Verifica uma linha formato correto.
-        
-        Args:
-            self: Instância do objeto.
-        
-        Returns:
-            Não retorna valor.
-        
-        Raises:
-            Nenhuma exceção específica documentada.
-        """
-        linhas = [{'codigo_eol': '123456', 'vagas_definitivas': 2, 'vagas_precarias': 1}]
+        """Verifica uma linha formato correto."""
+        linhas = [
+            {
+                "codigo_eol": "123456",
+                "vagas_definitivas": 2,
+                "vagas_precarias": 1,
+            }
+        ]
         out = formatar_arquivo_vagas_processo(1001, linhas)
-        assert out == '1001|123456|2|1\n'
-        assert out.endswith('\n')
+        assert out == "1001|123456|2|1\n"
+        assert out.endswith("\n")
 
     def test_varias_linhas(self) -> None:
-        """Verifica varias linhas.
-        
-        Args:
-            self: Instância do objeto.
-        
-        Returns:
-            Não retorna valor.
-        
-        Raises:
-            Nenhuma exceção específica documentada.
-        """
-        linhas = [{'codigo_eol': 'EOL1', 'vagas_definitivas': 1, 'vagas_precarias': 0}, {'codigo_eol': 'EOL2', 'vagas_definitivas': 0, 'vagas_precarias': 2}]
+        """Verifica varias linhas."""
+        linhas = [
+            {
+                "codigo_eol": "EOL1",
+                "vagas_definitivas": 1,
+                "vagas_precarias": 0,
+            },
+            {
+                "codigo_eol": "EOL2",
+                "vagas_definitivas": 0,
+                "vagas_precarias": 2,
+            },
+        ]
         out = formatar_arquivo_vagas_processo(500, linhas)
-        assert out == '500|EOL1|1|0\n500|EOL2|0|2\n'
-        assert out.count('\n') == 2
+        assert out == "500|EOL1|1|0\n500|EOL2|0|2\n"
+        assert out.count("\n") == 2
 
     def test_valores_default_zero(self) -> None:
-        """Verifica valores default zero.
-        
-        Args:
-            self: Instância do objeto.
-        
-        Returns:
-            Não retorna valor.
-        
-        Raises:
-            Nenhuma exceção específica documentada.
-        """
-        linhas = [{'codigo_eol': 'X', 'vagas_definitivas': None, 'vagas_precarias': None}]
+        """Verifica valores default zero."""
+        linhas = [
+            {
+                "codigo_eol": "X",
+                "vagas_definitivas": None,
+                "vagas_precarias": None,
+            }
+        ]
         out = formatar_arquivo_vagas_processo(1, linhas)
-        assert '1|X|0|0' in out
+        assert "1|X|0|0" in out
+
 
 class TestBuscarVagasEscolasVagasProcesso:
-    """buscar_vagas_escolas com mock de ApiEscolhasService.get_vagas_escolas."""
+    """buscar_vagas_escolas com mock de."""
 
     def test_payload_valido_retorna_lista_com_codigo_eol_e_vagas(self) -> None:
-        """Verifica payload valido retorna lista com codigo eol e vagas.
-        
-        Args:
-            self: Instância do objeto.
-        
-        Returns:
-            Não retorna valor.
-        
-        Raises:
-            Nenhuma exceção específica documentada.
-        """
-        payload_valido = {'vagas': [{'vagas_definitivas': 2, 'vagas_precarias': 1, 'escola': {'codigo_integracao': 'INT001', 'codigo_eol': '123456'}, 'cargo_codigo': 100}]}
+        """Verifica payload valido retorna lista com codigo eol e vagas."""
+        payload_valido = {
+            "vagas": [
+                {
+                    "vagas_definitivas": 2,
+                    "vagas_precarias": 1,
+                    "escola": {
+                        "codigo_integracao": "INT001",
+                        "codigo_eol": "123456",
+                    },
+                    "cargo_codigo": 100,
+                }
+            ]
+        }
         mock_api = MagicMock()
         mock_api.get_vagas_escolas.return_value = payload_valido
-        with patch('exporta_arquivo.services.exportacao_vagas_processo.ApiEscolhasService', return_value=mock_api):
-            resultado = buscar_vagas_escolas('processo-uuid', 100)
+        with patch(
+            "exporta_arquivo.services.exportacao_vagas_processo.ApiEscolhasService",
+            return_value=mock_api,
+        ):
+            resultado = buscar_vagas_escolas("processo-uuid", 100)
         assert len(resultado) == 1
-        assert resultado[0]['codigo_eol'] == '123456'
-        assert resultado[0]['vagas_definitivas'] == 2
-        assert resultado[0]['vagas_precarias'] == 1
-        mock_api.get_vagas_escolas.assert_called_once_with('processo-uuid', 100)
+        assert resultado[0]["codigo_eol"] == "123456"
+        assert resultado[0]["vagas_definitivas"] == 2
+        assert resultado[0]["vagas_precarias"] == 1
+        mock_api.get_vagas_escolas.assert_called_once_with(
+            "processo-uuid", 100
+        )
 
     def test_payload_invalido_serializer_levanta_erro(self) -> None:
-        """Verifica payload invalido serializer levanta erro.
-        
-        Args:
-            self: Instância do objeto.
-        
-        Returns:
-            Não retorna valor.
-        
-        Raises:
-            Nenhuma exceção específica documentada.
-        """
+        """Verifica payload invalido serializer levanta erro."""
         from rest_framework.exceptions import ValidationError
-        payload_invalido = {'vagas': []}  # type: ignore[var-annotated]
+
+        payload_invalido = {"vagas": []}  # type: ignore[var-annotated]
         mock_api = MagicMock()
         mock_api.get_vagas_escolas.return_value = payload_invalido
-        with patch('exporta_arquivo.services.exportacao_vagas_processo.ApiEscolhasService', return_value=mock_api):
+        with patch(
+            "exporta_arquivo.services.exportacao_vagas_processo.ApiEscolhasService",
+            return_value=mock_api,
+        ):
             with pytest.raises(ValidationError):
-                buscar_vagas_escolas('processo-uuid', 100)
+                buscar_vagas_escolas("processo-uuid", 100)

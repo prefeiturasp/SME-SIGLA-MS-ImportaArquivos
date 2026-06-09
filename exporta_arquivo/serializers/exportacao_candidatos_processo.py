@@ -1,4 +1,5 @@
 """Módulo serializers/exportacao_candidatos_processo."""
+
 from rest_framework import serializers
 
 from ..models import ExportacaoCandidatosProcesso
@@ -11,6 +12,7 @@ class ExportacaoCandidatosProcessoCreateSerializer(
 
     class Meta:
         """Define Meta."""
+
         model = ExportacaoCandidatosProcesso
         fields = [
             "processo_uuid",
@@ -26,10 +28,11 @@ class ExportacaoCandidatosProcessoCreateSerializer(
 
 
 class ExportacaoCandidatosProcessoListSerializer(serializers.ModelSerializer):
-    """Serializer para listagem e detalhe. cargo_nome e concurso_nome apenas do."""
+    """Serializer para listagem e detalhe. cargo_nome e concurso_nome."""
 
     class Meta:
         """Define Meta."""
+
         model = ExportacaoCandidatosProcesso
         fields = [
             "uuid",

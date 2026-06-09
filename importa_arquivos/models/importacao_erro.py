@@ -1,4 +1,5 @@
 """Módulo models/importacao_erro."""
+
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -8,6 +9,7 @@ from .base import BaseModel
 
 class ImportacaoErro(BaseModel):
     """Define ImportacaoErro."""
+
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
     importacao_obj = GenericForeignKey("content_type", "object_id")
@@ -19,6 +21,7 @@ class ImportacaoErro(BaseModel):
 
     class Meta:
         """Define Meta."""
+
         db_table = "importacao_erros"
         verbose_name = "Erro de Importação"
         verbose_name_plural = "Erros de Importação"

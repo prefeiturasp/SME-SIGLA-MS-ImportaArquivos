@@ -1,4 +1,5 @@
 """Módulo services/schema."""
+
 from pydantic import BaseModel, field_validator
 
 COLUNAS_ESPERADAS = {
@@ -27,14 +28,14 @@ class LinhaLoteSIGPEC(BaseModel):
     @classmethod
     def nao_vazio(cls, v: str) -> str:
         """Executa nao vazio.
-        
+
         Args:
             cls: Classe referenciada.
-            v: Parâmetro v da operação.
-        
+            v: Parâmetro v.
+
         Returns:
             Texto resultante da operação.
-        
+
         Raises:
             ValueError: Se ocorrer erro nesta operação.
         """

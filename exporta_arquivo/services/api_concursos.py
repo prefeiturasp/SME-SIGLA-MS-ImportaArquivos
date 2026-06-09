@@ -29,12 +29,12 @@ class ApiConcursosService:
         timeout_seconds: int | None = None,
     ) -> None:
         """Executa   init  .
-        
+
         Args:
             self: Instância do objeto.
-            base_url: Parâmetro base url da operação.
-            timeout_seconds: Parâmetro timeout seconds da operação.
-        
+            base_url: Parâmetro base url.
+            timeout_seconds: Parâmetro timeout seconds.
+
         Raises:
             Nenhuma exceção específica documentada.
         """
@@ -51,14 +51,14 @@ class ApiConcursosService:
 
     def get_concurso(self, concurso_uuid: str) -> dict[str, Any]:
         """GET {CONCURSOS_API_URL}/api/v1/concursos/{concurso_uuid}/.
-        
+
         Args:
             self: Instância do objeto.
-            concurso_uuid: Parâmetro concurso uuid da operação.
-        
+            concurso_uuid: Parâmetro concurso uuid.
+
         Returns:
             Dicionário com os dados processados.
-        
+
         Raises:
             ExportacaoNotFoundException: em 404.
             ExportacaoServiceUnavailableException: em timeout, 5xx ou resposta.

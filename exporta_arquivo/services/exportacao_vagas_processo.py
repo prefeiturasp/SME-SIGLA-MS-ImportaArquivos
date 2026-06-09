@@ -17,15 +17,15 @@ def formatar_arquivo_vagas_processo(
     codigo_cargo: int,
     linhas: list[dict[str, Any]],
 ) -> str:
-    """Recebe código do cargo (int) e lista de dicts com chaves 'setor' (codigo.
-    
+    """Recebe código do cargo (int) e lista de dicts com chaves 'setor'.
+
     Args:
-        codigo_cargo: Parâmetro codigo cargo da operação.
-        linhas: Parâmetro linhas da operação.
-    
+        codigo_cargo: Parâmetro codigo cargo.
+        linhas: Parâmetro linhas.
+
     Returns:
         Texto resultante da operação.
-    
+
     Raises:
         Nenhuma exceção específica documentada.
     """
@@ -42,15 +42,15 @@ def buscar_vagas_escolas(
     processo_uuid: str,
     cargo_codigo: int,
 ) -> list[dict[str, Any]]:
-    """Chama ApiEscolhasService (vagas-escolas) com processo_uuid e cargo_codigo.
-    
+    """Chama ApiEscolhasService (vagas-escolas) com processo_uuid e.
+
     Args:
-        processo_uuid: Parâmetro processo uuid da operação.
-        cargo_codigo: Parâmetro cargo codigo da operação.
-    
+        processo_uuid: Parâmetro processo uuid.
+        cargo_codigo: Parâmetro cargo codigo.
+
     Returns:
         Lista com os registros resultantes.
-    
+
     Raises:
         Nenhuma exceção específica documentada.
     """

@@ -1,4 +1,5 @@
 """Módulo models/base."""
+
 import uuid
 
 from django.db import models
@@ -60,4 +61,5 @@ class BaseModel(models.Model):
 
     class Meta:
         """Define Meta."""
+
         abstract = True

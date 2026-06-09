@@ -1,32 +1,42 @@
 """Módulo services/erros."""
+
 from __future__ import annotations
+
 import contextlib
 import traceback
 from collections.abc import Callable
 from functools import wraps
 from typing import Any
+
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
+
 from importa_arquivos.models import ImportacaoErro
 from importa_arquivos.services.exceptions import BaseImportacaoException
 
-def registrar_erro(importacao_obj: Any, mensagem: str | None=None, detalhes: str | None=None, exc: Exception | None=None) -> ImportacaoErro:
+
+def registrar_erro(
+    importacao_obj: Any,
+    mensagem: str | None = None,
+    detalhes: str | None = None,
+    exc: Exception | None = None,
+) -> ImportacaoErro:
     """Executa registrar erro.
-    
+
     Args:
-        importacao_obj: Parâmetro importacao obj da operação.
-        mensagem: Parâmetro mensagem da operação.
-        detalhes: Parâmetro detalhes da operação.
-        exc: Parâmetro exc da operação.
-    
+        importacao_obj: Parâmetro importacao obj.
+        mensagem: Parâmetro mensagem.
+        detalhes: Parâmetro detalhes.
+        exc: Parâmetro exc.
+
     Returns:
         Resultado da operação.
-    
+
     Raises:
         ValueError: Se ocorrer erro nesta operação.
     """
     if importacao_obj is None:
-        raise ValueError('importacao_obj é obrigatório para registrar erro')
+        raise ValueError("importacao_obj é obrigatório para registrar erro")
     if exc is not None:
         if isinstance(exc, BaseImportacaoException):
             mensagem = mensagem or exc.mensagem
@@ -35,37 +45,45 @@ def registrar_erro(importacao_obj: Any, mensagem: str | None=None, detalhes: str
             mensagem = mensagem or exc.__class__.__name__
             detalhes = detalhes or traceback.format_exc()
     if not mensagem:
-        mensagem = 'Erro durante importação'
+        mensagem = "Erro durante importação"
     if detalhes is None:
-        detalhes = ''
+        detalhes = ""
     content_type = ContentType.objects.get_for_model(importacao_obj.__class__)
-    importacao_obj.status = 'ERRO'
-    importacao_obj.save(update_fields=['status'])
+    importacao_obj.status = "ERRO"
+    importacao_obj.save(update_fields=["status"])
     with transaction.atomic():
-        return ImportacaoErro.objects.create(content_type=content_type, object_id=getattr(importacao_obj, 'uuid', importacao_obj.id), mensagem=mensagem, erros=detalhes)
+        return ImportacaoErro.objects.create(
+            content_type=content_type,
+            object_id=getattr(importacao_obj, "uuid", importacao_obj.id),
+            mensagem=mensagem,
+            erros=detalhes,
+        )
 
-def captura_erros_importacao(param_nome_obj: str='importacao_obj') -> Callable:
+
+def captura_erros_importacao(
+    param_nome_obj: str = "importacao_obj",
+) -> Callable:
     """Decorator para funções de serviço de importação.
-    
+
     Args:
-        param_nome_obj: Parâmetro param nome obj da operação.
-    
+        param_nome_obj: Parâmetro param nome obj.
+
     Returns:
         Resultado da operação.
-    
+
     Raises:
         Nenhuma exceção específica documentada.
     """
 
     def decorator(func: Callable) -> Callable:
         """Executa decorator.
-        
+
         Args:
-            func: Parâmetro func da operação.
-        
+            func: Parâmetro func.
+
         Returns:
             Resultado da operação.
-        
+
         Raises:
             Nenhuma exceção específica documentada.
         """
@@ -73,14 +91,14 @@ def captura_erros_importacao(param_nome_obj: str='importacao_obj') -> Callable:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             """Executa wrapper.
-            
+
             Args:
                 *args: Argumentos posicionais variáveis.
                 **kwargs: Argumentos nomeados variáveis.
-            
+
             Returns:
                 Resultado da operação.
-            
+
             Raises:
                 Nenhuma exceção específica documentada.
             """
@@ -92,5 +110,7 @@ def captura_erros_importacao(param_nome_obj: str='importacao_obj') -> Callable:
                     with contextlib.suppress(Exception):
                         registrar_erro(importacao_obj, exc=exc)
                 raise
+
         return wrapper
+
     return decorator

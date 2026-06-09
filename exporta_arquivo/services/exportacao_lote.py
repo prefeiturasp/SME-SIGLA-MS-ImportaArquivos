@@ -28,13 +28,13 @@ logger = logging.getLogger(__name__)
 
 def _data_para_ddmmyyyy(val: Any) -> str:
     """Executa  data para ddmmyyyy.
-    
+
     Args:
-        val: Parâmetro val da operação.
-    
+        val: Parâmetro val.
+
     Returns:
         Texto resultante da operação.
-    
+
     Raises:
         Nenhuma exceção específica documentada.
     """
@@ -50,14 +50,14 @@ def gerar_conteudo_lote(
     escolhas_por_candidato: dict[str, dict[str, Any]],
 ) -> str:
     """Gera o conteúdo completo do arquivo de exportação de lotes.
-    
+
     Args:
-        candidatos: Parâmetro candidatos da operação.
-        escolhas_por_candidato: Parâmetro escolhas por candidato da operação.
-    
+        candidatos: Parâmetro candidatos.
+        escolhas_por_candidato: Parâmetro escolhas por candidato.
+
     Returns:
         Texto resultante da operação.
-    
+
     Raises:
         Nenhuma exceção específica documentada.
     """
@@ -127,13 +127,13 @@ def gerar_conteudo_lote(
 
 def exportar_lote(instance: ExportacaoLote) -> str:
     """Orquestra a exportação de um lote:.
-    
+
     Args:
         instance: Instância do modelo em atualização.
-    
+
     Returns:
         Texto resultante da operação.
-    
+
     Raises:
         ExportacaoLoteIncompletaException: Se ocorrer erro nesta operação.
     """

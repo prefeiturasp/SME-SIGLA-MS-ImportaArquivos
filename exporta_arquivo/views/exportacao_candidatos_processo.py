@@ -7,37 +7,50 @@
 cargo_uuid, concurso_*).
 - download (detail): retorna arquivo .txt da exportação.
 """
+
 from __future__ import annotations
+
 from typing import Any
-from django.http import HttpResponse
+
 from ..models import ExportacaoCandidatosProcesso
-from ..serializers import ExportacaoCandidatosProcessoCreateSerializer, ExportacaoCandidatosProcessoListSerializer
-from ..services.exportacao_candidatos_processo import exportar_candidatos_processo
+from ..serializers import (
+    ExportacaoCandidatosProcessoCreateSerializer,
+    ExportacaoCandidatosProcessoListSerializer,
+)
+from ..services.exportacao_candidatos_processo import (
+    exportar_candidatos_processo,
+)
 from .base_exportacao import BaseExportacaoViewSet
+
 
 class ExportacaoCandidatosProcessoViewSet(BaseExportacaoViewSet):
     """ViewSet para exportação de candidatos por processo."""
+
     queryset = ExportacaoCandidatosProcesso.objects.all()
     list_serializer_class = ExportacaoCandidatosProcessoListSerializer  # type: ignore[assignment]
     create_serializer_class = ExportacaoCandidatosProcessoCreateSerializer  # type: ignore[assignment]
 
     def gerar_arquivo(self, instance: Any) -> None:
         """Executa operação.
-        
+
         Args:
             self: Instância do objeto.
             instance: Instância do modelo em atualização.
-        
+
         Returns:
             Não retorna valor.
-        
+
         Raises:
             Nenhuma exceção específica documentada.
         """
-        '\n        response = HttpResponse(\n            instance.conteudo_arquivo.encode("utf-8"),\n            content_type="text/plain; charset=utf-8",\n        )\n        response["Content-Disposition"] = (\n            f\'attachment; filename="{instance.nome_arquivo}"\'\n        )\n        return response\n\n    def executar_exportacao(self, instance):\n        \n        '
         conteudo = exportar_candidatos_processo(instance)
-        desc_safe = self.sanitizar_nome_arquivo(instance.cargo_nome, max_len=60)
-        nome_arquivo = f'candidatos_processo_{desc_safe}_{instance.concurso_codigo}.txt'
+        desc_safe = self.sanitizar_nome_arquivo(
+            instance.cargo_nome, max_len=60
+        )
+        nome_arquivo = (
+            f"candidatos_processo_{desc_safe}_"
+            f"{instance.concurso_codigo}.txt"
+        )
         instance.conteudo_arquivo = conteudo
         instance.nome_arquivo = nome_arquivo
-        instance.save(update_fields=['conteudo_arquivo', 'nome_arquivo'])
+        instance.save(update_fields=["conteudo_arquivo", "nome_arquivo"])
