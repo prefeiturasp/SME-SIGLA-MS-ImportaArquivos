@@ -11,19 +11,31 @@ class ApiConcursosService:
     """Define ApiConcursosService."""
 
     def __init__(self, base_url: str, timeout_seconds: int=10) -> None:
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            base_url: Parâmetro base url da operação.
+            timeout_seconds: Parâmetro timeout seconds da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         self.base_url = base_url.rstrip('/')
         self.timeout_seconds = timeout_seconds
 
     def obter_codigos_cargo_do_concurso(self, concurso_uuid: str) -> set[int]:
         """Consulta GET {base_url}/api/v1/concursos/{concurso_uuid}/ e retorna.
-
-        o conjunto de códigos inteiros dos cargos vinculados ao concurso.
-
+        
+        Args:
+            self: Instância do objeto.
+            concurso_uuid: Parâmetro concurso uuid da operação.
+        
+        Returns:
+            Resultado da operação.
+        
         Raises:
-            CargoConcursoInvalidoException: se concurso não for encontrado
-            (404),
-                serviço indisponível (5xx) ou falha de conexão.
+            CargoConcursoInvalidoException: se concurso não for encontrado.
         """
         url = f'{self.base_url}/api/v1/concursos/{concurso_uuid}/'
         try:

@@ -7,5 +7,12 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def api_client() -> Any:
-    """Cliente API para testes (DRF APIClient)."""
+    """Cliente API para testes (DRF APIClient).
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     return APIClient()

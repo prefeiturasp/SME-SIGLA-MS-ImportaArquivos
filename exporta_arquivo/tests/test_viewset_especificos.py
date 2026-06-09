@@ -13,25 +13,46 @@ from exporta_arquivo.models import ExportacaoCandidatosProcesso, ExportacaoVagas
 pytestmark = [pytest.mark.django_db, pytest.mark.urls('exporta_arquivo.tests.urls')]
 
 def _uuid() -> Any:
-    """Executa  uuid."""
+    """Executa  uuid.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     return str(uuid.uuid4())
 
 @pytest.fixture
 def api_client() -> Any:
-    """Executa api client."""
+    """Executa api client.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     from rest_framework.test import APIClient
     return APIClient()
 
 class TestExportacaoCandidatosProcessoViewSetEspecifico:
-    """Create: mock exportar_candidatos_processo e.
-
-    formatar_arquivo_candidatos_processo; persiste conteúdo e nome com prefixo
-    candidatos_processo_.
-    """
+    """Create: mock exportar_candidatos_processo e."""
     URL = '/api/v1/exportacao/candidatos-processo/'
 
     def test_create_com_mocks_persiste_conteudo_e_nome_arquivo_prefixo_candidatos_processo(self, api_client: Any) -> None:
-        """Verifica create com mocks persiste conteudo e nome arquivo prefixo candidatos processo."""
+        """Verifica create com mocks persiste conteudo e nome arquivo prefixo candidatos processo.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         conteudo_esperado = 'conteudo|pipe|formatado\n'
         with patch('exporta_arquivo.views.exportacao_candidatos_processo.exportar_candidatos_processo', return_value=conteudo_esperado):
             response = api_client.post(self.URL, {'processo_uuid': _uuid(), 'cargo_uuid': _uuid(), 'cargo_codigo': 10, 'processo_nome': 'Proc', 'cargo_nome': 'Cargo X'}, format='json')
@@ -46,14 +67,22 @@ class TestExportacaoCandidatosProcessoViewSetEspecifico:
         assert 'candidatos_processo' in response.get('Content-Disposition', '')
 
 class TestExportacaoVagasProcessoViewSetEspecifico:
-    """Create: mock buscar_vagas_escolas e formatar_arquivo_vagas_processo;.
-
-    persiste e nome exportacao-vagas-processo-...
-    """
+    """Create: mock buscar_vagas_escolas e formatar_arquivo_vagas_processo;."""
     URL = '/api/v1/exportacao/vagas-processo/'
 
     def test_create_com_mocks_persiste_conteudo_e_nome_exportacao_vagas_processo(self, api_client: Any) -> None:
-        """Verifica create com mocks persiste conteudo e nome exportacao vagas processo."""
+        """Verifica create com mocks persiste conteudo e nome exportacao vagas processo.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         vagas_escolas = [{'codigo_eol': 'EOL1', 'vagas_definitivas': 2, 'vagas_precarias': 1}]
         conteudo_esperado = '100|EOL1|2|1\n'
         with patch('exporta_arquivo.views.exportacao_vagas_processo.buscar_vagas_escolas', return_value=vagas_escolas), patch('exporta_arquivo.views.exportacao_vagas_processo.formatar_arquivo_vagas_processo', return_value=conteudo_esperado):
@@ -68,14 +97,22 @@ class TestExportacaoVagasProcessoViewSetEspecifico:
         assert 'exportacao-vagas-processo' in response.get('Content-Disposition', '')
 
 class TestExportacaoVagasSigpecViewSetEspecifico:
-    """Create: mock buscar_vagas_escolas e formatar_arquivo_sigpec; nome.
-
-    exportacao-vagas-sigpec-... e conteúdo formato SIGPEC.
-    """
+    """Create: mock buscar_vagas_escolas e formatar_arquivo_sigpec; nome."""
     URL = '/api/v1/exportacao/vagas-sigpec/'
 
     def test_create_com_mocks_persiste_conteudo_sigpec_e_nome_exportacao_vagas_sigpec(self, api_client: Any) -> None:
-        """Verifica create com mocks persiste conteudo sigpec e nome exportacao vagas sigpec."""
+        """Verifica create com mocks persiste conteudo sigpec e nome exportacao vagas sigpec.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         vagas_escolas = [{'codigo_integracao': 'SETOR01', 'vagas_definitivas': 3, 'vagas_precarias': 0}]
         conteudo_sigpec = '@TABELA=[C_ERGON][PMSP_VAGAS_SME][1.0]\nSETOR01;3;0;\n'
         with patch('exporta_arquivo.views.exportacao_vagas_sigpec.buscar_vagas_escolas', return_value=vagas_escolas), patch('exporta_arquivo.views.exportacao_vagas_sigpec.formatar_arquivo_sigpec', return_value=conteudo_sigpec):

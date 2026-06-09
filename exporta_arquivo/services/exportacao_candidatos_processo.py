@@ -16,7 +16,17 @@ SEP = '|'
 COLUNAS_LINHA = ['codigo', 'data_criacao', 'cd_cpf', 'nm_candidato_concurso', 'dt_nascimento', 'cd_sexo', 'nr_rg', 'cd_cep', 'nm_logradouro', 'nr_logradouro', 'tx_complemento', 'nm_bairro', 'nm_município', 'sg_unidade_federativa', 'nm_email', 'nr_telefone_fixo', 'nr_telefone_celular', 'cd_cargo', 'cd_vinculo', 'cd_registro_funcional', 'nr_classificação', 'nr_desempate', 'nr_classificação_concurso']
 
 def _data_para_dd_mm_yyyy(val: Any) -> str:
-    """Converte data (ISO ou string) para DD/MM/YYYY."""
+    """Converte data (ISO ou string) para DD/MM/YYYY.
+    
+    Args:
+        val: Parâmetro val da operação.
+    
+    Returns:
+        Texto resultante da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     if val is None or val == '':
         return ''
     s = str(val).strip()
@@ -33,11 +43,31 @@ def _data_para_dd_mm_yyyy(val: Any) -> str:
     return s
 
 def _cpf_apenas_digitos(val: Any) -> str:
-    """Retorna CPF apenas com dígitos."""
+    """Retorna CPF apenas com dígitos.
+    
+    Args:
+        val: Parâmetro val da operação.
+    
+    Returns:
+        Texto resultante da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     return re.sub('\\D', '', str(val)) if val is not None else ''
 
 def _campo(val: Any) -> str:
-    """Normaliza valor para o arquivo (sem pipe no conteúdo)."""
+    """Normaliza valor para o arquivo (sem pipe no conteúdo).
+    
+    Args:
+        val: Parâmetro val da operação.
+    
+    Returns:
+        Texto resultante da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     if val is None:
         return ''
     s = str(val).strip().replace('\r', ' ').replace('\n', ' ')
@@ -45,8 +75,15 @@ def _campo(val: Any) -> str:
 
 def formatar_arquivo_candidatos_processo(linhas_candidatos: list[dict[str, Any]]) -> str:
     """Gera o conteúdo do arquivo TXT (delimitado por |) sem cabeçalho.
-
-    data_criacao e dt_nascimento em DD/MM/YYYY; cd_cpf apenas dígitos.
+    
+    Args:
+        linhas_candidatos: Parâmetro linhas candidatos da operação.
+    
+    Returns:
+        Texto resultante da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
     """
     linhas: list[str] = []
     for item in linhas_candidatos:
@@ -60,8 +97,16 @@ def formatar_arquivo_candidatos_processo(linhas_candidatos: list[dict[str, Any]]
 
 def _mapear_habilitado_para_exportacao(item: dict[str, Any], dados_concurso: dict[str, Any]) -> dict[str, Any]:
     """Mapeia item da API de habilitados para a estrutura do arquivo (colunas.
-
-    esperadas pelo formatter).
+    
+    Args:
+        item: Parâmetro item da operação.
+        dados_concurso: Parâmetro dados concurso da operação.
+    
+    Returns:
+        Dicionário com os dados processados.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
     """
     candidato = item.get('candidato') if isinstance(item.get('candidato'), dict) else {}
     dt_nasc = candidato.get('data_nascimento')  # type: ignore[union-attr]
@@ -70,9 +115,15 @@ def _mapear_habilitado_para_exportacao(item: dict[str, Any], dados_concurso: dic
 
 def exportar_candidatos_processo(instance: ExportacaoCandidatosProcesso) -> str:
     """Orquestra a exportação de candidatos por processo.
-
-    Obtém dados do concurso e habilitados; formata e retorna o conteúdo do
-    arquivo .txt.
+    
+    Args:
+        instance: Instância do modelo em atualização.
+    
+    Returns:
+        Texto resultante da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
     """
     dados_concurso = ApiConcursosService().get_concurso(instance.concurso_uuid)  # type: ignore[arg-type]
     instance.concurso_codigo = dados_concurso.get('codigo')
@@ -81,7 +132,17 @@ def exportar_candidatos_processo(instance: ExportacaoCandidatosProcesso) -> str:
     lista_habilitados = ApiCandidatosService().get_habilitados(processo_uuid=instance.processo_uuid, codigo_cargo=instance.cargo_codigo, lote__concurso_uuid=instance.concurso_uuid)
 
     def _chave(i: Any) -> Any:
-        """Executa  chave."""
+        """Executa  chave.
+        
+        Args:
+            i: Parâmetro i da operação.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return (i.get('ranking_escolha') is None, i.get('ranking_escolha') or 0)
     lista_ordenada = sorted((i for i in lista_habilitados if isinstance(i, dict)), key=_chave)
     lista_candidatos = [_mapear_habilitado_para_exportacao(item, dados_concurso) for item in lista_ordenada]

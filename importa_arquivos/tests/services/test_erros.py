@@ -8,7 +8,14 @@ from importa_arquivos.services.exceptions import BaseImportacaoException
 pytestmark = pytest.mark.django_db
 
 def test_registrar_erro_cria_registro_e_atualiza_status() -> None:
-    """Verifica registrar erro cria registro e atualiza status."""
+    """Verifica registrar erro cria registro e atualiza status.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     obj = ImportacaoArquivoVagas.objects.create(nome_arquivo='x.csv', arquivo='importacoes/x.csv', tipo='VAGAS')
     registrar_erro(obj, mensagem='Falha', detalhes='detalhe')
     obj.refresh_from_db()
@@ -16,12 +23,29 @@ def test_registrar_erro_cria_registro_e_atualiza_status() -> None:
     assert ImportacaoErro.objects.filter(object_id=obj.uuid).count() == 1
 
 def test_captura_erros_importacao_decorador_cria_registro() -> None:
-    """Verifica captura erros importacao decorador cria registro."""
+    """Verifica captura erros importacao decorador cria registro.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        BaseImportacaoException: Se ocorrer erro nesta operação.
+    """
     obj = ImportacaoArquivoVagas.objects.create(nome_arquivo='y.csv', arquivo='importacoes/y.csv', tipo='VAGAS')
 
     @captura_erros_importacao('importacao_obj')
     def func_que_falha(importacao_obj: Any=None) -> None:
-        """Executa func que falha."""
+        """Executa func que falha.
+        
+        Args:
+            importacao_obj: Parâmetro importacao obj da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            BaseImportacaoException: Se ocorrer erro nesta operação.
+        """
         raise BaseImportacaoException('msg curta', detalhes='grande')
     with pytest.raises(BaseImportacaoException):
         func_que_falha(importacao_obj=obj)

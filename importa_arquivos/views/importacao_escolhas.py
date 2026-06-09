@@ -35,22 +35,35 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
 
     def get_serializer_class(self) -> Any:
-        """Executa get serializer class."""
+        """Executa get serializer class.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Valor calculado para o campo ou propriedade.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         if self.action in ('list', 'retrieve'):
             return ImportacaoEscolhasListSerializer
         return ImportacaoEscolhasCreateSerializer
 
     def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
         """Cria uma nova importação de escolhas.
-
-        Fluxo:
-        1. Valida dados recebidos do front
-        2. Cria registro de importação com status PENDENTE
-        3. Consulta API externa
-        4. Valida resposta da API externa
-        5. Transforma dados para formato MS-Escolhas
-        6. Envia dados para MS-Escolhas
-        7. Atualiza status da importação
+        
+        Args:
+            self: Instância do objeto.
+            request: Requisição HTTP recebida.
+            *args: Argumentos posicionais variáveis.
+            **kwargs: Argumentos nomeados variáveis.
+        
+        Returns:
+            Resposta HTTP com os dados serializados.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -117,7 +130,18 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='erros')
     def listar_erros(self, request: Any) -> Any:
-        """Lista erros de importação de escolhas."""
+        """Lista erros de importação de escolhas.
+        
+        Args:
+            self: Instância do objeto.
+            request: Requisição HTTP recebida.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         importacao_uuid = request.query_params.get('importacao_uuid', None)
         qs = queryset_erros_por_modelo(ImportacaoEscolhas, importacao_uuid=importacao_uuid).select_related('content_type')
         serializer = ImportacaoErrosListSerializer(qs, many=True)
@@ -125,7 +149,18 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='erros/download')
     def download_erros(self, request: Any) -> Any:
-        """Download dos erros de importação de escolhas em formato texto."""
+        """Download dos erros de importação de escolhas em formato texto.
+        
+        Args:
+            self: Instância do objeto.
+            request: Requisição HTTP recebida.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         importacao_uuid = request.query_params.get('importacao_uuid', None)
         qs = queryset_erros_por_modelo(ImportacaoEscolhas, importacao_uuid=importacao_uuid).select_related('content_type')
         serializer = ImportacaoErrosListSerializer(qs, many=True)

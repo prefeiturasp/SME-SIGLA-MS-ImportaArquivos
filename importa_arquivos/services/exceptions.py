@@ -6,13 +6,32 @@ class BaseImportacaoException(Exception):
     """Define BaseImportacaoException."""
 
     def __init__(self, mensagem: str, detalhes: str | None=None) -> None:
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            mensagem: Parâmetro mensagem da operação.
+            detalhes: Parâmetro detalhes da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         super().__init__(mensagem)
         self.mensagem = mensagem
         self.detalhes = detalhes or ''
 
     def __str__(self) -> str:
-        """Executa   str  ."""
+        """Executa   str  .
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Texto resultante da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return self.mensagem
 
 class ColunaCSVInvalidaException(BaseImportacaoException):
@@ -36,17 +55,25 @@ class EmailFormatoInvalidoException(BaseImportacaoException):
     pass
 
 class TipoUEDesabilitadoException(BaseImportacaoException):
-    """Erro retornado pela API de Escolhas quando o tipo_ue da escola está.
-
-    desabilitado.
-    """
+    """Erro retornado pela API de Escolhas quando o tipo_ue da escola está."""
     pass
 
 class ApiCandidatosException(BaseImportacaoException):
     """Erro de integração com o MS-Candidatos."""
 
     def __init__(self, mensagem: str, detalhes: str | None=None, status_code: int=400, code: str | None=None) -> None:
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            mensagem: Parâmetro mensagem da operação.
+            detalhes: Parâmetro detalhes da operação.
+            status_code: Parâmetro status code da operação.
+            code: Parâmetro code da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         super().__init__(mensagem=mensagem, detalhes=detalhes)
         self.status_code = status_code
         self.code = code
@@ -55,7 +82,18 @@ class ApiEscolhasException(BaseImportacaoException):
     """Erro de integração com o MS-Escolhas."""
 
     def __init__(self, mensagem: str, detalhes: str | None=None, status_code: int=400, code: str | None=None) -> None:
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            mensagem: Parâmetro mensagem da operação.
+            detalhes: Parâmetro detalhes da operação.
+            status_code: Parâmetro status code da operação.
+            code: Parâmetro code da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         super().__init__(mensagem=mensagem, detalhes=detalhes)
         self.status_code = status_code
         self.code = code
@@ -78,8 +116,5 @@ class MultiplosLotesException(BaseImportacaoException):
     """Arquivo de lotes contem mais de um valor na coluna LOTE."""
 
 class CargoConcursoInvalidoException(BaseImportacaoException):
-    """Erro quando Codigo_do_Cargo não pertence ao concurso selecionado ou é.
-
-    inválido.
-    """
+    """Erro quando Codigo_do_Cargo não pertence ao concurso selecionado ou é."""
     pass

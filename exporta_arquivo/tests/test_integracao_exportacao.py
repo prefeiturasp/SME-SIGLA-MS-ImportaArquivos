@@ -16,17 +16,38 @@ from exporta_arquivo.models import ExportacaoCandidatosProcesso
 pytestmark = [pytest.mark.django_db, pytest.mark.urls('exporta_arquivo.tests.urls')]
 
 def _uuid() -> Any:
-    """Executa  uuid."""
+    """Executa  uuid.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     return str(uuid.uuid4())
 
 @pytest.fixture
 def api_client() -> Any:
-    """Executa api client."""
+    """Executa api client.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     from rest_framework.test import APIClient
     return APIClient()
 
 def _resposta_habilitados_api() -> Any:
-    """Payload mínimo que a API de habilitados pode retornar e o service mapeia."""
+    """Payload mínimo que a API de habilitados pode retornar e o service mapeia.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     return [{'candidato': {'cpf': '12345678900', 'nome': 'Candidato Teste', 'data_nascimento': '1990-05-15T00:00:00'}, 'codigo_cargo': 10, 'ranking_escolha': 1, 'classificacao': 5}]
 
 class TestIntegracaoCreateCandidatosProcesso:
@@ -35,12 +56,16 @@ class TestIntegracaoCreateCandidatosProcesso:
 
     def test_create_mockando_apenas_api_externa_retorna_200_e_arquivo_txt(self, api_client: Any) -> Any:
         """POST create com payload válido; mock de requests.get para API Concursos.
-
-        e API Candidatos.
-        Service exportar_candidatos_processo e
-        formatar_arquivo_candidatos_processo rodam de verdade.
-        Verifica: 200, Content-Type text/plain, registro com conteudo_arquivo e
-        nome_arquivo, conteúdo com pipe.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Nenhum valor; valida comportamento via asserções.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         concurso_uuid = _uuid()
         mock_concursos = MagicMock()
@@ -51,7 +76,19 @@ class TestIntegracaoCreateCandidatosProcesso:
         mock_candidatos.json.return_value = _resposta_habilitados_api()
 
         def fake_get(url: Any, *args: Any, **kwargs: Any) -> Any:
-            """Executa fake get."""
+            """Executa fake get.
+            
+            Args:
+                url: Parâmetro url da operação.
+                *args: Argumentos posicionais variáveis.
+                **kwargs: Argumentos nomeados variáveis.
+            
+            Returns:
+                Resultado da operação.
+            
+            Raises:
+                Nenhuma exceção específica documentada.
+            """
             if 'concursos' in url:
                 return mock_concursos
             return mock_candidatos

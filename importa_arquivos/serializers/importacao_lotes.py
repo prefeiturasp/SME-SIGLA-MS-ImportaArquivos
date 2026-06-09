@@ -6,10 +6,7 @@ from rest_framework import serializers
 from ..models import ImportacaoErro, ImportacaoLotes
 
 class ImportacaoLotesCreateSerializer(serializers.ModelSerializer):
-    """Serializer para criação de importações de lotes.
-
-    Aceita arquivo TXT, concurso_uuid e concurso_nome.
-    """
+    """Serializer para criação de importações de lotes."""
 
     class Meta:
         """Define Meta."""
@@ -17,17 +14,25 @@ class ImportacaoLotesCreateSerializer(serializers.ModelSerializer):
         fields = ['arquivo', 'concurso_uuid', 'concurso_nome']
 
     def create(self, validated_data: Any) -> Any:
-        """Executa create."""
+        """Executa create.
+        
+        Args:
+            self: Instância do objeto.
+            validated_data: Dados validados pelo serializer.
+        
+        Returns:
+            Resposta HTTP com os dados serializados.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         arquivo = validated_data.get('arquivo')
         nome_arquivo = getattr(arquivo, 'name', None) or 'Importação de Lotes'
         instance = ImportacaoLotes.objects.create(nome_arquivo=nome_arquivo, tipo='LOTES', status='PENDENTE', **validated_data)
         return instance
 
 class ImportacaoLotesListSerializer(serializers.ModelSerializer):
-    """Serializer para listagem e detalhe de importações de lotes.
-
-    Erros são consultados na tabela ImportacaoErro (GenericForeignKey).
-    """
+    """Serializer para listagem e detalhe de importações de lotes."""
     erros = serializers.SerializerMethodField()
     _content_type_cache = None
 
@@ -38,7 +43,18 @@ class ImportacaoLotesListSerializer(serializers.ModelSerializer):
         read_only_fields = ['uuid', 'tipo', 'criado_em', 'atualizado_em', 'status', 'total_atualizados', 'detalhes']
 
     def get_erros(self, obj: Any) -> Any:
-        """Executa get erros."""
+        """Executa get erros.
+        
+        Args:
+            self: Instância do objeto.
+            obj: Parâmetro obj da operação.
+        
+        Returns:
+            Valor calculado para o campo ou propriedade.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         if ImportacaoLotesListSerializer._content_type_cache is None:
             ImportacaoLotesListSerializer._content_type_cache = ContentType.objects.get_for_model(ImportacaoLotes)
         erros_qs = ImportacaoErro.objects.filter(content_type=ImportacaoLotesListSerializer._content_type_cache, object_id=obj.uuid).order_by('-criado_em')

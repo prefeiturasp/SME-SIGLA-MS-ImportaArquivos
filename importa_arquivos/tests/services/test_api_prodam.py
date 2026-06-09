@@ -13,7 +13,18 @@ class TestApiProdamService:
     """Testes para ApiProdamService."""
 
     def test_init_com_configuracoes_validas(self, settings: Any) -> None:
-        """Testa inicialização com configurações válidas."""
+        """Testa inicialização com configurações válidas.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = 'usuario'
@@ -26,7 +37,18 @@ class TestApiProdamService:
         assert service.timeout_seconds == 300
 
     def test_init_com_timeout_customizado(self, settings: Any) -> None:
-        """Testa inicialização com timeout customizado."""
+        """Testa inicialização com timeout customizado.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = 'usuario'
@@ -35,7 +57,18 @@ class TestApiProdamService:
         assert service.timeout_seconds == 60
 
     def test_init_sem_token_levanta_erro(self, settings: Any) -> None:
-        """Testa que falta de token levanta ValueError."""
+        """Testa que falta de token levanta ValueError.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = None
         settings.PRODAM_API_USUARIO = 'usuario'
@@ -44,7 +77,18 @@ class TestApiProdamService:
             ApiProdamService()
 
     def test_init_sem_usuario_levanta_erro(self, settings: Any) -> None:
-        """Testa que falta de usuário levanta ValueError."""
+        """Testa que falta de usuário levanta ValueError.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = None
@@ -53,7 +97,18 @@ class TestApiProdamService:
             ApiProdamService()
 
     def test_init_sem_senha_levanta_erro(self, settings: Any) -> None:
-        """Testa que falta de senha levanta ValueError."""
+        """Testa que falta de senha levanta ValueError.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = 'usuario'
@@ -62,7 +117,18 @@ class TestApiProdamService:
             ApiProdamService()
 
     def test_get_headers_retorna_headers_corretos(self, settings: Any) -> None:
-        """Testa que _get_headers retorna headers corretos."""
+        """Testa que _get_headers retorna headers corretos.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = 'usuario'
@@ -73,7 +139,18 @@ class TestApiProdamService:
         assert headers['Content-Type'] == 'application/json'
 
     def test_consultar_resultado_convocacao_ingresso_sucesso(self, settings: Any) -> None:
-        """Testa consulta bem-sucedida à API Prodam."""
+        """Testa consulta bem-sucedida à API Prodam.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = 'usuario'
@@ -92,7 +169,18 @@ class TestApiProdamService:
             assert LogRequestHttp.objects.filter(processo_id=123).exists()
 
     def test_consultar_resultado_convocacao_ingresso_cria_log(self, settings: Any) -> None:
-        """Testa que um log é criado após a requisição."""
+        """Testa que um log é criado após a requisição.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = 'usuario'
@@ -113,7 +201,18 @@ class TestApiProdamService:
             assert 'retorno' in log.resposta_raw
 
     def test_consultar_resultado_convocacao_ingresso_payload_correto(self, settings: Any) -> None:
-        """Testa que o payload enviado está correto."""
+        """Testa que o payload enviado está correto.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = 'usuario'
@@ -136,7 +235,18 @@ class TestApiProdamService:
             assert kwargs['timeout'] == 300
 
     def test_consultar_resultado_convocacao_ingresso_request_exception(self, settings: Any) -> None:
-        """Testa tratamento de RequestException."""
+        """Testa tratamento de RequestException.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = 'usuario'
@@ -147,7 +257,18 @@ class TestApiProdamService:
                 service.consultar_resultado_convocacao_ingresso(processo_id=123)
 
     def test_consultar_resultado_convocacao_ingresso_resposta_invalida(self, settings: Any) -> None:
-        """Testa tratamento de resposta inválida."""
+        """Testa tratamento de resposta inválida.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = 'usuario'
@@ -164,7 +285,18 @@ class TestApiProdamService:
                 service.consultar_resultado_convocacao_ingresso(processo_id=123)
 
     def test_consultar_resultado_convocacao_ingresso_resposta_com_erro_validacao(self, settings: Any) -> None:
-        """Testa tratamento quando resposta não passa na validação do serializer."""
+        """Testa tratamento quando resposta não passa na validação do serializer.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = 'usuario'
@@ -181,7 +313,18 @@ class TestApiProdamService:
                 service.consultar_resultado_convocacao_ingresso(processo_id=123)
 
     def test_consultar_resultado_convocacao_ingresso_nao_quebra_quando_log_falha(self, settings: Any) -> None:
-        """Testa que não quebra quando criação de log falha."""
+        """Testa que não quebra quando criação de log falha.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = 'usuario'
@@ -199,7 +342,18 @@ class TestApiProdamService:
                 assert resultado['retorno'] == 'TRUE'
 
     def test_consultar_resultado_convocacao_ingresso_http_error(self, settings: Any) -> None:
-        """Testa tratamento de erro HTTP."""
+        """Testa tratamento de erro HTTP.
+        
+        Args:
+            self: Instância do objeto.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.PRODAM_ESCOLHAS_API_URL = 'https://api.prodam.com/endpoint'
         settings.PRODAM_API_TOKEN = 'token123'
         settings.PRODAM_API_USUARIO = 'usuario'

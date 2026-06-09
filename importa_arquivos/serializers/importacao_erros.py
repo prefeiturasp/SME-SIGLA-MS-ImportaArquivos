@@ -13,7 +13,18 @@ class ImportacaoErrosListSerializer(serializers.Serializer):
     erros = serializers.CharField()
 
     def to_representation(self, instance: ImportacaoErro) -> Any:
-        """Executa to representation."""
+        """Executa to representation.
+        
+        Args:
+            self: Instância do objeto.
+            instance: Instância do modelo em atualização.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         data = {'mensagem': instance.mensagem, 'erros': instance.erros, 'concurso_uuid': None, 'processo_uuid': None}
         try:
             obj = instance.importacao_obj
@@ -29,7 +40,18 @@ class ImportacaoErrosListSerializer(serializers.Serializer):
         return data
 
 def queryset_erros_por_modelo(model_cls: Any, importacao_uuid: Any=None) -> Any:
-    """Executa queryset erros por modelo."""
+    """Executa queryset erros por modelo.
+    
+    Args:
+        model_cls: Parâmetro model cls da operação.
+        importacao_uuid: Parâmetro importacao uuid da operação.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     content_type = ContentType.objects.get_for_model(model_cls)
     qs = ImportacaoErro.objects.filter(content_type=content_type)
     if importacao_uuid:

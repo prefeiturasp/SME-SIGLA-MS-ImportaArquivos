@@ -9,7 +9,17 @@ class TestLogRequestHttpModel:
     """Testes para o model LogRequestHttp."""
 
     def test_criar_log_request_http_com_valores_minimos(self) -> None:
-        """Testa criação de log com valores mínimos."""
+        """Testa criação de log com valores mínimos.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         log = LogRequestHttp.objects.create(url='https://api.example.com/endpoint', metodo_http='POST', resposta_raw='{"status": "ok"}')
         assert log.uuid is not None
         assert log.url == 'https://api.example.com/endpoint'
@@ -20,7 +30,17 @@ class TestLogRequestHttpModel:
         assert log.atualizado_em is not None
 
     def test_criar_log_request_http_com_todos_campos(self) -> None:
-        """Testa criação de log com todos os campos preenchidos."""
+        """Testa criação de log com todos os campos preenchidos.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         processo_id = 123
         url = 'https://api.example.com/endpoint'
         metodo = 'GET'
@@ -32,7 +52,17 @@ class TestLogRequestHttpModel:
         assert log.resposta_raw == resposta
 
     def test_log_request_http_str_representation(self) -> None:
-        """Testa a representação string do model."""
+        """Testa a representação string do model.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         log = LogRequestHttp.objects.create(url='https://api.example.com/endpoint', metodo_http='POST', processo_id=123, resposta_raw='{"status": "ok"}')
         str_repr = str(log)
         assert 'Log' in str_repr
@@ -41,14 +71,34 @@ class TestLogRequestHttpModel:
         assert '123' in str_repr
 
     def test_log_request_http_str_representation_sem_processo_id(self) -> None:
-        """Testa a representação string quando não há processo_id."""
+        """Testa a representação string quando não há processo_id.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         log = LogRequestHttp.objects.create(url='https://api.example.com/endpoint', metodo_http='GET', resposta_raw='{"status": "ok"}')
         str_repr = str(log)
         assert 'Log' in str_repr
         assert 'N/A' in str_repr
 
     def test_log_request_http_ordering(self) -> None:
-        """Testa que o ordering está configurado corretamente."""
+        """Testa que o ordering está configurado corretamente.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         log1 = LogRequestHttp.objects.create(url='https://api.example.com/endpoint1', metodo_http='POST', resposta_raw='response1')
         import time
         time.sleep(0.01)
@@ -58,23 +108,63 @@ class TestLogRequestHttpModel:
         assert logs[1] == log1
 
     def test_log_request_http_campos_opcionais(self) -> None:
-        """Testa que processo_id pode ser None."""
+        """Testa que processo_id pode ser None.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         log = LogRequestHttp.objects.create(url='https://api.example.com/endpoint', metodo_http='POST', resposta_raw='{"status": "ok"}')
         assert log.processo_id is None
 
     def test_log_request_http_meta_options(self) -> None:
-        """Testa as opções Meta do model."""
+        """Testa as opções Meta do model.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert LogRequestHttp._meta.db_table == 'log_request_http'
         assert LogRequestHttp._meta.verbose_name == 'Log de requisição HTTP'
         assert LogRequestHttp._meta.verbose_name_plural == 'Log de requisição HTTP'
 
     def test_log_request_http_url_max_length(self) -> None:
-        """Testa que a URL pode ter até 500 caracteres."""
+        """Testa que a URL pode ter até 500 caracteres.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         long_url = 'https://api.example.com/' + 'a' * 470
         log = LogRequestHttp.objects.create(url=long_url, metodo_http='POST', resposta_raw='response')
         assert len(log.url) <= 500
 
     def test_log_request_http_metodo_http_max_length(self) -> None:
-        """Testa que metodo_http pode ter até 10 caracteres."""
+        """Testa que metodo_http pode ter até 10 caracteres.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         log = LogRequestHttp.objects.create(url='https://api.example.com/endpoint', metodo_http='POST', resposta_raw='response')
         assert len(log.metodo_http) <= 10

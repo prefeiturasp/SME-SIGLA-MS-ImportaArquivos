@@ -14,13 +14,34 @@ class ApiCandidatosService:
     """Define ApiCandidatosService."""
 
     def __init__(self, base_url: str='https://example.com', timeout_seconds: int=30) -> None:
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            base_url: Parâmetro base url da operação.
+            timeout_seconds: Parâmetro timeout seconds da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         self.base_url = base_url.rstrip('/')
         self.timeout_seconds = timeout_seconds
         self._default_headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
 
     def _transformar_registros(self, registros: list[dict[str, Any]], estrutura: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        """Transforma os registros do CSV para o formato esperado pela API."""
+        """Transforma os registros do CSV para o formato esperado pela API.
+        
+        Args:
+            self: Instância do objeto.
+            registros: Parâmetro registros da operação.
+            estrutura: Parâmetro estrutura da operação.
+        
+        Returns:
+            Lista com os registros resultantes.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         mapa_coluna_para_payload: dict[str, str] = {}
         for item in estrutura:
             if not isinstance(item, dict):
@@ -42,7 +63,23 @@ class ApiCandidatosService:
 
     @captura_erros_importacao(param_nome_obj='importacao_obj')
     def enviar_habilitados(self, registros: list[dict[str, Any]], estrutura: list[dict[str, Any]], concurso_uuid: str, concurso_nome: str, headers: dict[str, str] | None=None, importacao_obj: Any | None=None) -> Response:
-        """Executa enviar habilitados."""
+        """Executa enviar habilitados.
+        
+        Args:
+            self: Instância do objeto.
+            registros: Parâmetro registros da operação.
+            estrutura: Parâmetro estrutura da operação.
+            concurso_uuid: Parâmetro concurso uuid da operação.
+            concurso_nome: Parâmetro concurso nome da operação.
+            headers: Parâmetro headers da operação.
+            importacao_obj: Parâmetro importacao obj da operação.
+        
+        Returns:
+            Resposta HTTP com o resultado da operação.
+        
+        Raises:
+            ApiCandidatosException: Se ocorrer erro nesta operação.
+        """
         url = f'{self.base_url}/api/v1/candidatos/'
         merged_headers = {**self._default_headers, **(headers or {})}
         dados_transformados = self._transformar_registros(registros, estrutura)
@@ -60,13 +97,19 @@ class ApiCandidatosService:
     @captura_erros_importacao(param_nome_obj='importacao_obj')
     def salvar_lotes(self, concurso_uuid: str, lotes: list, importacao_obj: Any=None) -> int:
         """POST {base_url}/api/v1/habilitados/salvar-lotes/.
-
-        Retorna o total de candidatos atualizados.
-
+        
+        Args:
+            self: Instância do objeto.
+            concurso_uuid: Parâmetro concurso uuid da operação.
+            lotes: Parâmetro lotes da operação.
+            importacao_obj: Parâmetro importacao obj da operação.
+        
+        Returns:
+            Valor inteiro calculado.
+        
         Raises:
             ImportacaoBadRequestException: Em 400.
-            ImportacaoServiceUnavailableException: Em 5xx, timeout ou resposta
-            não-JSON.
+            ImportacaoServiceUnavailableException: Em 5xx, timeout ou resposta.
         """
         url = f'{self.base_url}/api/v1/habilitados/salvar-lotes/'
         payload = {'concurso_uuid': concurso_uuid, 'lotes': lotes}

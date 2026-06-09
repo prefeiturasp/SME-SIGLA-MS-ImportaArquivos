@@ -27,7 +27,17 @@ logger = logging.getLogger(__name__)
 
 
 def _data_para_ddmmyyyy(val: Any) -> str:
-    """Executa  data para ddmmyyyy."""
+    """Executa  data para ddmmyyyy.
+    
+    Args:
+        val: Parâmetro val da operação.
+    
+    Returns:
+        Texto resultante da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     try:
         data_obj = datetime.fromisoformat(val.replace("Z", "+00:00"))
     except ValueError:
@@ -40,11 +50,16 @@ def gerar_conteudo_lote(
     escolhas_por_candidato: dict[str, dict[str, Any]],
 ) -> str:
     """Gera o conteúdo completo do arquivo de exportação de lotes.
-
-    Cada linha segue o padrão:
-        {numero_lote};{codigo_sigpec};{chave_inscrito};{DDMMYYYY};{S|R};{codigo_integracao};
-
-    Retorna string com cabeçalho + linhas de dados.
+    
+    Args:
+        candidatos: Parâmetro candidatos da operação.
+        escolhas_por_candidato: Parâmetro escolhas por candidato da operação.
+    
+    Returns:
+        Texto resultante da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
     """
     cabecalho = """@TABELA=[c_ERGON][PMSP_ESCOLHA_VAGA_SME][1.0]
         @CHAVE=[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER]
@@ -112,12 +127,15 @@ def gerar_conteudo_lote(
 
 def exportar_lote(instance: ExportacaoLote) -> str:
     """Orquestra a exportação de um lote:.
-
-    1. Busca candidatos do lote.
-    2. Busca escolhas dos candidatos para o concurso.
-    3. Valida que todos têm escolha (levanta ExportacaoLoteIncompletaException
-    se não).
-    4. Gera e retorna o conteúdo do arquivo.
+    
+    Args:
+        instance: Instância do modelo em atualização.
+    
+    Returns:
+        Texto resultante da operação.
+    
+    Raises:
+        ExportacaoLoteIncompletaException: Se ocorrer erro nesta operação.
     """
     # 1. Buscar candidatos do lote
     # Usa numero_lote quando disponível (novos registros); fallback para lote_uuid (registros antigos)  # noqa: E501

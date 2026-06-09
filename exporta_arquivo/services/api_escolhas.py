@@ -15,20 +15,33 @@ class ApiEscolhasService:
     """Cliente para a API de escolhas (GET vagas-escolas)."""
 
     def __init__(self, base_url: str | None=None, timeout_seconds: int | None=None) -> None:
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            base_url: Parâmetro base url da operação.
+            timeout_seconds: Parâmetro timeout seconds da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         self.base_url = (base_url or getattr(settings, 'ESCOLHA_API_URL', 'http://localhost:8004')).rstrip('/')  # type: ignore[union-attr]
         self.timeout_seconds = timeout_seconds or getattr(settings, 'ESCOLHA_API_TIMEOUT', 30)
         self._default_headers = {'Accept': 'application/json'}
 
     def get_vagas_escolas(self, processo_uuid: str, cargo_codigo: str | int) -> dict[str, Any]:
         """GET {ESCOLHA_API_URL}/api/v1/vagas-escolas/ com query params.
-
-        processo_uuid e cargo_codigo.
-        Retorna o corpo da resposta (dict, ex.: com chave 'vagas').
-
+        
+        Args:
+            self: Instância do objeto.
+            processo_uuid: Parâmetro processo uuid da operação.
+            cargo_codigo: Parâmetro cargo codigo da operação.
+        
+        Returns:
+            Dicionário com os dados processados.
+        
         Raises:
-            EscolhasServiceUnavailableException: Em 5xx, timeout ou resposta
-            não-JSON.
+            EscolhasServiceUnavailableException: Em 5xx, timeout ou resposta.
         """
         url = f'{self.base_url}/api/v1/vagas-escolas/'
         params = {'processo_uuid': processo_uuid, 'cargo_codigo': str(cargo_codigo)}
@@ -53,14 +66,17 @@ class ApiEscolhasService:
 
     def get_escolhas(self, candidato_uuids: list[str], concurso_uuid: str) -> list[dict[str, Any]]:
         """POST {ESCOLHA_API_URL}/api/v1/escolhas/busca/.
-
-        Body: {"candidato_uuid": [...], "concurso_uuid": "..."}.
-
-        Retorna lista de Escolha com vaga_escola.escola.codigo_integracao.
-
+        
+        Args:
+            self: Instância do objeto.
+            candidato_uuids: Parâmetro candidato uuids da operação.
+            concurso_uuid: Parâmetro concurso uuid da operação.
+        
+        Returns:
+            Lista com os registros resultantes.
+        
         Raises:
-            EscolhasServiceUnavailableException: em 5xx, timeout ou resposta
-            inválida.
+            EscolhasServiceUnavailableException: em 5xx, timeout ou resposta.
         """
         url = f'{self.base_url}/api/v1/escolhas/busca/'
         payload = {'candidato_uuid': [str(u) for u in candidato_uuids], 'concurso_uuid': str(concurso_uuid)}

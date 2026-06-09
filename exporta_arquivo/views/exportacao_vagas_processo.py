@@ -16,30 +16,40 @@ from ..services.exportacao_vagas_processo import buscar_vagas_escolas, formatar_
 from .base_exportacao import BaseExportacaoViewSet
 
 class ExportacaoVagasProcessoViewSet(BaseExportacaoViewSet):
-    """ViewSet para exportação de vagas processo.
-
-    - list: lista registros (filtros, busca, ordenação, paginação).
-    - create: cria o registro, executa a exportação e retorna o arquivo .txt
-    para download.
-    - retrieve: detalhe de um registro.
-    - download (GET em /<uuid>/download/): retorna arquivo .txt para download.
-    - GET list com processo_uuid e cargo_uuid na query: retorna arquivo .txt
-    (comportamento legado).
-    """
+    """ViewSet para exportação de vagas processo."""
     queryset = ExportacaoVagasProcesso.objects.all()
     list_serializer_class = ExportacaoVagasProcessoListSerializer  # type: ignore[assignment]
     create_serializer_class = ExportacaoVagasProcessoCreateSerializer  # type: ignore[assignment]
 
     def gerar_arquivo(self, instance: Any) -> Any:
-        """Gera resposta de arquivo .txt para o registro (formato vagas processo)."""
+        """Gera resposta de arquivo .txt para o registro (formato vagas processo).
+        
+        Args:
+            self: Instância do objeto.
+            instance: Instância do modelo em atualização.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         response = HttpResponse(instance.conteudo_arquivo.encode('utf-8'), content_type='text/plain; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="{instance.nome_arquivo}"'
         return response
 
     def executar_exportacao(self, instance: Any) -> None:
         """Executa a exportação vagas processo, gera o arquivo e persiste conteúdo.
-
-        e nome no registro.
+        
+        Args:
+            self: Instância do objeto.
+            instance: Instância do modelo em atualização.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         vagas_escolas = buscar_vagas_escolas(str(instance.processo_uuid), instance.cargo_codigo)
         conteudo = formatar_arquivo_vagas_processo(instance.cargo_codigo, vagas_escolas)

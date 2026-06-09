@@ -13,5 +13,16 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
 
     def get_paginated_response(self, data: Any) -> Any:
-        """Executa get paginated response."""
+        """Executa get paginated response.
+        
+        Args:
+            self: Instância do objeto.
+            data: Dados de entrada.
+        
+        Returns:
+            Valor calculado para o campo ou propriedade.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return Response({'links': {'next': self.get_next_link(), 'previous': self.get_previous_link()}, 'count': self.page.paginator.count, 'page': int(self.request.GET.get('page', DEFAULT_PAGE)), 'page_size': int(self.request.GET.get('page_size', self.page_size)), 'results': data})  # type: ignore[has-type,union-attr]

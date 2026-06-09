@@ -16,30 +16,40 @@ from ..services.exportacao_vagas_sigpec import buscar_vagas_escolas, formatar_ar
 from .base_exportacao import BaseExportacaoViewSet
 
 class ExportacaoVagasSigpecViewSet(BaseExportacaoViewSet):
-    """ViewSet para exportação de vagas SIGPEC.
-
-    - list: lista registros (filtros, busca, ordenação, paginação).
-    - create: cria o registro, executa a exportação e retorna o arquivo .txt
-    para download.
-    - retrieve: detalhe de um registro.
-    - download (GET em /<uuid>/download/): retorna arquivo .txt para download.
-    - GET list com processo_uuid e cargo_uuid na query: retorna arquivo .txt
-    (comportamento legado).
-    """
+    """ViewSet para exportação de vagas SIGPEC."""
     queryset = ExportacaoVagasSigpec.objects.all()
     list_serializer_class = ExportacaoVagasSigpecListSerializer  # type: ignore[assignment]
     create_serializer_class = ExportacaoVagasSigpecCreateSerializer  # type: ignore[assignment]
 
     def gerar_arquivo(self, instance: Any) -> Any:
-        """Gera resposta de arquivo .txt para os UUIDs dados."""
+        """Gera resposta de arquivo .txt para os UUIDs dados.
+        
+        Args:
+            self: Instância do objeto.
+            instance: Instância do modelo em atualização.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         response = HttpResponse(instance.conteudo_arquivo.encode('utf-8'), content_type='text/plain; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="{instance.nome_arquivo}"'
         return response
 
     def executar_exportacao(self, instance: Any) -> None:
         """Executa a exportação SIGPEC, gera o arquivo e persiste conteúdo e nome.
-
-        no registro.
+        
+        Args:
+            self: Instância do objeto.
+            instance: Instância do modelo em atualização.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         vagas_escolas = buscar_vagas_escolas(str(instance.processo_uuid), instance.cargo_codigo)
         conteudo = formatar_arquivo_sigpec(vagas_escolas)

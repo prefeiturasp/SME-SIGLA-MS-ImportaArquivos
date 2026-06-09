@@ -29,7 +29,18 @@ class LayoutArquivoImportacaoViewSet(viewsets.ModelViewSet):
     @extend_schema(description='Faz o download de um arquivo CSV contendo apenas o cabeçalho definido no layout do tipo informado.', parameters=[OpenApiParameter(name='tipo', type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, required=True, description='Tipo de layout', enum=[opcao[0] for opcao in CHOICES_TIPO_IMPORTACAO_ARQUIVO])], responses={200: 'text/csv'})
     @action(detail=False, methods=['get'], url_path='download')
     def download(self, request: Any) -> Any:
-        """Executa download."""
+        """Executa download.
+        
+        Args:
+            self: Instância do objeto.
+            request: Requisição HTTP recebida.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         tipo = request.query_params.get('tipo')
         if not tipo:
             return Response({'detail': 'Parâmetro tipo é obrigatório.'}, status=400)

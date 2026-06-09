@@ -5,12 +5,7 @@ from ..models import CabecalhoExportacaoLote, ExportacaoLote
 
 
 class ExportacaoLoteCreateSerializer(serializers.ModelSerializer):
-    """Serializer para criação de exportação de lote.
-
-    O frontend envia concurso_uuid, numero_lote, opcionalmente codigo_cargo e
-    concurso_nome.
-    lote_uuid mantido para compatibilidade com registros antigos.
-    """
+    """Serializer para criação de exportação de lote."""
 
     class Meta:
         """Define Meta."""

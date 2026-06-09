@@ -23,6 +23,16 @@ class ImportacaoEscolhas(BaseModel):
         ordering = ['-criado_em']
 
     def __str__(self) -> Any:
-        """Executa   str  ."""
+        """Executa   str  .
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return f'Importação - {self.processo_uuid or 'N/A'}'
 auditlog.register(ImportacaoEscolhas)

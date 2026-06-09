@@ -37,6 +37,16 @@ class ExportacaoLote(models.Model):
         ordering = ['-criado_em']
 
     def __str__(self) -> Any:
-        """Executa   str  ."""
+        """Executa   str  .
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return f'Exportação Lote {self.uuid} (concurso={self.concurso_uuid}, lote={self.lote_uuid})'
 auditlog.register(ExportacaoLote)

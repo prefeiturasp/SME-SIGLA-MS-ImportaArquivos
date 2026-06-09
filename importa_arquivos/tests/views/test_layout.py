@@ -7,14 +7,34 @@ from importa_arquivos.models.layout import LayoutArquivoImportacao
 pytestmark = pytest.mark.django_db
 
 def test_layout_list_empty(api_client: Any) -> None:
-    """Verifica layout list empty."""
+    """Verifica layout list empty.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     url = reverse('layout-arquivo-list')
     resp = api_client.get(url)
     assert resp.status_code == 200
     assert resp.data['count'] == 0
 
 def test_layout_create_and_list(api_client: Any) -> None:
-    """Verifica layout create and list."""
+    """Verifica layout create and list.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     url = reverse('layout-arquivo-list')
     payload = {'nome': 'Layout Vagas', 'tipo': 'VAGAS', 'estrutura': [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]}
     resp_create = api_client.post(url, payload, format='json')

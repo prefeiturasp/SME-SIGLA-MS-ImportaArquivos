@@ -6,13 +6,32 @@ class BaseExportacaoException(Exception):
     """Define BaseExportacaoException."""
 
     def __init__(self, mensagem: str, detalhes: str | None=None) -> None:
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            mensagem: Parâmetro mensagem da operação.
+            detalhes: Parâmetro detalhes da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         super().__init__(mensagem)
         self.mensagem = mensagem
         self.detalhes = detalhes or ''
 
     def __str__(self) -> str:
-        """Executa   str  ."""
+        """Executa   str  .
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Texto resultante da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return self.mensagem
 
 class ExportacaoNotFoundException(BaseExportacaoException):
@@ -47,7 +66,17 @@ class ExportacaoLoteIncompletaException(BaseExportacaoException):
     """Candidatos do lote sem escolha realizada."""
 
     def __init__(self, candidatos_sem_escolha: list[str], mensagem: str | None=None, detalhes: str | None=None) -> None:
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            candidatos_sem_escolha: Parâmetro candidatos sem escolha da operação.
+            mensagem: Parâmetro mensagem da operação.
+            detalhes: Parâmetro detalhes da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         self.candidatos_sem_escolha = candidatos_sem_escolha
         msg = mensagem or f'{len(candidatos_sem_escolha)} candidato(s) sem escolha no lote.'
         super().__init__(mensagem=msg, detalhes=detalhes or '')

@@ -15,7 +15,15 @@ class ApiProdamService:
     DEFAULT_TIMEOUT = 300
 
     def __init__(self, timeout_seconds: int=None) -> None:  # type: ignore[assignment]
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            timeout_seconds: Parâmetro timeout seconds da operação.
+        
+        Raises:
+            ValueError: Se ocorrer erro nesta operação.
+        """
         self.timeout_seconds = timeout_seconds or self.DEFAULT_TIMEOUT
         self.api_url = settings.PRODAM_ESCOLHAS_API_URL
         self._token = settings.PRODAM_API_TOKEN
@@ -25,21 +33,32 @@ class ApiProdamService:
             raise ValueError('Configurações da API externa não encontradas. Verifique PRODAM_API_TOKEN, PRODAM_API_USUARIO e PRODAM_API_SENHA no settings.py.')
 
     def _get_headers(self) -> dict[str, str]:
-        """Retorna headers para requisição à API PRODAM."""
+        """Retorna headers para requisição à API PRODAM.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Dicionário com os dados processados.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return {'Authorization': f'Basic {self._token}', 'Content-Type': 'application/json'}
 
     def consultar_resultado_convocacao_ingresso(self, processo_id: int) -> dict[str, Any]:
         """Consulta resultado de convocação/ingresso na API PRODAM.
-
+        
         Args:
-            processo_id: ID do processo de convocação
-
+            self: Instância do objeto.
+            processo_id: ID do processo de convocação.
+        
         Returns:
-            Dicionário com dados validados da resposta da API PRODAM
-
+            Dicionário com os dados processados.
+        
         Raises:
-            RequestException: Em caso de erro na requisição
-            ValueError: Se a resposta não for válida
+            RequestException: Em caso de erro na requisição.
+            ValueError: Se a resposta não for válida.
         """
         url = self.api_url
         headers = self._get_headers()

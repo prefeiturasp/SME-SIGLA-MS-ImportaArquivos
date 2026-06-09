@@ -7,10 +7,7 @@ from auditlog.registry import auditlog
 from django.db import models
 
 class CabecalhoExportacaoLote(models.Model):
-    """Cabeçalho configurável para o arquivo de exportação de lotes.
-
-    Cada linha @-prefixada do arquivo é um campo editável.
-    """
+    """Cabeçalho configurável para o arquivo de exportação de lotes."""
     history = AuditlogHistoryField()
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Data de Criação')
@@ -32,11 +29,31 @@ class CabecalhoExportacaoLote(models.Model):
         ordering = ['-criado_em']
 
     def __str__(self) -> Any:
-        """Executa   str  ."""
+        """Executa   str  .
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return f'Cabeçalho {self.uuid} ({('ativo' if self.ativo else 'inativo')})'
 
     def render(self) -> str:
-        """Gera o bloco de cabeçalho completo para o arquivo exportado."""
+        """Gera o bloco de cabeçalho completo para o arquivo exportado.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Texto resultante da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         sep = self.separador
         return f'@TABELA={self.tabela}\n@CHAVE={self.chave}\n@TAG INICIO={self.tag_inicio}\n@TAG FIM={self.tag_fim}\n@SEPARADOR={sep}\n@FORMATO DATA={self.formato_data}\n@COLUNAS={self.colunas}\n'
 auditlog.register(CabecalhoExportacaoLote)

@@ -30,13 +30,36 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
     def get_serializer_class(self) -> Any:
-        """Executa get serializer class."""
+        """Executa get serializer class.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Valor calculado para o campo ou propriedade.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         if self.action in ('list', 'retrieve'):
             return ImportacaoArquivoVagasListSerializer
         return ImportacaoArquivoVagasCreateSerializer
 
     def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Executa create."""
+        """Executa create.
+        
+        Args:
+            self: Instância do objeto.
+            request: Requisição HTTP recebida.
+            *args: Argumentos posicionais variáveis.
+            **kwargs: Argumentos nomeados variáveis.
+        
+        Returns:
+            Resposta HTTP com os dados serializados.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
@@ -71,7 +94,18 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='erros/download')
     def download_erros(self, request: Any) -> Any:
-        """Executa download erros."""
+        """Executa download erros.
+        
+        Args:
+            self: Instância do objeto.
+            request: Requisição HTTP recebida.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         importacao_uuid = request.query_params.get('importacao_uuid', None)
         qs = queryset_erros_por_modelo(ImportacaoArquivoVagas, importacao_uuid=importacao_uuid).select_related('content_type')
         serializer = ImportacaoErrosListSerializer(qs, many=True)

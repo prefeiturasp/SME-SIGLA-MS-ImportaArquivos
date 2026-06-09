@@ -20,15 +20,35 @@ class ApiLoteCandidatosService:
     """Busca todos os ConcursoCandidato de um lote específico (por lote UUID)."""
 
     def __init__(self, base_url: str | None=None, timeout_seconds: int | None=None) -> None:
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            base_url: Parâmetro base url da operação.
+            timeout_seconds: Parâmetro timeout seconds da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         self.base_url = (base_url or getattr(settings, 'CANDIDATOS_API_URL', 'http://localhost:8000')).rstrip('/')  # type: ignore[union-attr]
         self.timeout_seconds = timeout_seconds or getattr(settings, 'CANDIDATOS_API_TIMEOUT', 30)
         self._default_headers = {'Accept': 'application/json'}
 
     def _fazer_request_get(self, url: str, params: dict, descricao_contexto: str) -> list[dict[str, Any]]:
         """Método comum para realizar requisições GET padronizadas na API de.
-
-        candidatos.
+        
+        Args:
+            self: Instância do objeto.
+            url: Parâmetro url da operação.
+            params: Parâmetro params da operação.
+            descricao_contexto: Parâmetro descricao contexto da operação.
+        
+        Returns:
+            Lista com os registros resultantes.
+        
+        Raises:
+            ExportacaoNotFoundException: Se ocorrer erro nesta operação.
+            ExportacaoServiceUnavailableException: Se ocorrer erro nesta operação.
         """
         try:
             response = http_client.get(url, params=params, headers=self._default_headers, timeout=self.timeout_seconds)
@@ -56,14 +76,16 @@ class ApiLoteCandidatosService:
 
     def get_candidatos_lote(self, lote_uuid: str) -> list[dict[str, Any]]:
         """GET {CANDIDATOS_API_URL}/api/v1/habilitados/?lote__uuid=<uuid>.
-
-        Retorna lista de ConcursoCandidato do lote com todos os campos,
-        incluindo numero_lote, codigo_sigpec e chave_inscrito.
-
+        
+        Args:
+            self: Instância do objeto.
+            lote_uuid: Parâmetro lote uuid da operação.
+        
+        Returns:
+            Lista com os registros resultantes.
+        
         Raises:
-            ExportacaoNotFoundException: em 404.
-            ExportacaoServiceUnavailableException: em 5xx, timeout ou resposta
-            inválida.
+            Nenhuma exceção específica documentada.
         """
         url = f'{self.base_url}/api/v1/habilitados/'
         params = {'lote__uuid': str(lote_uuid)}
@@ -71,18 +93,17 @@ class ApiLoteCandidatosService:
 
     def get_candidatos_por_numero_lote(self, concurso_uuid: str, numero_lote: int) -> list[dict[str, Any]]:
         """GET.
-
-        {CANDIDATOS_API_URL}/api/v1/habilitados/?lote__concurso_uuid=<uuid>&numero_lote=<int>.
-
-        Busca apenas os ConcursoCandidato com o numero_lote especificado dentro
-        do
-        último lote de importação do concurso, opcionalmente filtrado por
-        codigo_cargo.
-
+        
+        Args:
+            self: Instância do objeto.
+            concurso_uuid: Parâmetro concurso uuid da operação.
+            numero_lote: Parâmetro numero lote da operação.
+        
+        Returns:
+            Lista com os registros resultantes.
+        
         Raises:
-            ExportacaoNotFoundException: em 404.
-            ExportacaoServiceUnavailableException: em 5xx, timeout ou resposta
-            inválida.
+            Nenhuma exceção específica documentada.
         """
         url = f'{self.base_url}/api/v1/habilitados/'
         params: dict[str, Any] = {'lote__concurso_uuid': str(concurso_uuid), 'numero_lote': numero_lote}
@@ -92,21 +113,33 @@ class ApiLoteEscolhasService:
     """Busca escolhas para uma lista de candidatos filtradas por concurso_uuid."""
 
     def __init__(self, base_url: str | None=None, timeout_seconds: int | None=None) -> None:
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            base_url: Parâmetro base url da operação.
+            timeout_seconds: Parâmetro timeout seconds da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         self.base_url = (base_url or getattr(settings, 'ESCOLHA_API_URL', 'http://localhost:8004')).rstrip('/')  # type: ignore[union-attr]
         self.timeout_seconds = timeout_seconds or getattr(settings, 'ESCOLHA_API_TIMEOUT', 30)
         self._default_headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
 
     def get_escolhas_lote(self, candidato_uuids: list[str], concurso_uuid: str) -> list[dict[str, Any]]:
         """POST {ESCOLHA_API_URL}/api/v1/escolhas/busca/.
-
-        Body: {"candidato_uuid": [...], "concurso_uuid": "..."}.
-
-        Retorna lista de Escolha com vaga_escola.escola.codigo_integracao.
-
+        
+        Args:
+            self: Instância do objeto.
+            candidato_uuids: Parâmetro candidato uuids da operação.
+            concurso_uuid: Parâmetro concurso uuid da operação.
+        
+        Returns:
+            Lista com os registros resultantes.
+        
         Raises:
-            ExportacaoServiceUnavailableException: em 5xx, timeout ou resposta
-            inválida.
+            ExportacaoServiceUnavailableException: em 5xx, timeout ou resposta.
         """
         url = f'{self.base_url}/api/v1/escolhas/busca/'
         payload = {'candidato_uuid': [str(u) for u in candidato_uuids], 'concurso_uuid': str(concurso_uuid)}

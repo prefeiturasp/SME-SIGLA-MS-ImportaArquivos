@@ -14,10 +14,30 @@ from .erros import captura_erros_importacao
 logger = logging.getLogger(__name__)
 
 def _resolver_colunas(estrutura: list[dict]) -> dict:
-    """Percorre estrutura uma única vez e retorna as colunas mapeadas por papel."""
+    """Percorre estrutura uma única vez e retorna as colunas mapeadas por papel.
+    
+    Args:
+        estrutura: Parâmetro estrutura da operação.
+    
+    Returns:
+        Dicionário com os dados processados.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
 
     def _eh_obrigatorio(valor: Any) -> Any:
-        """Executa  eh obrigatorio."""
+        """Executa  eh obrigatorio.
+        
+        Args:
+            valor: Parâmetro valor da operação.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         try:
             return str(valor).strip() in ('1', 'true', 'True')
         except Exception:
@@ -49,8 +69,16 @@ def _resolver_colunas(estrutura: list[dict]) -> dict:
 
 def _validar_linhas(colunas: dict, registros: list[dict]) -> dict[int, list[str]]:
     """Percorre registros uma única vez aplicando todas as validações stateless:.
-
-    obrigatoriedade, formato de email, CPF e data de nascimento.
+    
+    Args:
+        colunas: Parâmetro colunas da operação.
+        registros: Parâmetro registros da operação.
+    
+    Returns:
+        Dicionário com os dados processados.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
     """
     import re
     _re_email = re.compile('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
@@ -89,13 +117,16 @@ def _validar_linhas(colunas: dict, registros: list[dict]) -> dict[int, list[str]
 
 def _validar_email_duplicado_por_cpf(colunas: dict, registros: list[dict]) -> dict[int, list[str]]:
     """Valida regra:.
-
-    - Se o mesmo email aparecer em múltiplas linhas, então o CPF dessas linhas
-    precisa ser o mesmo.
-    - Caso contrário, registra erro apenas nas linhas divergentes.
-
-    Mensagem esperada (sem prefixo "Linha X", pois o agregador adiciona):
-    "Email duplicado. Esperado CPF <cpf1> mas encontrado <cpf2>"
+    
+    Args:
+        colunas: Parâmetro colunas da operação.
+        registros: Parâmetro registros da operação.
+    
+    Returns:
+        Dicionário com os dados processados.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
     """
     email_col = colunas.get('email_col')
     cpf_col = colunas.get('cpf_col')
@@ -103,13 +134,33 @@ def _validar_email_duplicado_por_cpf(colunas: dict, registros: list[dict]) -> di
         return {}
 
     def _normalizar_email(valor: object) -> str:
-        """Executa  normalizar email."""
+        """Executa  normalizar email.
+        
+        Args:
+            valor: Parâmetro valor da operação.
+        
+        Returns:
+            Texto resultante da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         if valor is None:
             return ''
         return str(valor).strip().lower()
 
     def _normalizar_cpf(valor: object) -> str:
-        """Executa  normalizar cpf."""
+        """Executa  normalizar cpf.
+        
+        Args:
+            valor: Parâmetro valor da operação.
+        
+        Returns:
+            Texto resultante da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         if valor is None:
             return ''
         s = str(valor).strip()
@@ -133,11 +184,17 @@ def _validar_email_duplicado_por_cpf(colunas: dict, registros: list[dict]) -> di
 
 def _validar_codigo_cargo(colunas: dict, registros: list[dict], codigos_cargo_concurso: set) -> dict[int, list[str]]:
     """Valida o campo Codigo_do_Cargo linha a linha:.
-
-    - deve ser não-vazio
-    - deve ser conversível para int
-    - deve pertencer ao conjunto de códigos de cargo do concurso selecionado
-    Coluna identificada via colunas['cargo_col'].
+    
+    Args:
+        colunas: Parâmetro colunas da operação.
+        registros: Parâmetro registros da operação.
+        codigos_cargo_concurso: Parâmetro codigos cargo concurso da operação.
+    
+    Returns:
+        Dicionário com os dados processados.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
     """
     cargo_col = colunas.get('cargo_col')
     if not cargo_col:
@@ -161,15 +218,18 @@ def _validar_codigo_cargo(colunas: dict, registros: list[dict], codigos_cargo_co
 @captura_erros_importacao(param_nome_obj='importacao_obj')
 def validar_csv_habilitados(arquivo: Any, importacao_obj: Any=None) -> tuple[list[dict], list[dict]]:
     """Valida o arquivo CSV enviado para HABILITADOS contra o layout configurado.
-
-    e retorna a lista de registros (linhas) como dicts, além da estrutura do
-    layout.
-
-    - Busca o layout mais recente com tipo 'HABILITADOS'
-    - Compara cabeçalhos do CSV com as colunas definidas em estrutura[*].coluna
-    - Cabeçalhos não previstos no layout são apenas logados como warning
-    - Em caso de erro de leitura ou ausência de layout, levanta exceções
-    customizadas
+    
+    Args:
+        arquivo: Parâmetro arquivo da operação.
+        importacao_obj: Parâmetro importacao obj da operação.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        ColunaCSVInvalidaException: Se ocorrer erro nesta operação.
+        LayoutNaoConfiguradoException: Se ocorrer erro nesta operação.
+        LeituraCSVException: Se ocorrer erro nesta operação.
     """
     try:
         layout = LayoutArquivoImportacao.objects.filter(tipo='HABILITADOS').latest('criado_em')

@@ -13,7 +13,17 @@ class TestApiEscolhasServiceEscolhasProdam:
     """Testes para métodos de escolhas Prodam no ApiEscolhasService."""
 
     def test_transformar_escolhas_prodam_para_escolhas_basico(self) -> None:
-        """Testa transformação básica de dados Prodam para formato MS-Escolhas."""
+        """Testa transformação básica de dados Prodam para formato MS-Escolhas.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         service = ApiEscolhasService(base_url='https://api.exemplo')
         dados_prodam = [{'codigoPessoaFisica': '12345678901', 'codigoCargo': '123', 'codigoUnidadeAlocacao': '456789', 'tipoVaga': 'PRECARIA', 'descricaoStatus': 'ALOCADO'}]
         escolhas = service._transformar_escolhas_prodam_para_escolhas(dados_prodam)
@@ -25,28 +35,68 @@ class TestApiEscolhasServiceEscolhasProdam:
         assert escolhas[0]['situacao'] == 'ESCOLHA'
 
     def test_transformar_escolhas_prodam_mapeamento_status_desistente(self) -> None:
-        """Status DESISTENTE é filtrado (apenas ALOCADO é mantido)."""
+        """Status DESISTENTE é filtrado (apenas ALOCADO é mantido).
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         service = ApiEscolhasService(base_url='https://api.exemplo')
         dados_prodam = [{'codigoPessoaFisica': '12345678901', 'codigoCargo': '123', 'descricaoStatus': 'DESISTENTE'}]
         escolhas = service._transformar_escolhas_prodam_para_escolhas(dados_prodam)
         assert len(escolhas) == 0
 
     def test_transformar_escolhas_prodam_mapeamento_status_alocado(self) -> None:
-        """Testa mapeamento de status ALOCADO para ESCOLHA."""
+        """Testa mapeamento de status ALOCADO para ESCOLHA.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         service = ApiEscolhasService(base_url='https://api.exemplo')
         dados_prodam = [{'codigoPessoaFisica': '12345678901', 'codigoCargo': '123', 'descricaoStatus': 'ALOCADO'}]
         escolhas = service._transformar_escolhas_prodam_para_escolhas(dados_prodam)
         assert escolhas[0]['situacao'] == 'ESCOLHA'
 
     def test_transformar_escolhas_prodam_status_nao_mapeado(self) -> None:
-        """Status não mapeados são filtrados (apenas ALOCADO é mantido)."""
+        """Status não mapeados são filtrados (apenas ALOCADO é mantido).
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         service = ApiEscolhasService(base_url='https://api.exemplo')
         dados_prodam = [{'codigoPessoaFisica': '12345678901', 'codigoCargo': '123', 'descricaoStatus': 'OUTRO_STATUS'}]
         escolhas = service._transformar_escolhas_prodam_para_escolhas(dados_prodam)
         assert len(escolhas) == 0
 
     def test_transformar_escolhas_prodam_campos_opcionais_nulos(self) -> None:
-        """Testa transformação quando campos opcionais são None."""
+        """Testa transformação quando campos opcionais são None.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         service = ApiEscolhasService(base_url='https://api.exemplo')
         dados_prodam = [{'codigoPessoaFisica': '12345678901', 'codigoCargo': '123', 'codigoUnidadeAlocacao': None, 'tipoVaga': None, 'descricaoStatus': 'ALOCADO'}]
         escolhas = service._transformar_escolhas_prodam_para_escolhas(dados_prodam)
@@ -54,7 +104,17 @@ class TestApiEscolhasServiceEscolhasProdam:
         assert escolhas[0]['tipo_vaga'] == ''
 
     def test_transformar_escolhas_prodam_multiplos_registros(self) -> None:
-        """Apenas registros com status ALOCADO são mantidos."""
+        """Apenas registros com status ALOCADO são mantidos.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         service = ApiEscolhasService(base_url='https://api.exemplo')
         dados_prodam = [{'codigoPessoaFisica': '11111111111', 'codigoCargo': '123', 'descricaoStatus': 'ALOCADO'}, {'codigoPessoaFisica': '22222222222', 'codigoCargo': '456', 'descricaoStatus': 'DESISTENTE'}]
         escolhas = service._transformar_escolhas_prodam_para_escolhas(dados_prodam)
@@ -63,7 +123,17 @@ class TestApiEscolhasServiceEscolhasProdam:
         assert escolhas[0]['situacao'] == 'ESCOLHA'
 
     def test_enviar_escolhas_prodam_sucesso(self) -> None:
-        """Testa envio bem-sucedido de escolhas Prodam."""
+        """Testa envio bem-sucedido de escolhas Prodam.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         service = ApiEscolhasService(base_url='https://api.exemplo')
         dados_prodam = [{'codigoPessoaFisica': '12345678901', 'codigoCargo': '123', 'descricaoStatus': 'ALOCADO'}]
         with patch('sigla_sdk.http.api_client.http_client.post') as mock_post:
@@ -86,7 +156,17 @@ class TestApiEscolhasServiceEscolhasProdam:
             assert payload['escolhas'][0]['situacao'] == 'ESCOLHA'
 
     def test_enviar_escolhas_prodam_com_headers_customizados(self) -> None:
-        """Testa envio com headers customizados."""
+        """Testa envio com headers customizados.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         service = ApiEscolhasService(base_url='https://api.exemplo')
         dados_prodam = [{'codigoPessoaFisica': '12345678901', 'codigoCargo': '123', 'descricaoStatus': 'ALOCADO'}]
         custom_headers = {'X-Custom-Header': 'custom-value'}
@@ -103,7 +183,17 @@ class TestApiEscolhasServiceEscolhasProdam:
             assert 'Accept' in merged_headers
 
     def test_enviar_escolhas_prodam_erro_request_exception(self) -> None:
-        """Testa tratamento de erro RequestException."""
+        """Testa tratamento de erro RequestException.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         service = ApiEscolhasService(base_url='https://api.exemplo')
         dados_prodam = [{'codigoPessoaFisica': '12345678901', 'codigoCargo': '123', 'descricaoStatus': 'ALOCADO'}]
         with patch('sigla_sdk.http.api_client.http_client.post', side_effect=RequestException('Erro de conexão')):
@@ -111,7 +201,17 @@ class TestApiEscolhasServiceEscolhasProdam:
                 service.enviar_escolhas_prodam(processo_uuid='123e4567-e89b-12d3-a456-426614174000', concurso_uuid='223e4567-e89b-12d3-a456-426614174000', dados_prodam=dados_prodam)
 
     def test_enviar_escolhas_prodam_erro_http_levanta_excecao_especifica(self) -> None:
-        """Em erro HTTP (status != 200), deve levantar ApiEscolhasException."""
+        """Em erro HTTP (status != 200), deve levantar ApiEscolhasException.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         service = ApiEscolhasService(base_url='https://api.exemplo')
         dados_prodam = [{'codigoPessoaFisica': '12345678901', 'codigoCargo': '123', 'descricaoStatus': 'ALOCADO'}]
         mock_response = Mock()
@@ -128,7 +228,17 @@ class TestApiEscolhasServiceEscolhasProdam:
             assert exc.status_code == 400
 
     def test_enviar_escolhas_prodam_registra_erro_quando_importacao_obj_fornecido(self) -> None:
-        """Testa que erro é registrado quando importacao_obj é fornecido."""
+        """Testa que erro é registrado quando importacao_obj é fornecido.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         importacao = ImportacaoEscolhas.objects.create(processo_id=123, status='PROCESSANDO')
         service = ApiEscolhasService(base_url='https://api.exemplo')
         dados_prodam = [{'codigoPessoaFisica': '12345678901', 'codigoCargo': '123', 'descricaoStatus': 'ALOCADO'}]
@@ -140,7 +250,17 @@ class TestApiEscolhasServiceEscolhasProdam:
         assert ImportacaoErro.objects.filter(content_type=content_type, object_id=importacao.uuid).exists()
 
     def test_enviar_escolhas_prodam_nao_quebra_quando_registrar_erro_falha(self) -> None:
-        """Testa que não quebra quando registrar_erro falha."""
+        """Testa que não quebra quando registrar_erro falha.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         importacao = ImportacaoEscolhas.objects.create(processo_id=123, status='PROCESSANDO')
         service = ApiEscolhasService(base_url='https://api.exemplo')
         dados_prodam = [{'codigoPessoaFisica': '12345678901', 'codigoCargo': '123', 'descricaoStatus': 'ALOCADO'}]
@@ -150,7 +270,17 @@ class TestApiEscolhasServiceEscolhasProdam:
                     service.enviar_escolhas_prodam(processo_uuid='123e4567-e89b-12d3-a456-426614174000', concurso_uuid='223e4567-e89b-12d3-a456-426614174000', dados_prodam=dados_prodam, importacao_obj=importacao)
 
     def test_enviar_escolhas_prodam_timeout(self) -> None:
-        """Testa que o timeout é respeitado."""
+        """Testa que o timeout é respeitado.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         service = ApiEscolhasService(base_url='https://api.exemplo', timeout_seconds=60)
         dados_prodam = [{'codigoPessoaFisica': '12345678901', 'codigoCargo': '123', 'descricaoStatus': 'ALOCADO'}]
         with patch('sigla_sdk.http.api_client.http_client.post') as mock_post:

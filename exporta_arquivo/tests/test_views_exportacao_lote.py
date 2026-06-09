@@ -23,29 +23,69 @@ LOTE_URL = '/api/v1/exportacao/lote/'
 CABECALHO_URL = '/api/v1/exportacao/cabecalho-lote/'
 
 def _uuid() -> Any:
-    """Executa  uuid."""
+    """Executa  uuid.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     return str(uuid.uuid4())
 
 @pytest.fixture
 def api_client() -> Any:
-    """Executa api client."""
+    """Executa api client.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     return APIClient()
 
 @pytest.fixture
 def payload_valido() -> Any:
-    """Executa payload valido."""
+    """Executa payload valido.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     return {'concurso_uuid': _uuid(), 'concurso_nome': 'Concurso SME 2024', 'numero_lote': 3, 'lote_uuid': _uuid()}
 
 @pytest.fixture
 def registro_exportado() -> Any:
-    """Executa registro exportado."""
+    """Executa registro exportado.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     return ExportacaoLote.objects.create(concurso_uuid=uuid.uuid4(), concurso_nome='Concurso X', numero_lote=1, lote_uuid=uuid.uuid4(), conteudo_arquivo='@TABELA=...\n1;SIG;123;15062024;S;ESCOLA01;\n', nome_arquivo='exportacao_lote_1.txt', status='SUCESSO')
 
 class TestExportacaoLoteCreate:
     """POST /exportacao/lote/."""
 
     def test_sucesso_retorna_200_e_arquivo_txt(self, api_client: Any, payload_valido: Any) -> None:
-        """Verifica sucesso retorna 200 e arquivo txt."""
+        """Verifica sucesso retorna 200 e arquivo txt.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            payload_valido: Parâmetro payload valido da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         conteudo = '@TABELA=...\n1;SIG;999;15062024;S;ESCOLA;\n'
         with patch('exporta_arquivo.views.exportacao_lote.exportar_lote', return_value=conteudo):
             response = api_client.post(LOTE_URL, payload_valido, format='json')
@@ -55,7 +95,19 @@ class TestExportacaoLoteCreate:
         assert 'exportacao_lote_' in response.get('Content-Disposition', '')
 
     def test_sucesso_persiste_status_sucesso_e_conteudo(self, api_client: Any, payload_valido: Any) -> None:
-        """Verifica sucesso persiste status sucesso e conteudo."""
+        """Verifica sucesso persiste status sucesso e conteudo.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            payload_valido: Parâmetro payload valido da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         conteudo = '@TABELA=...\n1;SIG;999;15062024;S;ESCOLA;\n'
         with patch('exporta_arquivo.views.exportacao_lote.exportar_lote', return_value=conteudo):
             api_client.post(LOTE_URL, payload_valido, format='json')
@@ -66,7 +118,19 @@ class TestExportacaoLoteCreate:
         assert registro.nome_arquivo.endswith('.txt')  # type: ignore[union-attr]
 
     def test_incompleto_retorna_422_e_arquivo_de_erro(self, api_client: Any, payload_valido: Any) -> None:
-        """Verifica incompleto retorna 422 e arquivo de erro."""
+        """Verifica incompleto retorna 422 e arquivo de erro.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            payload_valido: Parâmetro payload valido da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         exc = ExportacaoLoteIncompletaException(candidatos_sem_escolha=['Pedro', 'Ana'])
         with patch('exporta_arquivo.views.exportacao_lote.exportar_lote', side_effect=exc):
             response = api_client.post(LOTE_URL, payload_valido, format='json')
@@ -77,7 +141,19 @@ class TestExportacaoLoteCreate:
         assert 'Ana' in conteudo
 
     def test_incompleto_persiste_status_atencao(self, api_client: Any, payload_valido: Any) -> None:
-        """Verifica incompleto persiste status atencao."""
+        """Verifica incompleto persiste status atencao.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            payload_valido: Parâmetro payload valido da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         exc = ExportacaoLoteIncompletaException(candidatos_sem_escolha=['Carlos'])
         with patch('exporta_arquivo.views.exportacao_lote.exportar_lote', side_effect=exc):
             api_client.post(LOTE_URL, payload_valido, format='json')
@@ -87,7 +163,19 @@ class TestExportacaoLoteCreate:
         assert 'candidatos_sem_escolha_lote_' in registro.nome_arquivo  # type: ignore[operator,union-attr]
 
     def test_excecao_generica_retorna_400_e_persiste_status_erro(self, api_client: Any, payload_valido: Any) -> None:
-        """Verifica excecao generica retorna 400 e persiste status erro."""
+        """Verifica excecao generica retorna 400 e persiste status erro.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            payload_valido: Parâmetro payload valido da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         exc = ExportacaoBadRequestException(mensagem='Parâmetro inválido.', detalhes='numero_lote')
         with patch('exporta_arquivo.views.exportacao_lote.exportar_lote', side_effect=exc):
             response = api_client.post(LOTE_URL, payload_valido, format='json')
@@ -98,12 +186,35 @@ class TestExportacaoLoteCreate:
         assert registro.status == 'ERRO'  # type: ignore[union-attr]
 
     def test_serializer_invalido_retorna_400(self, api_client: Any) -> None:
-        """Verifica serializer invalido retorna 400."""
+        """Verifica serializer invalido retorna 400.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         response = api_client.post(LOTE_URL, {}, format='json')
         assert response.status_code == 400
 
     def test_nome_arquivo_usa_numero_lote(self, api_client: Any, payload_valido: Any) -> None:
-        """Verifica nome arquivo usa numero lote."""
+        """Verifica nome arquivo usa numero lote.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            payload_valido: Parâmetro payload valido da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         conteudo = '@TABELA=...\n'
         with patch('exporta_arquivo.views.exportacao_lote.exportar_lote', return_value=conteudo):
             response = api_client.post(LOTE_URL, payload_valido, format='json')
@@ -113,7 +224,19 @@ class TestExportacaoLoteDownload:
     """GET /exportacao/lote/<uuid>/download/."""
 
     def test_com_arquivo_retorna_200_e_conteudo(self, api_client: Any, registro_exportado: Any) -> None:
-        """Verifica com arquivo retorna 200 e conteudo."""
+        """Verifica com arquivo retorna 200 e conteudo.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            registro_exportado: Parâmetro registro exportado da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         url = f'{LOTE_URL}{registro_exportado.uuid}/download/'
         response = api_client.get(url)
         assert response.status_code == 200
@@ -122,14 +245,36 @@ class TestExportacaoLoteDownload:
         assert registro_exportado.nome_arquivo in response.get('Content-Disposition', '')
 
     def test_sem_arquivo_retorna_404(self, api_client: Any) -> None:
-        """Verifica sem arquivo retorna 404."""
+        """Verifica sem arquivo retorna 404.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         registro = ExportacaoLote.objects.create(concurso_uuid=uuid.uuid4(), concurso_nome='Sem Arquivo', numero_lote=99, lote_uuid=uuid.uuid4())
         url = f'{LOTE_URL}{registro.uuid}/download/'
         response = api_client.get(url)
         assert response.status_code == 404
 
     def test_uuid_inexistente_retorna_404(self, api_client: Any) -> None:
-        """Verifica uuid inexistente retorna 404."""
+        """Verifica uuid inexistente retorna 404.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         url = f'{LOTE_URL}{_uuid()}/download/'
         response = api_client.get(url)
         assert response.status_code == 404
@@ -138,7 +283,18 @@ class TestExportacaoLoteList:
     """GET /exportacao/lote/."""
 
     def test_lista_paginada_retorna_200(self, api_client: Any) -> None:
-        """Verifica lista paginada retorna 200."""
+        """Verifica lista paginada retorna 200.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         ExportacaoLote.objects.create(concurso_uuid=uuid.uuid4(), concurso_nome='A', numero_lote=1, lote_uuid=uuid.uuid4())
         response = api_client.get(LOTE_URL)
         assert response.status_code == 200
@@ -147,7 +303,19 @@ class TestExportacaoLoteList:
         assert 'count' in data
 
     def test_lista_retorna_campos_do_list_serializer(self, api_client: Any, registro_exportado: Any) -> None:
-        """Verifica lista retorna campos do list serializer."""
+        """Verifica lista retorna campos do list serializer.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            registro_exportado: Parâmetro registro exportado da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         response = api_client.get(LOTE_URL)
         assert response.status_code == 200
         item = response.json()['results'][0]
@@ -155,7 +323,18 @@ class TestExportacaoLoteList:
             assert campo in item
 
     def test_filtro_por_numero_lote(self, api_client: Any) -> None:
-        """Verifica filtro por numero lote."""
+        """Verifica filtro por numero lote.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         ExportacaoLote.objects.create(concurso_uuid=uuid.uuid4(), concurso_nome='B', numero_lote=77, lote_uuid=uuid.uuid4())
         ExportacaoLote.objects.create(concurso_uuid=uuid.uuid4(), concurso_nome='C', numero_lote=88, lote_uuid=uuid.uuid4())
         response = api_client.get(LOTE_URL, {'numero_lote': 77})
@@ -167,7 +346,19 @@ class TestExportacaoLoteRetrieve:
     """GET /exportacao/lote/<uuid>/."""
 
     def test_retrieve_retorna_200_com_campos(self, api_client: Any, registro_exportado: Any) -> None:
-        """Verifica retrieve retorna 200 com campos."""
+        """Verifica retrieve retorna 200 com campos.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            registro_exportado: Parâmetro registro exportado da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         url = f'{LOTE_URL}{registro_exportado.uuid}/'
         response = api_client.get(url)
         assert response.status_code == 200
@@ -176,7 +367,18 @@ class TestExportacaoLoteRetrieve:
         assert data['status'] == 'SUCESSO'
 
     def test_retrieve_uuid_inexistente_retorna_404(self, api_client: Any) -> None:
-        """Verifica retrieve uuid inexistente retorna 404."""
+        """Verifica retrieve uuid inexistente retorna 404.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         response = api_client.get(f'{LOTE_URL}{_uuid()}/')
         assert response.status_code == 404
 
@@ -184,7 +386,17 @@ class TestGerarConteudoErro:
     """ExportacaoLoteViewSet._gerar_conteudo_erro (método estático)."""
 
     def test_inclui_nome_do_lote_e_candidatos(self) -> None:
-        """Verifica inclui nome do lote e candidatos."""
+        """Verifica inclui nome do lote e candidatos.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         instance = ExportacaoLote(numero_lote=5, lote_uuid=uuid.uuid4())
         out = ExportacaoLoteViewSet._gerar_conteudo_erro(['João', 'Maria'], instance)
         assert 'lote 5' in out.lower() or '5' in out
@@ -192,14 +404,34 @@ class TestGerarConteudoErro:
         assert '- Maria' in out
 
     def test_usa_lote_uuid_quando_numero_lote_none(self) -> None:
-        """Verifica usa lote uuid quando numero lote none."""
+        """Verifica usa lote uuid quando numero lote none.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         lote_uuid = uuid.uuid4()
         instance = ExportacaoLote(numero_lote=None, lote_uuid=lote_uuid)  # type: ignore[misc]
         out = ExportacaoLoteViewSet._gerar_conteudo_erro(['Carlos'], instance)
         assert str(lote_uuid) in out
 
     def test_termina_com_newline(self) -> None:
-        """Verifica termina com newline."""
+        """Verifica termina com newline.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         instance = ExportacaoLote(numero_lote=1, lote_uuid=uuid.uuid4())
         out = ExportacaoLoteViewSet._gerar_conteudo_erro(['X'], instance)
         assert out.endswith('\n')
@@ -208,12 +440,34 @@ class TestCabecalhoExportacaoLoteViewSet:
     """CRUD do cabeçalho de exportação de lotes."""
 
     def test_list_vazia_retorna_200(self, api_client: Any) -> None:
-        """Verifica list vazia retorna 200."""
+        """Verifica list vazia retorna 200.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         response = api_client.get(CABECALHO_URL)
         assert response.status_code == 200
 
     def test_create_retorna_201_com_campos(self, api_client: Any) -> None:
-        """Verifica create retorna 201 com campos."""
+        """Verifica create retorna 201 com campos.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         payload = {'tabela': '[c_ERGON][TESTE][1.0]', 'chave': '[ID][NUMBER]', 'separador': ';', 'formato_data': 'DD/MM/YYYY', 'colunas': '[ID][NUMBER]', 'ativo': True}
         response = api_client.post(CABECALHO_URL, payload, format='json')
         assert response.status_code == 201
@@ -222,7 +476,18 @@ class TestCabecalhoExportacaoLoteViewSet:
         assert 'uuid' in data
 
     def test_partial_update_altera_campo(self, api_client: Any) -> None:
-        """Verifica partial update altera campo."""
+        """Verifica partial update altera campo.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         cabecalho = CabecalhoExportacaoLote.objects.create()
         url = f'{CABECALHO_URL}{cabecalho.uuid}/'
         response = api_client.patch(url, {'separador': '|'}, format='json')
@@ -230,7 +495,18 @@ class TestCabecalhoExportacaoLoteViewSet:
         assert response.json()['separador'] == '|'
 
     def test_filtro_ativo_false_retorna_apenas_inativos(self, api_client: Any) -> None:
-        """Verifica filtro ativo false retorna apenas inativos."""
+        """Verifica filtro ativo false retorna apenas inativos.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         CabecalhoExportacaoLote.objects.create(ativo=True)
         CabecalhoExportacaoLote.objects.create(ativo=False)
         response = api_client.get(CABECALHO_URL, {'ativo': 'false'})

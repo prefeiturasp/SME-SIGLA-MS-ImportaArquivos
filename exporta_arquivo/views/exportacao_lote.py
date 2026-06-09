@@ -29,14 +29,7 @@ from .base_exportacao import _sanitizar_nome_arquivo
 logger = logging.getLogger(__name__)
 
 class ExportacaoLoteViewSet(viewsets.ModelViewSet):
-    """ViewSet para exportação de lotes.
-
-    - create: valida, executa exportação e retorna arquivo .txt (200) ou
-              arquivo de erro com nomes de candidatos sem escolha (422).
-    - list: histórico paginado de exportações.
-    - retrieve: detalhe de uma exportação.
-    - download (GET /<uuid>/download/): redownload do arquivo exportado.
-    """
+    """ViewSet para exportação de lotes."""
     queryset = ExportacaoLote.objects.all()
     lookup_field = 'uuid'
     lookup_url_kwarg = 'uuid'
@@ -49,13 +42,36 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
     def get_serializer_class(self) -> Any:
-        """Executa get serializer class."""
+        """Executa get serializer class.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Valor calculado para o campo ou propriedade.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         if self.action in ('list', 'retrieve'):
             return ExportacaoLoteListSerializer
         return ExportacaoLoteCreateSerializer
 
     def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Executa create."""
+        """Executa create.
+        
+        Args:
+            self: Instância do objeto.
+            request: Requisição HTTP recebida.
+            *args: Argumentos posicionais variáveis.
+            **kwargs: Argumentos nomeados variáveis.
+        
+        Returns:
+            Resposta HTTP com os dados serializados.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
@@ -91,7 +107,19 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='download')
     def download(self, request: Any, uuid: Any=None) -> Any:
-        """Redownload do arquivo exportado (sucesso ou erro)."""
+        """Redownload do arquivo exportado (sucesso ou erro).
+        
+        Args:
+            self: Instância do objeto.
+            request: Requisição HTTP recebida.
+            uuid: Parâmetro uuid da operação.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         instance = self.get_object()
         if not instance.conteudo_arquivo:
             return Response({'detail': 'Arquivo não disponível para este registro.'}, status=status.HTTP_404_NOT_FOUND)
@@ -101,7 +129,18 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def _gerar_conteudo_erro(nomes: list, instance: ExportacaoLote) -> str:
-        """Executa  gerar conteudo erro."""
+        """Executa  gerar conteudo erro.
+        
+        Args:
+            nomes: Parâmetro nomes da operação.
+            instance: Instância do modelo em atualização.
+        
+        Returns:
+            Texto resultante da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         lote_id = instance.numero_lote if instance.numero_lote is not None else instance.lote_uuid
         linhas = [f'Candidatos sem escolha realizada no lote {lote_id}:']
         for nome in nomes:
@@ -109,10 +148,7 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
         return '\n'.join(linhas) + '\n'
 
 class CabecalhoExportacaoLoteViewSet(viewsets.ModelViewSet):
-    """CRUD para o cabeçalho configurável de exportação de lotes.
-
-    Use GET / para listar, POST para criar, PATCH/<uuid>/ para editar.
-    """
+    """CRUD para o cabeçalho configurável de exportação de lotes."""
     queryset = CabecalhoExportacaoLote.objects.all()
     serializer_class = CabecalhoExportacaoLoteSerializer
     lookup_field = 'uuid'

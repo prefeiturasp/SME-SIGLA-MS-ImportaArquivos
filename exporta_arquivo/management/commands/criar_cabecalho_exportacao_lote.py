@@ -21,11 +21,34 @@ class Command(BaseCommand):
     help = 'Cria o cabeçalho padrão para exportação de lotes (formato ERGON/SIGPEC)'
 
     def add_arguments(self, parser: Any) -> None:
-        """Registra argumentos da linha de comando."""
+        """Registra argumentos da linha de comando.
+        
+        Args:
+            self: Instância do objeto.
+            parser: Parâmetro parser da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         parser.add_argument('--force', action='store_true', help='Desativa registros existentes e cria um novo cabeçalho padrão')
 
     def handle(self, *args: Any, **options: Any) -> None:
-        """Executa a lógica principal do comando."""
+        """Executa a lógica principal do comando.
+        
+        Args:
+            self: Instância do objeto.
+            *args: Argumentos posicionais variáveis.
+            **options: Parâmetro options da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         force = options['force']
         existente = CabecalhoExportacaoLote.objects.filter(ativo=True).first()
         if existente and (not force):

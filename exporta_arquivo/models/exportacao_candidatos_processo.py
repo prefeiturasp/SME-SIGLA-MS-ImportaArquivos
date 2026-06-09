@@ -20,6 +20,16 @@ class ExportacaoCandidatosProcesso(BaseModel):
         ordering = ['-criado_em']
 
     def __str__(self) -> Any:
-        """Executa   str  ."""
+        """Executa   str  .
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return f'Exportação {self.uuid} (processo={self.processo_uuid}, cargo={self.cargo_uuid})'
 auditlog.register(ExportacaoCandidatosProcesso)

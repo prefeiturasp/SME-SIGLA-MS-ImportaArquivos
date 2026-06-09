@@ -18,7 +18,20 @@ from exporta_arquivo.services.api_lote import ApiLoteCandidatosService, ApiLoteE
 from exporta_arquivo.services.exceptions import ExportacaoNotFoundException, ExportacaoServiceUnavailableException
 
 def _mock_response(status_code: Any=200, json_data: Any=None, raise_json: Any=False, text: Any='') -> Any:
-    """Executa  mock response."""
+    """Executa  mock response.
+    
+    Args:
+        status_code: Parâmetro status code da operação.
+        json_data: Parâmetro json data da operação.
+        raise_json: Parâmetro raise json da operação.
+        text: Parâmetro text da operação.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     resp = MagicMock()
     resp.status_code = status_code
     resp.text = text
@@ -33,72 +46,192 @@ class TestApiLoteCandidatosServiceFazerRequestGet:
 
     @pytest.fixture
     def service(self) -> Any:
-        """Executa service."""
+        """Executa service.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return ApiLoteCandidatosService(base_url='http://test', timeout_seconds=5)
 
     def test_timeout_levanta_service_unavailable(self, service: Any) -> None:
-        """Verifica timeout levanta service unavailable."""
+        """Verifica timeout levanta service unavailable.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch('sigla_sdk.http.api_client.http_client.get', side_effect=Timeout()):
             with pytest.raises(ExportacaoServiceUnavailableException) as exc_info:
                 service._fazer_request_get('http://test/api/v1/habilitados/', {}, 'lote')
         assert 'indisponível' in exc_info.value.mensagem.lower()
 
     def test_connection_error_levanta_service_unavailable(self, service: Any) -> None:
-        """Verifica connection error levanta service unavailable."""
+        """Verifica connection error levanta service unavailable.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch('sigla_sdk.http.api_client.http_client.get', side_effect=RequestsConnectionError()):
             with pytest.raises(ExportacaoServiceUnavailableException):
                 service._fazer_request_get('http://test/api/v1/habilitados/', {}, 'lote')
 
     def test_404_levanta_not_found(self, service: Any) -> None:
-        """Verifica 404 levanta not found."""
+        """Verifica 404 levanta not found.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch('sigla_sdk.http.api_client.http_client.get', return_value=_mock_response(status_code=404)):
             with pytest.raises(ExportacaoNotFoundException) as exc_info:
                 service._fazer_request_get('http://test/api/v1/habilitados/', {}, 'lote')
         assert 'não encontrado' in exc_info.value.mensagem.lower()
 
     def test_500_levanta_service_unavailable(self, service: Any) -> None:
-        """Verifica 500 levanta service unavailable."""
+        """Verifica 500 levanta service unavailable.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch('sigla_sdk.http.api_client.http_client.get', return_value=_mock_response(status_code=500, text='Internal Server Error')):
             with pytest.raises(ExportacaoServiceUnavailableException) as exc_info:
                 service._fazer_request_get('http://test/api/v1/habilitados/', {}, 'lote')
         assert '500' in exc_info.value.detalhes
 
     def test_503_levanta_service_unavailable(self, service: Any) -> None:
-        """Verifica 503 levanta service unavailable."""
+        """Verifica 503 levanta service unavailable.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch('sigla_sdk.http.api_client.http_client.get', return_value=_mock_response(status_code=503, text='Service Unavailable')):
             with pytest.raises(ExportacaoServiceUnavailableException):
                 service._fazer_request_get('http://test/api/v1/habilitados/', {}, 'lote')
 
     def test_non_200_nao_5xx_levanta_service_unavailable(self, service: Any) -> None:
-        """Verifica non 200 nao 5xx levanta service unavailable."""
+        """Verifica non 200 nao 5xx levanta service unavailable.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch('sigla_sdk.http.api_client.http_client.get', return_value=_mock_response(status_code=422)):
             with pytest.raises(ExportacaoServiceUnavailableException) as exc_info:
                 service._fazer_request_get('http://test/api/v1/habilitados/', {}, 'lote')
         assert '422' in exc_info.value.detalhes
 
     def test_json_invalido_levanta_service_unavailable(self, service: Any) -> None:
-        """Verifica json invalido levanta service unavailable."""
+        """Verifica json invalido levanta service unavailable.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch('sigla_sdk.http.api_client.http_client.get', return_value=_mock_response(status_code=200, raise_json=True)):
             with pytest.raises(ExportacaoServiceUnavailableException) as exc_info:
                 service._fazer_request_get('http://test/api/v1/habilitados/', {}, 'lote')
         assert 'inválid' in exc_info.value.mensagem.lower()
 
     def test_200_lista_retorna_lista(self, service: Any) -> None:
-        """Verifica 200 lista retorna lista."""
+        """Verifica 200 lista retorna lista.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         dados = [{'uuid': 'abc', 'nome': 'João'}]
         with patch('sigla_sdk.http.api_client.http_client.get', return_value=_mock_response(status_code=200, json_data=dados)):
             result = service._fazer_request_get('http://test/api/v1/habilitados/', {}, 'lote')
         assert result == dados
 
     def test_200_dict_com_results_retorna_lista(self, service: Any) -> None:
-        """Verifica 200 dict com results retorna lista."""
+        """Verifica 200 dict com results retorna lista.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         dados = {'results': [{'uuid': 'xyz'}], 'count': 1}
         with patch('sigla_sdk.http.api_client.http_client.get', return_value=_mock_response(status_code=200, json_data=dados)):
             result = service._fazer_request_get('http://test/api/v1/habilitados/', {}, 'lote')
         assert result == [{'uuid': 'xyz'}]
 
     def test_200_dict_sem_results_retorna_lista_vazia(self, service: Any) -> None:
-        """Verifica 200 dict sem results retorna lista vazia."""
+        """Verifica 200 dict sem results retorna lista vazia.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch('sigla_sdk.http.api_client.http_client.get', return_value=_mock_response(status_code=200, json_data={'outro': 'campo'})):
             result = service._fazer_request_get('http://test/api/v1/habilitados/', {}, 'lote')
         assert result == []
@@ -108,11 +241,32 @@ class TestApiLoteCandidatosGetCandidatosLote:
 
     @pytest.fixture
     def service(self) -> Any:
-        """Executa service."""
+        """Executa service.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return ApiLoteCandidatosService(base_url='http://test', timeout_seconds=5)
 
     def test_passa_lote_uuid_como_parametro(self, service: Any) -> None:
-        """Verifica passa lote uuid como parametro."""
+        """Verifica passa lote uuid como parametro.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         lote_uuid = 'aaaa-bbbb-cccc'
         with patch.object(service, '_fazer_request_get', return_value=[]) as mock_req:
             service.get_candidatos_lote(lote_uuid)
@@ -121,25 +275,54 @@ class TestApiLoteCandidatosGetCandidatosLote:
         assert args[1] == {'lote__uuid': lote_uuid}
 
     def test_retorna_lista_da_api(self, service: Any) -> None:
-        """Verifica retorna lista da api."""
+        """Verifica retorna lista da api.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         esperado = [{'uuid': 'abc'}]
         with patch('sigla_sdk.http.api_client.http_client.get', return_value=_mock_response(status_code=200, json_data=esperado)):
             result = service.get_candidatos_lote('lote-uuid-123')
         assert result == esperado
 
 class TestApiLoteCandidatosGetPorNumeroLote:
-    """get_candidatos_por_numero_lote: parâmetros lote__concurso_uuid e.
-
-    numero_lote.
-    """
+    """get_candidatos_por_numero_lote: parâmetros lote__concurso_uuid e."""
 
     @pytest.fixture
     def service(self) -> Any:
-        """Executa service."""
+        """Executa service.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return ApiLoteCandidatosService(base_url='http://test', timeout_seconds=5)
 
     def test_passa_concurso_uuid_e_numero_lote(self, service: Any) -> None:
-        """Verifica passa concurso uuid e numero lote."""
+        """Verifica passa concurso uuid e numero lote.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch.object(service, '_fazer_request_get', return_value=[]) as mock_req:
             service.get_candidatos_por_numero_lote('concurso-uuid-123', 7)
         args = mock_req.call_args.args
@@ -148,67 +331,162 @@ class TestApiLoteCandidatosGetPorNumeroLote:
         assert params['numero_lote'] == 7
 
     def test_retorna_lista_da_api(self, service: Any) -> None:
-        """Verifica retorna lista da api."""
+        """Verifica retorna lista da api.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         esperado = [{'uuid': 'def'}]
         with patch('sigla_sdk.http.api_client.http_client.get', return_value=_mock_response(status_code=200, json_data=esperado)):
             result = service.get_candidatos_por_numero_lote('concurso-uuid', 3)
         assert result == esperado
 
 class TestApiLoteEscolhasServiceGetEscolhasLote:
-    """get_escolhas_lote: POST com payload correto; timeout, 5xx, JSON inválido,.
-
-    non-200 → exceções.
-    """
+    """get_escolhas_lote: POST com payload correto; timeout, 5xx, JSON inválido,."""
 
     @pytest.fixture
     def service(self) -> Any:
-        """Executa service."""
+        """Executa service.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return ApiLoteEscolhasService(base_url='http://test', timeout_seconds=5)
 
     def test_timeout_levanta_service_unavailable(self, service: Any) -> None:
-        """Verifica timeout levanta service unavailable."""
+        """Verifica timeout levanta service unavailable.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch('sigla_sdk.http.api_client.http_client.post', side_effect=Timeout()):
             with pytest.raises(ExportacaoServiceUnavailableException) as exc_info:
                 service.get_escolhas_lote(['uuid1'], 'concurso-uuid')
         assert 'indisponível' in exc_info.value.mensagem.lower()
 
     def test_500_levanta_service_unavailable(self, service: Any) -> None:
-        """Verifica 500 levanta service unavailable."""
+        """Verifica 500 levanta service unavailable.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch('sigla_sdk.http.api_client.http_client.post', return_value=_mock_response(status_code=500, text='err')):
             with pytest.raises(ExportacaoServiceUnavailableException) as exc_info:
                 service.get_escolhas_lote(['uuid1'], 'concurso-uuid')
         assert '500' in exc_info.value.detalhes
 
     def test_non_200_levanta_service_unavailable(self, service: Any) -> None:
-        """Verifica non 200 levanta service unavailable."""
+        """Verifica non 200 levanta service unavailable.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch('sigla_sdk.http.api_client.http_client.post', return_value=_mock_response(status_code=400)):
             with pytest.raises(ExportacaoServiceUnavailableException) as exc_info:
                 service.get_escolhas_lote(['uuid1'], 'concurso-uuid')
         assert '400' in exc_info.value.detalhes
 
     def test_json_invalido_levanta_service_unavailable(self, service: Any) -> None:
-        """Verifica json invalido levanta service unavailable."""
+        """Verifica json invalido levanta service unavailable.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         with patch('sigla_sdk.http.api_client.http_client.post', return_value=_mock_response(status_code=200, raise_json=True)):
             with pytest.raises(ExportacaoServiceUnavailableException) as exc_info:
                 service.get_escolhas_lote(['uuid1'], 'concurso-uuid')
         assert 'inválid' in exc_info.value.mensagem.lower()
 
     def test_200_lista_retorna_lista(self, service: Any) -> None:
-        """Verifica 200 lista retorna lista."""
+        """Verifica 200 lista retorna lista.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         dados = [{'candidato_uuid': 'uuid1', 'situacao': 'escolha'}]
         with patch('sigla_sdk.http.api_client.http_client.post', return_value=_mock_response(status_code=200, json_data=dados)):
             result = service.get_escolhas_lote(['uuid1'], 'concurso-uuid')
         assert result == dados
 
     def test_200_dict_com_results_retorna_lista(self, service: Any) -> None:
-        """Verifica 200 dict com results retorna lista."""
+        """Verifica 200 dict com results retorna lista.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         dados = {'results': [{'candidato_uuid': 'uuid2'}]}
         with patch('sigla_sdk.http.api_client.http_client.post', return_value=_mock_response(status_code=200, json_data=dados)):
             result = service.get_escolhas_lote(['uuid2'], 'concurso-uuid')
         assert result == [{'candidato_uuid': 'uuid2'}]
 
     def test_payload_post_contem_candidato_uuids_e_concurso_uuid(self, service: Any) -> None:
-        """Verifica payload post contem candidato uuids e concurso uuid."""
+        """Verifica payload post contem candidato uuids e concurso uuid.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         uuids = ['uuid-a', 'uuid-b']
         concurso = 'concurso-xyz'
         with patch('sigla_sdk.http.api_client.http_client.post', return_value=_mock_response(status_code=200, json_data=[])) as mock_post:
@@ -219,7 +497,18 @@ class TestApiLoteEscolhasServiceGetEscolhasLote:
         assert payload['concurso_uuid'] == concurso
 
     def test_uuids_convertidos_para_string_no_payload(self, service: Any) -> None:
-        """Verifica uuids convertidos para string no payload."""
+        """Verifica uuids convertidos para string no payload.
+        
+        Args:
+            self: Instância do objeto.
+            service: Parâmetro service da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         import uuid as _uuid_mod
         u = _uuid_mod.uuid4()
         with patch('sigla_sdk.http.api_client.http_client.post', return_value=_mock_response(status_code=200, json_data=[])) as mock_post:

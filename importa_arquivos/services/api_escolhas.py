@@ -14,15 +14,33 @@ class ApiEscolhasService:
     """Define ApiEscolhasService."""
 
     def __init__(self, base_url: str='https://example.com', timeout_seconds: int=30) -> None:
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            base_url: Parâmetro base url da operação.
+            timeout_seconds: Parâmetro timeout seconds da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         self.base_url = base_url.rstrip('/')
         self.timeout_seconds = timeout_seconds
         self._default_headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
 
     def _transformar_registros(self, registros: list[dict[str, Any]], estrutura: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Transforma os registros do CSV para o formato esperado pela API usando.
-
-        campo_payload do layout.
+        
+        Args:
+            self: Instância do objeto.
+            registros: Parâmetro registros da operação.
+            estrutura: Parâmetro estrutura da operação.
+        
+        Returns:
+            Lista com os registros resultantes.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         mapa: dict[str, str] = {}
         for item in estrutura:
@@ -48,7 +66,24 @@ class ApiEscolhasService:
 
     @captura_erros_importacao(param_nome_obj='importacao_obj')
     def enviar_vagas(self, registros: list[dict[str, Any]], estrutura: list[dict[str, Any]], processo_uuid: str='', processo_nome: str='', headers: dict[str, str] | None=None, importacao_obj: Any | None=None) -> dict:
-        """Executa enviar vagas."""
+        """Executa enviar vagas.
+        
+        Args:
+            self: Instância do objeto.
+            registros: Parâmetro registros da operação.
+            estrutura: Parâmetro estrutura da operação.
+            processo_uuid: Parâmetro processo uuid da operação.
+            processo_nome: Parâmetro processo nome da operação.
+            headers: Parâmetro headers da operação.
+            importacao_obj: Parâmetro importacao obj da operação.
+        
+        Returns:
+            Dicionário com os dados processados.
+        
+        Raises:
+            ApiEscolhasException: Se ocorrer erro nesta operação.
+            TipoUEDesabilitadoException: Se ocorrer erro nesta operação.
+        """
         url = f'{self.base_url}/api/v1/vagas-escolas/'
         merged_headers = {**self._default_headers, **(headers or {})}
         dados = self._transformar_registros(registros, estrutura)
@@ -72,12 +107,16 @@ class ApiEscolhasService:
 
     def _transformar_escolhas_prodam_para_escolhas(self, dados_prodam: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Transforma dados da Prodam para o formato esperado pelo MS-Escolhas.
-
+        
         Args:
-            dados_prodam: Lista de dicionários com dados da Prodam
-
+            self: Instância do objeto.
+            dados_prodam: Lista de dicionários com dados da Prodam.
+        
         Returns:
-            Lista de dicionários no formato esperado pelo MS-Escolhas
+            Lista com os registros resultantes.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         escolhas = []
         dados_prodam = [item for item in dados_prodam if item.get('descricaoStatus') == 'ALOCADO']
@@ -89,16 +128,20 @@ class ApiEscolhasService:
     @captura_erros_importacao(param_nome_obj='importacao_obj')
     def enviar_escolhas_prodam(self, processo_uuid: str, concurso_uuid: str, dados_prodam: list[dict[str, Any]], headers: dict[str, str] | None=None, importacao_obj: Any | None=None) -> dict:
         """Envia escolhas da Prodam para o MS-Escolhas.
-
+        
         Args:
-            processo_uuid: UUID do processo de convocação
-            concurso_uuid: UUID do concurso
-            dados_prodam: Lista de dicionários com dados da Prodam
-            headers: Headers adicionais para a requisição
-            importacao_obj: Objeto de importação para registro de erros
-
+            self: Instância do objeto.
+            processo_uuid: UUID do processo de convocação.
+            concurso_uuid: UUID do concurso.
+            dados_prodam: Lista de dicionários com dados da Prodam.
+            headers: Headers adicionais para a requisição.
+            importacao_obj: Objeto de importação para registro de erros.
+        
         Returns:
-            dict com resposta da requisição
+            Dicionário com os dados processados.
+        
+        Raises:
+            ApiEscolhasException: Se ocorrer erro nesta operação.
         """
         url = f'{self.base_url}/api/v1/escolhas/importacao-prodam/'
         merged_headers = {**self._default_headers, **(headers or {})}

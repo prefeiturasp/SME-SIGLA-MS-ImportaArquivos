@@ -12,7 +12,18 @@ from importa_arquivos.services.exceptions import ApiCandidatosException, ColunaC
 pytestmark = pytest.mark.django_db
 
 def test_importacao_habilitados_create_success(api_client: Any, settings: Any) -> None:
-    """Verifica importacao habilitados create success."""
+    """Verifica importacao habilitados create success.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+        settings: Parâmetro settings da operação.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     settings.CANDIDATOS_API_URL = 'https://api.exemplo'
     arquivo = SimpleUploadedFile('h.csv', b'Inscricao,Nome\n123,Joao\n', content_type='text/csv')
     with patch('importa_arquivos.views.importacao_habilitados.validar_csv_habilitados') as mock_validar, patch('importa_arquivos.views.importacao_habilitados.ApiCandidatosService') as mock_api:
@@ -26,7 +37,17 @@ def test_importacao_habilitados_create_success(api_client: Any, settings: Any) -
         mock_api.return_value.enviar_habilitados.assert_called_once()
 
 def test_importacao_habilitados_cria_arquivo_com_validation_error(api_client: Any) -> None:
-    """Verifica importacao habilitados cria arquivo com validation error."""
+    """Verifica importacao habilitados cria arquivo com validation error.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     arquivo = SimpleUploadedFile('h.csv', b'invalid', content_type='text/csv')
     with patch('importa_arquivos.views.importacao_habilitados.validar_csv_habilitados') as mock_validar:
         mock_validar.side_effect = ValueError('erro de layout')
@@ -37,9 +58,18 @@ def test_importacao_habilitados_cria_arquivo_com_validation_error(api_client: An
 @pytest.mark.parametrize('exception_cls,mensagem_esperada,detalhes_esperados', [(ColunaCSVInvalidaException, 'Coluna inválida no CSV', 'Coluna X não encontrada'), (LayoutNaoConfiguradoException, 'Layout não configurado', 'Layout para HABILITADOS inexistente'), (LeituraCSVException, 'Erro ao ler CSV', 'Arquivo corrompido')])
 def test_importacao_habilitados_create_retorna_400_com_mensagem_e_detalhes(api_client: Any, exception_cls: Any, mensagem_esperada: Any, detalhes_esperados: Any) -> None:
     """Testa exceções de importação retornando 400 com detail e detalhes.
-
-    Cobre ColunaCSVInvalidaException, LayoutNaoConfiguradoException
-    e LeituraCSVException.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+        exception_cls: Parâmetro exception cls da operação.
+        mensagem_esperada: Parâmetro mensagem esperada da operação.
+        detalhes_esperados: Parâmetro detalhes esperados da operação.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
     """
     arquivo = SimpleUploadedFile('h.csv', b'Inscricao,Nome\n123,Joao\n', content_type='text/csv')
     with patch('importa_arquivos.views.importacao_habilitados.validar_csv_habilitados') as mock_validar:
@@ -51,13 +81,33 @@ def test_importacao_habilitados_create_retorna_400_com_mensagem_e_detalhes(api_c
         assert resp.data['detalhes'] == detalhes_esperados
 
 def test_importacao_habilitados_cria_arquivo_sem_arquivo(api_client: Any) -> None:
-    """Verifica importacao habilitados cria arquivo sem arquivo."""
+    """Verifica importacao habilitados cria arquivo sem arquivo.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     url = reverse('importacao-arquivo-habilitados-list')
     resp = api_client.post(url, {'concurso_uuid': '11111111-1111-1111-1111-111111111111', 'concurso_nome': 'Concurso X', 'tipo': 'HABILITADOS'}, format='multipart')
     assert resp.status_code == 400
 
 def test_importacao_habilitados_cria_arquivo_com_exception(api_client: Any) -> None:
-    """Verifica importacao habilitados cria arquivo com exception."""
+    """Verifica importacao habilitados cria arquivo com exception.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     arquivo = SimpleUploadedFile('h.csv', b'invalid', content_type='text/csv')
     with patch('importa_arquivos.views.importacao_habilitados.validar_csv_habilitados') as mock_validar:
         mock_validar.side_effect = Exception('boom')
@@ -66,7 +116,18 @@ def test_importacao_habilitados_cria_arquivo_com_exception(api_client: Any) -> N
         assert resp.status_code == 400
 
 def test_importacao_habilitados_envio_api_exception(api_client: Any, settings: Any) -> None:
-    """Verifica importacao habilitados envio api exception."""
+    """Verifica importacao habilitados envio api exception.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+        settings: Parâmetro settings da operação.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     settings.CANDIDATOS_API_URL = 'https://api.exemplo'
     arquivo = SimpleUploadedFile('h.csv', b'Inscricao,Nome\n123,Joao\n', content_type='text/csv')
     with patch('importa_arquivos.views.importacao_habilitados.validar_csv_habilitados') as mock_validar, patch('importa_arquivos.views.importacao_habilitados.ApiCandidatosService') as mock_api:
@@ -82,7 +143,17 @@ def test_importacao_habilitados_envio_api_exception(api_client: Any, settings: A
         mock_api.return_value.enviar_habilitados.assert_called_once()
 
 def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(api_client: Any) -> None:
-    """Testa download_erros retorna arquivo vazio quando não há erros."""
+    """Testa download_erros retorna arquivo vazio quando não há erros.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     url = reverse('importacao-arquivo-habilitados-download-erros')
     resp = api_client.get(url)
     assert resp.status_code == 200
@@ -92,7 +163,17 @@ def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(api_client: Any) 
     assert resp.content == b''
 
 def test_download_erros_formata_conteudo_corretamente(api_client: Any) -> None:
-    """Testa download_erros formata erros com titulo: conteudo."""
+    """Testa download_erros formata erros com titulo: conteudo.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     arquivo = SimpleUploadedFile('h.csv', b'Inscricao,Nome\n123,Joao\n', content_type='text/csv')
     importacao = ImportacaoArquivoHabilitado.objects.create(nome_arquivo='h.csv', arquivo=arquivo, tipo='HABILITADOS', concurso_uuid=uuid.uuid4(), concurso_nome='Concurso X')
     content_type = ContentType.objects.get_for_model(ImportacaoArquivoHabilitado)
@@ -107,7 +188,17 @@ def test_download_erros_formata_conteudo_corretamente(api_client: Any) -> None:
     assert '**Linha 2:** erro na linha 2' in conteudo
 
 def test_download_erros_parte_sem_dois_pontos_apenas_append(api_client: Any) -> None:
-    """Testa download_erros: partes sem ':' são adicionadas como estão."""
+    """Testa download_erros: partes sem ':' são adicionadas como estão.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     arquivo = SimpleUploadedFile('h.csv', b'Inscricao,Nome\n123,Joao\n', content_type='text/csv')
     importacao = ImportacaoArquivoHabilitado.objects.create(nome_arquivo='h.csv', arquivo=arquivo, tipo='HABILITADOS', concurso_uuid=uuid.uuid4(), concurso_nome='Concurso X')
     content_type = ContentType.objects.get_for_model(ImportacaoArquivoHabilitado)
@@ -119,7 +210,17 @@ def test_download_erros_parte_sem_dois_pontos_apenas_append(api_client: Any) -> 
     assert 'Mensagem simples sem dois pontos' in conteudo
 
 def test_download_erros_filtra_por_importacao_uuid(api_client: Any) -> None:
-    """Testa download_erros filtra por importacao_uuid quando informado."""
+    """Testa download_erros filtra por importacao_uuid quando informado.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     arquivo = SimpleUploadedFile('h.csv', b'Inscricao,Nome\n123,Joao\n', content_type='text/csv')
     importacao1 = ImportacaoArquivoHabilitado.objects.create(nome_arquivo='h1.csv', arquivo=arquivo, tipo='HABILITADOS', concurso_uuid=uuid.uuid4(), concurso_nome='Concurso X')
     arquivo2 = SimpleUploadedFile('h2.csv', b'Inscricao,Nome\n456,Maria\n', content_type='text/csv')

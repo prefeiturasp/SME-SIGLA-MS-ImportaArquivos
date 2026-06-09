@@ -13,7 +13,14 @@ from exporta_arquivo.serializers.exportacao_vagas_processo import ExportacaoVaga
 from exporta_arquivo.serializers.exportacao_vagas_sigpec import ExportacaoVagasSigpecCreateSerializer, ExportacaoVagasSigpecListSerializer
 
 def _uuid() -> Any:
-    """Executa  uuid."""
+    """Executa  uuid.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     return str(uuid.uuid4())
 
 class TestExportacaoCandidatosProcessoCreateSerializer:
@@ -21,8 +28,15 @@ class TestExportacaoCandidatosProcessoCreateSerializer:
 
     def test_campos_obrigatorios_processo_uuid_cargo_uuid_cargo_codigo(self) -> None:
         """Faltando processo_uuid, cargo_uuid ou cargo_codigo deve falhar na.
-
-        validação.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         base = {'processo_uuid': _uuid(), 'cargo_uuid': _uuid(), 'cargo_codigo': 100}
         serializer = ExportacaoCandidatosProcessoCreateSerializer(data=base)
@@ -42,8 +56,15 @@ class TestExportacaoCandidatosProcessoCreateSerializer:
 
     def test_campos_opcionais_aceitos(self) -> None:
         """concurso_uuid, processo_nome, cargo_nome, concurso_codigo,.
-
-        concurso_data_criacao são opcionais.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         data = {'processo_uuid': _uuid(), 'cargo_uuid': _uuid(), 'cargo_codigo': 1, 'concurso_uuid': _uuid(), 'processo_nome': 'Processo X', 'cargo_nome': 'Cargo Y', 'concurso_nome': 'Concurso Z', 'concurso_codigo': 99, 'concurso_data_criacao': '2024-01-01T00:00:00'}
         serializer = ExportacaoCandidatosProcessoCreateSerializer(data=data)
@@ -62,14 +83,34 @@ class TestExportacaoCandidatosProcessoListSerializer:
     """List: read_only esperados e serialização de instance."""
 
     def test_read_only_fields_esperados(self) -> None:
-        """List serializer tem todos os campos de listagem como read_only."""
+        """List serializer tem todos os campos de listagem como read_only.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         expected = {'uuid', 'criado_em', 'atualizado_em', 'processo_uuid', 'cargo_uuid', 'concurso_uuid', 'concurso_nome', 'processo_nome', 'cargo_nome', 'cargo_codigo', 'concurso_codigo', 'concurso_data_criacao'}
         meta = ExportacaoCandidatosProcessoListSerializer.Meta
         assert set(meta.read_only_fields) == expected
         assert set(meta.fields) == expected
 
     def test_instance_serializa_corretamente(self) -> None:
-        """Uma instance do model serializa com todos os campos esperados."""
+        """Uma instance do model serializa com todos os campos esperados.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         obj = ExportacaoCandidatosProcesso.objects.create(processo_uuid=uuid.uuid4(), cargo_uuid=uuid.uuid4(), cargo_codigo=10, processo_nome='Proc', cargo_nome='Cargo')
         serializer = ExportacaoCandidatosProcessoListSerializer(instance=obj)
         data = serializer.data
@@ -87,8 +128,15 @@ class TestExportacaoVagasProcessoCreateSerializer:
 
     def test_create_com_dados_validos(self) -> None:
         """Create com processo_uuid, cargo_uuid, cargo_codigo (e opcionais) cria.
-
-        registro.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         data = {'processo_uuid': _uuid(), 'cargo_uuid': _uuid(), 'cargo_codigo': 200}
         serializer = ExportacaoVagasProcessoCreateSerializer(data=data)
@@ -101,7 +149,17 @@ class TestExportacaoVagasProcessoListSerializer:
     """List: read_only e serialização de instance."""
 
     def test_read_only_e_serializacao(self) -> None:
-        """Verifica read only e serializacao."""
+        """Verifica read only e serializacao.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         expected_fields = {'uuid', 'criado_em', 'atualizado_em', 'processo_uuid', 'cargo_uuid', 'concurso_uuid', 'concurso_nome', 'processo_nome', 'cargo_nome', 'cargo_codigo'}
         meta = ExportacaoVagasProcessoListSerializer.Meta
         assert set(meta.read_only_fields) == expected_fields
@@ -116,7 +174,17 @@ class TestExportacaoVagasSigpecCreateSerializer:
     """Create: cargo_codigo obrigatório na prática; create com dados válidos."""
 
     def test_create_com_dados_validos(self) -> None:
-        """Verifica create com dados validos."""
+        """Verifica create com dados validos.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         data = {'processo_uuid': _uuid(), 'cargo_uuid': _uuid(), 'cargo_codigo': 300}
         serializer = ExportacaoVagasSigpecCreateSerializer(data=data)
         assert serializer.is_valid(), serializer.errors
@@ -128,7 +196,17 @@ class TestExportacaoVagasSigpecListSerializer:
     """List: read_only e serialização."""
 
     def test_read_only_e_serializacao(self) -> None:
-        """Verifica read only e serializacao."""
+        """Verifica read only e serializacao.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         expected_fields = {'uuid', 'criado_em', 'atualizado_em', 'processo_uuid', 'cargo_uuid', 'concurso_uuid', 'concurso_nome', 'processo_nome', 'cargo_nome', 'cargo_codigo'}
         meta = ExportacaoVagasSigpecListSerializer.Meta
         assert set(meta.read_only_fields) == expected_fields

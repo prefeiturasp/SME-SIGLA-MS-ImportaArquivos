@@ -11,7 +11,20 @@ from importa_arquivos.models import ImportacaoErro
 from importa_arquivos.services.exceptions import BaseImportacaoException
 
 def registrar_erro(importacao_obj: Any, mensagem: str | None=None, detalhes: str | None=None, exc: Exception | None=None) -> ImportacaoErro:
-    """Executa registrar erro."""
+    """Executa registrar erro.
+    
+    Args:
+        importacao_obj: Parâmetro importacao obj da operação.
+        mensagem: Parâmetro mensagem da operação.
+        detalhes: Parâmetro detalhes da operação.
+        exc: Parâmetro exc da operação.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        ValueError: Se ocorrer erro nesta operação.
+    """
     if importacao_obj is None:
         raise ValueError('importacao_obj é obrigatório para registrar erro')
     if exc is not None:
@@ -33,17 +46,44 @@ def registrar_erro(importacao_obj: Any, mensagem: str | None=None, detalhes: str
 
 def captura_erros_importacao(param_nome_obj: str='importacao_obj') -> Callable:
     """Decorator para funções de serviço de importação.
-
-    Se ocorrer exceção, registra em ImportacaoErro usando o parâmetro indicado
-    e relança.
+    
+    Args:
+        param_nome_obj: Parâmetro param nome obj da operação.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
     """
 
     def decorator(func: Callable) -> Callable:
-        """Executa decorator."""
+        """Executa decorator.
+        
+        Args:
+            func: Parâmetro func da operação.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
 
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            """Executa wrapper."""
+            """Executa wrapper.
+            
+            Args:
+                *args: Argumentos posicionais variáveis.
+                **kwargs: Argumentos nomeados variáveis.
+            
+            Returns:
+                Resultado da operação.
+            
+            Raises:
+                Nenhuma exceção específica documentada.
+            """
             importacao_obj = kwargs.get(param_nome_obj)
             try:
                 return func(*args, **kwargs)

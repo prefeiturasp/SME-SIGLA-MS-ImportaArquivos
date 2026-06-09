@@ -24,7 +24,18 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
         read_only_fields = ['uuid', 'criado_em', 'atualizado_em', 'erros', 'processo_nome']
 
     def get_erros(self, obj: Any) -> Any:
-        """Retorna os erros associados à importação, se existirem."""
+        """Retorna os erros associados à importação, se existirem.
+        
+        Args:
+            self: Instância do objeto.
+            obj: Parâmetro obj da operação.
+        
+        Returns:
+            Valor calculado para o campo ou propriedade.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         if ImportacaoEscolhasListSerializer._content_type_cache is None:
             ImportacaoEscolhasListSerializer._content_type_cache = ContentType.objects.get_for_model(ImportacaoEscolhas)
         erros_queryset = ImportacaoErro.objects.filter(content_type=ImportacaoEscolhasListSerializer._content_type_cache, object_id=obj.uuid).order_by('-criado_em')
@@ -36,7 +47,18 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
         return erros_list
 
     def get_processo_nome(self, obj: Any) -> Any:
-        """Retorna o nome do processo buscando via API externa se necessário."""
+        """Retorna o nome do processo buscando via API externa se necessário.
+        
+        Args:
+            self: Instância do objeto.
+            obj: Parâmetro obj da operação.
+        
+        Returns:
+            Valor calculado para o campo ou propriedade.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return None
 
 class ResponseSerializer(serializers.Serializer):
@@ -46,7 +68,18 @@ class ResponseSerializer(serializers.Serializer):
     lstDadosResultadoConvocacaoIngresso = serializers.ListField(child=serializers.DictField(), required=True, allow_empty=True)
 
     def validate_lstDadosResultadoConvocacaoIngresso(self, value: Any) -> Any:
-        """Valida estrutura dos dados de resultado."""
+        """Valida estrutura dos dados de resultado.
+        
+        Args:
+            self: Instância do objeto.
+            value: Valor recebido para validação.
+        
+        Returns:
+            Valor validado do campo lstDadosResultadoConvocacaoIngresso.
+        
+        Raises:
+            ValidationError: Se ocorrer erro nesta operação.
+        """
         for item in value:
             if not isinstance(item, dict):
                 raise serializers.ValidationError('Cada item deve ser um dicionário')
@@ -71,7 +104,18 @@ class EscolhasImportacaoSerializer(serializers.Serializer):
     escolhas = serializers.ListField(child=serializers.DictField(), required=True)
 
     def validate_escolhas(self, value: Any) -> Any:
-        """Valida estrutura das escolhas."""
+        """Valida estrutura das escolhas.
+        
+        Args:
+            self: Instância do objeto.
+            value: Valor recebido para validação.
+        
+        Returns:
+            Valor validado do campo escolhas.
+        
+        Raises:
+            ValidationError: Se ocorrer erro nesta operação.
+        """
         for escolha in value:
             required_fields = ['cpf', 'codigo_cargo', 'situacao']
             for field in required_fields:

@@ -6,10 +6,7 @@ from rest_framework import serializers
 from ..models import ImportacaoArquivoHabilitado, ImportacaoErro
 
 class ImportacaoArquivoHabilitadosCreateSerializer(serializers.ModelSerializer):
-    """Serializer para criação de importações de arquivos habilitados.
-
-    Inclui apenas campos de concurso, tipo (somente escrita) e arquivo.
-    """
+    """Serializer para criação de importações de arquivos habilitados."""
 
     class Meta:
         """Define Meta."""
@@ -17,7 +14,18 @@ class ImportacaoArquivoHabilitadosCreateSerializer(serializers.ModelSerializer):
         fields = ['arquivo', 'concurso_uuid', 'concurso_nome']
 
     def create(self, validated_data: Any) -> Any:
-        """Executa create."""
+        """Executa create.
+        
+        Args:
+            self: Instância do objeto.
+            validated_data: Dados validados pelo serializer.
+        
+        Returns:
+            Resposta HTTP com os dados serializados.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         arquivo = validated_data.get('arquivo')
         nome_arquivo = getattr(arquivo, 'name', None) or 'Importação de Habilitados'
         instance = ImportacaoArquivoHabilitado.objects.create(nome_arquivo=nome_arquivo, tipo='HABILITADOS', **validated_data)
@@ -35,7 +43,18 @@ class ImportacaoArquivoHabilitadosListSerializer(serializers.ModelSerializer):
         read_only_fields = ['uuid', 'criado_em', 'atualizado_em', 'erros']
 
     def get_erros(self, obj: Any) -> Any:
-        """Retorna os erros associados à importação, se existirem."""
+        """Retorna os erros associados à importação, se existirem.
+        
+        Args:
+            self: Instância do objeto.
+            obj: Parâmetro obj da operação.
+        
+        Returns:
+            Valor calculado para o campo ou propriedade.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         if ImportacaoArquivoHabilitadosListSerializer._content_type_cache is None:
             ImportacaoArquivoHabilitadosListSerializer._content_type_cache = ContentType.objects.get_for_model(ImportacaoArquivoHabilitado)
         erros_queryset = ImportacaoErro.objects.filter(content_type=ImportacaoArquivoHabilitadosListSerializer._content_type_cache, object_id=obj.uuid).order_by('-criado_em')

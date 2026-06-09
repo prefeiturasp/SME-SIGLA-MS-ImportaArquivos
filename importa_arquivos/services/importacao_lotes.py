@@ -19,10 +19,17 @@ logger = logging.getLogger(__name__)
 
 def _validar_linha_lote(row: dict, num_linha: int, lote_referencia: int | None) -> tuple[LinhaLoteSIGPEC | None, str, int | None]:
     """Valida uma linha do arquivo de lotes via schema Pydantic.
-
-    Retorna (objeto_valido, erro, lote_referencia).
-    Se houver erros de validação, objeto_valido é None e erro contém a
-    descrição.
+    
+    Args:
+        row: Parâmetro row da operação.
+        num_linha: Parâmetro num linha da operação.
+        lote_referencia: Parâmetro lote referencia da operação.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
     """
     identificacao = row.get('IDENTIFICACAO', '').strip()
     try:
@@ -39,21 +46,19 @@ def _validar_linha_lote(row: dict, num_linha: int, lote_referencia: int | None) 
 @captura_erros_importacao(param_nome_obj='importacao_obj')
 def validar_txt_lotes(arquivo: Any, importacao_obj: Any=None) -> list[dict[str, Any]]:
     """Lê e valida o arquivo TXT de lotes.
-
-    - Delimitador: ';'
-    - Header fixo:
-    LOTE;EMPRESA;VAGA;IDENTIFICACAO;CHAVE_INSCRITO;NUMFUNC;NUMVINC
-    - Linhas vazias são ignoradas
-    - Todos os registros devem possuir o mesmo valor na coluna LOTE
-    - Todos os erros de linha são coletados antes de lançar exceção (sem
-    fail-fast)
-
-    Retorna:
-        registros_validos
-
-    Lança exceções de domínio para erros estruturais (encoding, arquivo vazio,
-    header inválido)
-    ou ErrosValidacaoLotesException se houver erros de validação por linha.
+    
+    Args:
+        arquivo: Parâmetro arquivo da operação.
+        importacao_obj: Parâmetro importacao obj da operação.
+    
+    Returns:
+        Lista com os registros resultantes.
+    
+    Raises:
+        ArquivoLotesVazioException: Se ocorrer erro nesta operação.
+        ColunaCSVInvalidaException: Se ocorrer erro nesta operação.
+        ErrosValidacaoLotesException: Se ocorrer erro nesta operação.
+        LeituraCSVException: Se ocorrer erro nesta operação.
     """
     try:
         file_bytes = arquivo.read()

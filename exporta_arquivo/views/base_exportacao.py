@@ -19,7 +19,18 @@ from ..services.exceptions import ExportacaoBadRequestException, ExportacaoNotFo
 logger = logging.getLogger(__name__)
 
 def _sanitizar_nome_arquivo(texto: str, max_len: int=80) -> str:
-    """Remove caracteres inválidos para nome de arquivo e limita tamanho."""
+    """Remove caracteres inválidos para nome de arquivo e limita tamanho.
+    
+    Args:
+        texto: Parâmetro texto da operação.
+        max_len: Parâmetro max len da operação.
+    
+    Returns:
+        Texto resultante da operação.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     if not texto or not isinstance(texto, str):
         return 'arquivo'
     s = re.sub('[^\\w\\s\\-]', '', texto, flags=re.UNICODE)
@@ -27,15 +38,7 @@ def _sanitizar_nome_arquivo(texto: str, max_len: int=80) -> str:
     return (s[:max_len] if len(s) > max_len else s) or 'arquivo'
 
 class BaseExportacaoViewSet(viewsets.ModelViewSet):
-    """ViewSet base abstrata para exportação.
-
-    Subclasses devem definir:
-    - queryset
-    - list_serializer_class
-    - create_serializer_class
-    - gerar_arquivo(processo_uuid, cargo_uuid, concurso_uuid=None)
-    - executar_exportacao(instance)
-    """
+    """ViewSet base abstrata para exportação."""
     list_serializer_class = None
     create_serializer_class = None
     lookup_field = 'uuid'
@@ -50,22 +53,50 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def sanitizar_nome_arquivo(texto: str, max_len: int=80) -> str:
-        """Remove caracteres inválidos para nome de arquivo e limita tamanho."""
+        """Remove caracteres inválidos para nome de arquivo e limita tamanho.
+        
+        Args:
+            texto: Parâmetro texto da operação.
+            max_len: Parâmetro max len da operação.
+        
+        Returns:
+            Texto resultante da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         return _sanitizar_nome_arquivo(texto, max_len)
 
     def get_serializer_class(self) -> Any:
-        """Executa get serializer class."""
+        """Executa get serializer class.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Valor calculado para o campo ou propriedade.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         if self.action in ('list', 'retrieve'):
             return self.list_serializer_class
         return self.create_serializer_class
 
     def list(self, request: Any, *args: Any, **kwargs: Any) -> Any:
         """Listagem paginada ou, se processo_uuid, cargo_uuid e cargo_codigo na.
-
-        query, retorna arquivo (download direto).
-
-        Para download direto são obrigatórios: processo_uuid, cargo_uuid e
-        cargo_codigo na query.
+        
+        Args:
+            self: Instância do objeto.
+            request: Requisição HTTP recebida.
+            *args: Argumentos posicionais variáveis.
+            **kwargs: Argumentos nomeados variáveis.
+        
+        Returns:
+            Resposta HTTP com os dados serializados.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         processo_uuid = request.query_params.get('processo_uuid', '').strip()
         cargo_uuid = request.query_params.get('cargo_uuid', '').strip()
@@ -85,28 +116,49 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
 
     def gerar_arquivo(self, instance: Any) -> None:
         """Gera resposta de arquivo para os UUIDs dados.
-
-        processo_nome e cargo_nome opcionais (vindos do front no create, do
-        registro no download,
-        ou da query no GET list). Quando ausentes (ex.: download direto via GET
-        list sem create),
-        o serviço usa fallback: API de convocação para cargo_nome e "processo"
-        para processo_nome.
-        Subclasses devem implementar (ex.: chamar serviço de exportação e
-        retornar HttpResponse/Response).
+        
+        Args:
+            self: Instância do objeto.
+            instance: Instância do modelo em atualização.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            NotImplementedError: Se ocorrer erro nesta operação.
         """
         raise NotImplementedError('Subclasse deve implementar gerar_arquivo.')
 
     def executar_exportacao(self, instance: Any) -> None:
         """Executa a exportação após create (ex.: chamar serviço com.
-
-        instance.processo_uuid, etc).
-        Subclasses devem implementar.
+        
+        Args:
+            self: Instância do objeto.
+            instance: Instância do modelo em atualização.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            NotImplementedError: Se ocorrer erro nesta operação.
         """
         raise NotImplementedError('Subclasse deve implementar executar_exportacao.')
 
     def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Executa create."""
+        """Executa create.
+        
+        Args:
+            self: Instância do objeto.
+            request: Requisição HTTP recebida.
+            *args: Argumentos posicionais variáveis.
+            **kwargs: Argumentos nomeados variáveis.
+        
+        Returns:
+            Resposta HTTP com os dados serializados.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
@@ -129,12 +181,17 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='download')
     def download(self, request: Any, uuid: Any=None) -> Any:
         """Retorna o arquivo da exportação. Se o registro tiver conteudo_arquivo e.
-
-        nome_arquivo
-        salvos (create recente), devolve esse conteúdo sem chamar APIs.
-        Registros antigos
-        sem conteúdo continuam funcionando com geração na hora via
-        gerar_arquivo.
+        
+        Args:
+            self: Instância do objeto.
+            request: Requisição HTTP recebida.
+            uuid: Parâmetro uuid da operação.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         instance = self.get_object()
         return self.gerar_arquivo(instance)

@@ -10,7 +10,14 @@ from importa_arquivos.services.exceptions import ApiEscolhasException, TipoUEDes
 pytestmark = pytest.mark.django_db
 
 def test_api_vagas_transformacao_converte_data() -> None:
-    """Verifica api vagas transformacao converte data."""
+    """Verifica api vagas transformacao converte data.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     svc = ApiEscolhasService(base_url='https://api.exemplo')
     registros = [{'DataFechamentoModulo': '07/01/2025', 'OutraColuna': 'x'}]
     estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}, {'coluna': 'OutraColuna', 'campo_payload': 'outra_coluna'}]
@@ -20,7 +27,17 @@ def test_api_vagas_transformacao_converte_data() -> None:
 
 @pytest.mark.django_db
 def test_api_vagas_enviar_payload_ok(settings: Any) -> None:
-    """Verifica api vagas enviar payload ok."""
+    """Verifica api vagas enviar payload ok.
+    
+    Args:
+        settings: Parâmetro settings da operação.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     settings.CANDIDATOS_API_URL = 'https://api.exemplo'
     svc = ApiEscolhasService(base_url=settings.CANDIDATOS_API_URL)
     registros = [{'DataFechamentoModulo': '05/09/2025'}]
@@ -37,7 +54,14 @@ def test_api_vagas_enviar_payload_ok(settings: Any) -> None:
         assert kwargs['json']['vagas'][0]['data_fechamento_modulo'] == '05/09/2025'
 
 def test_api_vagas_cria_erro_quando_request_falha() -> None:
-    """Verifica api vagas cria erro quando request falha."""
+    """Verifica api vagas cria erro quando request falha.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     obj = ImportacaoArquivoVagas.objects.create(nome_arquivo='v.csv', arquivo='importacoes/v.csv', tipo='VAGAS')
     service = ApiEscolhasService(base_url='http://example.com')
     with patch('sigla_sdk.http.api_client.http_client.post', side_effect=RequestException('boom')):
@@ -46,7 +70,14 @@ def test_api_vagas_cria_erro_quando_request_falha() -> None:
     assert ImportacaoErro.objects.filter(object_id=obj.uuid).exists()
 
 def test_transformar_registros_converte_data_sucesso() -> None:
-    """Verifica transformar registros converte data sucesso."""
+    """Verifica transformar registros converte data sucesso.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     service = ApiEscolhasService()
     registros = [{'DATA': ' 05/09/2025 '}]
     estrutura = [{'coluna': 'DATA', 'campo_payload': 'data'}]
@@ -54,7 +85,14 @@ def test_transformar_registros_converte_data_sucesso() -> None:
     assert out == [{'data': '2025-09-05'}]
 
 def test_transformar_registros_mantem_valor_quando_data_invalida() -> None:
-    """Verifica transformar registros mantem valor quando data invalida."""
+    """Verifica transformar registros mantem valor quando data invalida.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     service = ApiEscolhasService()
     registros = [{'DATA': 'valor_invalido'}]
     estrutura = [{'coluna': 'DATA', 'campo_payload': 'data'}]
@@ -62,7 +100,14 @@ def test_transformar_registros_mantem_valor_quando_data_invalida() -> None:
     assert out == [{'data': 'valor_invalido'}]
 
 def test_api_vagas_nao_quebra_quando_registrar_erro_falha() -> None:
-    """Verifica api vagas nao quebra quando registrar erro falha."""
+    """Verifica api vagas nao quebra quando registrar erro falha.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     obj = ImportacaoArquivoVagas.objects.create(nome_arquivo='v2.csv', arquivo='importacoes/v2.csv', tipo='VAGAS')
     service = ApiEscolhasService(base_url='http://example.com')
     with patch('sigla_sdk.http.api_client.http_client.post', side_effect=RequestException('boom')):
@@ -73,7 +118,17 @@ class TestApiVagasConcursoFields:
     """Testes para os novos campos de concurso no ApiEscolhasService."""
 
     def test_enviar_vagas_com_campos_concurso(self) -> None:
-        """Testa envio de vagas com campos de concurso preenchidos."""
+        """Testa envio de vagas com campos de concurso preenchidos.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         import uuid
         service = ApiEscolhasService(base_url='https://api.exemplo')
         processo_uuid = str(uuid.uuid4())
@@ -93,7 +148,14 @@ class TestApiVagasConcursoFields:
             assert 'vagas' in payload
 
 def test_enviar_vagas_erro_tipo_ue_desabilitado() -> None:
-    """Verifica enviar vagas erro tipo ue desabilitado."""
+    """Verifica enviar vagas erro tipo ue desabilitado.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     service = ApiEscolhasService(base_url='https://api.exemplo')
     registros = [{'DataFechamentoModulo': '05/09/2025'}]
     estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]
@@ -107,7 +169,14 @@ def test_enviar_vagas_erro_tipo_ue_desabilitado() -> None:
             service.enviar_vagas(registros=registros, estrutura=estrutura)
 
 def test_enviar_vagas_erro_400_outro_codigo_gatilha_request_exception() -> None:
-    """Verifica enviar vagas erro 400 outro codigo gatilha request exception."""
+    """Verifica enviar vagas erro 400 outro codigo gatilha request exception.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     service = ApiEscolhasService(base_url='https://api.exemplo')
     registros = [{'DataFechamentoModulo': '05/09/2025'}]
     estrutura = [{'coluna': 'DataFechamentoModulo', 'campo_payload': 'data_fechamento_modulo'}]

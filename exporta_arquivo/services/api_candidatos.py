@@ -16,25 +16,33 @@ class ApiCandidatosService:
     """Cliente para a API de candidatos (GET habilitados)."""
 
     def __init__(self, base_url: str | None=None, timeout_seconds: int | None=None) -> None:
-        """Executa   init  ."""
+        """Executa   init  .
+        
+        Args:
+            self: Instância do objeto.
+            base_url: Parâmetro base url da operação.
+            timeout_seconds: Parâmetro timeout seconds da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         self.base_url = (base_url or getattr(settings, 'CANDIDATOS_API_URL', 'http://localhost:8000')).rstrip('/')  # type: ignore[union-attr]
         self.timeout_seconds = timeout_seconds or getattr(settings, 'CANDIDATOS_API_TIMEOUT', 30)
         self._default_headers = {'Accept': 'application/json'}
 
     def get_habilitados(self, **kwargs: Any) -> list[dict[str, Any]]:
         """GET {CANDIDATOS_API_URL}/api/v1/habilitados/ com query params dinâmicos.
-
-        informados
-        via kwargs. Retorna a lista de habilitados.
-
-        A API pode retornar lista direta ou objeto paginado com 'results'; este
-        método
-        normaliza para sempre retornar uma lista.
-
+        
+        Args:
+            self: Instância do objeto.
+            **kwargs: Argumentos nomeados variáveis.
+        
+        Returns:
+            Lista com os registros resultantes.
+        
         Raises:
             CandidatosNotFoundException: Em 404.
-            CandidatosServiceUnavailableException: Em 5xx, timeout ou resposta
-            não-JSON.
+            CandidatosServiceUnavailableException: Em 5xx, timeout ou resposta.
         """
         url = f'{self.base_url}/api/v1/habilitados/'
         params = {k: str(v) for k, v in kwargs.items() if v is not None}

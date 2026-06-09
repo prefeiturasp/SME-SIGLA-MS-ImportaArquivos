@@ -11,84 +11,228 @@ import pytest
 from exporta_arquivo.services.exportacao_candidatos_processo import _campo, _cpf_apenas_digitos, _data_para_dd_mm_yyyy, exportar_candidatos_processo, formatar_arquivo_candidatos_processo
 
 class TestDataParaDdMmYyyy:
-    """_data_para_dd_mm_yyyy: None, "", ISO com T, YYYY-MM-DD, já DD/MM/YYYY,.
-
-    inválido.
-    """
+    """_data_para_dd_mm_yyyy: None, "", ISO com T, YYYY-MM-DD, já DD/MM/YYYY,."""
 
     def test_none_retorna_vazio(self) -> None:
-        """Verifica none retorna vazio."""
+        """Verifica none retorna vazio.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert _data_para_dd_mm_yyyy(None) == ''
 
     def test_string_vazia_retorna_vazio(self) -> None:
-        """Verifica string vazia retorna vazio."""
+        """Verifica string vazia retorna vazio.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert _data_para_dd_mm_yyyy('') == ''
 
     def test_iso_com_t_retorna_dd_mm_yyyy(self) -> None:
-        """Verifica iso com t retorna dd mm yyyy."""
+        """Verifica iso com t retorna dd mm yyyy.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert _data_para_dd_mm_yyyy('2024-07-03T00:00:00') == '03/07/2024'
 
     def test_yyyy_mm_dd_retorna_dd_mm_yyyy(self) -> None:
-        """Verifica yyyy mm dd retorna dd mm yyyy."""
+        """Verifica yyyy mm dd retorna dd mm yyyy.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert _data_para_dd_mm_yyyy('2024-07-03') == '03/07/2024'
 
     def test_ja_dd_mm_yyyy_retorna_igual(self) -> None:
-        """Verifica ja dd mm yyyy retorna igual."""
+        """Verifica ja dd mm yyyy retorna igual.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert _data_para_dd_mm_yyyy('03/07/2024') == '03/07/2024'
 
     def test_invalido_retorna_string_original(self) -> None:
-        """Verifica invalido retorna string original."""
+        """Verifica invalido retorna string original.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert _data_para_dd_mm_yyyy('invalido') == 'invalido'
 
 class TestCpfApenasDigitos:
     """_cpf_apenas_digitos: None, só dígitos, com pontuação, vazio."""
 
     def test_none_retorna_vazio(self) -> None:
-        """Verifica none retorna vazio."""
+        """Verifica none retorna vazio.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert _cpf_apenas_digitos(None) == ''
 
     def test_so_digitos_retorna_igual(self) -> None:
-        """Verifica so digitos retorna igual."""
+        """Verifica so digitos retorna igual.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert _cpf_apenas_digitos('12345678900') == '12345678900'
 
     def test_com_pontuacao_remove_tudo_que_nao_e_digito(self) -> None:
-        """Verifica com pontuacao remove tudo que nao e digito."""
+        """Verifica com pontuacao remove tudo que nao e digito.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert _cpf_apenas_digitos('123.456.789-00') == '12345678900'
 
     def test_vazio_retorna_vazio(self) -> None:
-        """Verifica vazio retorna vazio."""
+        """Verifica vazio retorna vazio.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert _cpf_apenas_digitos('') == ''
 
 class TestCampo:
     r"""_campo: None, com pipe, com \\n/\\r."""
 
     def test_none_retorna_vazio(self) -> None:
-        """Verifica none retorna vazio."""
+        """Verifica none retorna vazio.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert _campo(None) == ''
 
     def test_com_pipe_substitui_por_espaco(self) -> None:
-        """Verifica com pipe substitui por espaco."""
+        """Verifica com pipe substitui por espaco.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert '|' not in _campo('a|b|c')
         assert ' ' in _campo('a|b|c')
 
     def test_com_newline_e_cr_substitui_por_espaco(self) -> None:
-        """Verifica com newline e cr substitui por espaco."""
+        """Verifica com newline e cr substitui por espaco.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         assert _campo('linha1\nlinha2') == 'linha1 linha2'
         assert _campo('linha1\rlinha2') == 'linha1 linha2'
 
 class TestFormatarArquivoCandidatosProcesso:
-    """formatar_arquivo_candidatos_processo: lista vazia; 1 linha; várias;.
-
-    codigo/data_criacao; dt_nascimento e cd_cpf.
-    """
+    """formatar_arquivo_candidatos_processo: lista vazia; 1 linha; várias;."""
 
     def test_lista_vazia_retorna_string_vazia(self) -> None:
-        """Verifica lista vazia retorna string vazia."""
+        """Verifica lista vazia retorna string vazia.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         out = formatar_arquivo_candidatos_processo([])
         assert out == ''
 
     def test_uma_linha_dados_minimos(self) -> None:
-        """Verifica uma linha dados minimos."""
+        """Verifica uma linha dados minimos.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         linhas = [{'codigo': 100, 'data_criacao': '03/07/2024', 'cd_cpf': '12345678900', 'nm_candidato_concurso': 'Fulano', 'dt_nascimento': '15/03/1990'}]
         out = formatar_arquivo_candidatos_processo(linhas)
         assert out
@@ -101,7 +245,17 @@ class TestFormatarArquivoCandidatosProcesso:
         assert out.endswith('\n')
 
     def test_varias_linhas(self) -> None:
-        """Verifica varias linhas."""
+        """Verifica varias linhas.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         linhas = [{'codigo': 1, 'data_criacao': '01/01/2024', 'cd_cpf': '111', 'nm_candidato_concurso': 'A', 'dt_nascimento': ''}, {'codigo': 1, 'data_criacao': '01/01/2024', 'cd_cpf': '222', 'nm_candidato_concurso': 'B', 'dt_nascimento': ''}]
         out = formatar_arquivo_candidatos_processo(linhas)
         linhas_out = out.strip().split('\n')
@@ -110,7 +264,17 @@ class TestFormatarArquivoCandidatosProcesso:
         assert '222' in linhas_out[1]
 
     def test_codigo_none_data_criacao_vazia(self) -> None:
-        """Verifica codigo none data criacao vazia."""
+        """Verifica codigo none data criacao vazia.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         linhas = [{'codigo': None, 'data_criacao': '', 'cd_cpf': '123', 'nm_candidato_concurso': 'X', 'dt_nascimento': ''}]
         out = formatar_arquivo_candidatos_processo(linhas)
         assert out
@@ -118,8 +282,15 @@ class TestFormatarArquivoCandidatosProcesso:
 
     def test_dt_nascimento_dd_mm_yyyy_na_saida(self) -> None:
         """Valores de dt_nascimento já em DD/MM/YYYY (ex.: vindos do mapeador).
-
-        aparecem na saída.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         linhas = [{'codigo': 1, 'data_criacao': '01/01/2024', 'cd_cpf': '12345678900', 'nm_candidato_concurso': 'Y', 'dt_nascimento': '31/12/1995'}]
         out = formatar_arquivo_candidatos_processo(linhas)
@@ -127,8 +298,15 @@ class TestFormatarArquivoCandidatosProcesso:
 
     def test_cd_cpf_apenas_digitos_na_coluna(self) -> None:
         """Coluna cd_cpf na saída reflete o valor do item (já normalizado pelo.
-
-        mapeador).
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         linhas = [{'codigo': 1, 'data_criacao': '01/01/2024', 'cd_cpf': '12345678900', 'nm_candidato_concurso': 'Z', 'dt_nascimento': ''}]
         out = formatar_arquivo_candidatos_processo(linhas)
@@ -139,16 +317,20 @@ class TestFormatarArquivoCandidatosProcesso:
         assert parts[2] == '12345678900'
 
 class TestExportarCandidatosProcesso:
-    """exportar_candidatos_processo: recebe instance; mock de APIs; retorna.
-
-    conteúdo formatado (str).
-    """
+    """exportar_candidatos_processo: recebe instance; mock de APIs; retorna."""
 
     @pytest.fixture
     def instance(self) -> Any:
-        """
-        Instance mock com processo_uuid, cargo_uuid, cargo_codigo,
-        concurso_uuid.
+        """Instance mock com processo_uuid, cargo_uuid, cargo_codigo,.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Resultado da operação.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         from unittest.mock import MagicMock
         inst = MagicMock()
@@ -159,7 +341,18 @@ class TestExportarCandidatosProcesso:
         return inst
 
     def test_retorno_vazio_quando_habilitados_vazio(self, instance: Any) -> None:
-        """Verifica retorno vazio quando habilitados vazio."""
+        """Verifica retorno vazio quando habilitados vazio.
+        
+        Args:
+            self: Instância do objeto.
+            instance: Instância do modelo em atualização.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         from unittest.mock import patch
         with patch('exporta_arquivo.services.exportacao_candidatos_processo.ApiConcursosService') as mock_api_concursos, patch('exporta_arquivo.services.exportacao_candidatos_processo.ApiCandidatosService') as mock_api_candidatos:
             mock_api_concursos.return_value.get_concurso.return_value = {'codigo': 10, 'criado_em': '2024-01-01T00:00:00'}
@@ -169,7 +362,18 @@ class TestExportarCandidatosProcesso:
         instance.save.assert_called_once()
 
     def test_retorno_formatado_ordenacao_por_ranking(self, instance: Any) -> None:
-        """Verifica retorno formatado ordenacao por ranking."""
+        """Verifica retorno formatado ordenacao por ranking.
+        
+        Args:
+            self: Instância do objeto.
+            instance: Instância do modelo em atualização.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         from unittest.mock import patch
         habilitados_api = [{'candidato': {'cpf': '111', 'nome': 'Candidato A', 'data_nascimento': '1990-01-15T00:00:00'}, 'codigo_cargo': 100, 'ranking_escolha': 2, 'classificacao': 10}, {'candidato': {'cpf': '222', 'nome': 'Candidato B', 'data_nascimento': None}, 'codigo_cargo': 100, 'ranking_escolha': 1, 'classificacao': 5}]
         with patch('exporta_arquivo.services.exportacao_candidatos_processo.ApiConcursosService') as mock_api_concursos, patch('exporta_arquivo.services.exportacao_candidatos_processo.ApiCandidatosService') as mock_api_candidatos:
@@ -187,7 +391,18 @@ class TestExportarCandidatosProcesso:
         assert '15/01/1990' in out
 
     def test_atualiza_instance_com_dados_concurso_e_retorna_string(self, instance: Any) -> None:
-        """Verifica atualiza instance com dados concurso e retorna string."""
+        """Verifica atualiza instance com dados concurso e retorna string.
+        
+        Args:
+            self: Instância do objeto.
+            instance: Instância do modelo em atualização.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         from unittest.mock import patch
         with patch('exporta_arquivo.services.exportacao_candidatos_processo.ApiConcursosService') as mock_api_concursos, patch('exporta_arquivo.services.exportacao_candidatos_processo.ApiCandidatosService') as mock_api_candidatos:
             mock_api_concursos.return_value.get_concurso.return_value = {'codigo': 99, 'criado_em': '2024-06-01T00:00:00'}

@@ -13,21 +13,51 @@ class TestFormatarArquivoSigpec:
     """Cabeçalho fixo + linhas codigo_integracao;v_def;v_prec;."""
 
     def test_cabecalho_fixo_presente(self) -> None:
-        """Verifica cabecalho fixo presente."""
+        """Verifica cabecalho fixo presente.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         out = formatar_arquivo_sigpec([])
         for line in SIGPEC_HEADER_LINES:
             assert line in out
         assert out.startswith('@TABELA=')
 
     def test_lista_vazia_so_cabecalho(self) -> None:
-        """Verifica lista vazia so cabecalho."""
+        """Verifica lista vazia so cabecalho.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         out = formatar_arquivo_sigpec([])
         linhas = out.strip().split('\n')
         assert len(linhas) == len(SIGPEC_HEADER_LINES)
         assert out.endswith('\n')
 
     def test_uma_linha_formato_sigpec(self) -> None:
-        """Verifica uma linha formato sigpec."""
+        """Verifica uma linha formato sigpec.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         vagas = [{'codigo_integracao': 'SETOR001', 'vagas_definitivas': 3, 'vagas_precarias': 1}]
         out = formatar_arquivo_sigpec(vagas)
         assert 'SETOR001;3;1;' in out
@@ -35,7 +65,17 @@ class TestFormatarArquivoSigpec:
         assert len(linhas) == len(SIGPEC_HEADER_LINES) + 1
 
     def test_varias_linhas(self) -> None:
-        """Verifica varias linhas."""
+        """Verifica varias linhas.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         vagas = [{'codigo_integracao': 'A', 'vagas_definitivas': 1, 'vagas_precarias': 0}, {'codigo_integracao': 'B', 'vagas_definitivas': 0, 'vagas_precarias': 2}]
         out = formatar_arquivo_sigpec(vagas)
         assert 'A;1;0;' in out
@@ -44,7 +84,17 @@ class TestFormatarArquivoSigpec:
         assert len(linhas) == len(SIGPEC_HEADER_LINES) + 2
 
     def test_separador_ponto_virgula(self) -> None:
-        """Verifica separador ponto virgula."""
+        """Verifica separador ponto virgula.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         vagas = [{'codigo_integracao': 'X', 'vagas_definitivas': 0, 'vagas_precarias': 0}]
         out = formatar_arquivo_sigpec(vagas)
         assert 'X;0;0;' in out
@@ -53,7 +103,17 @@ class TestBuscarVagasEscolasSigpec:
     """buscar_vagas_escolas com mock de ApiEscolhasService.get_vagas_escolas."""
 
     def test_payload_valido_retorna_lista_com_codigo_integracao_e_vagas(self) -> None:
-        """Verifica payload valido retorna lista com codigo integracao e vagas."""
+        """Verifica payload valido retorna lista com codigo integracao e vagas.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         payload_valido = {'vagas': [{'vagas_definitivas': 3, 'vagas_precarias': 1, 'escola': {'codigo_integracao': 'SETOR001', 'codigo_eol': '123'}, 'cargo_codigo': 100}]}
         mock_api = MagicMock()
         mock_api.get_vagas_escolas.return_value = payload_valido
@@ -66,7 +126,17 @@ class TestBuscarVagasEscolasSigpec:
         mock_api.get_vagas_escolas.assert_called_once_with('processo-uuid', 100)
 
     def test_payload_invalido_serializer_levanta_erro(self) -> None:
-        """Verifica payload invalido serializer levanta erro."""
+        """Verifica payload invalido serializer levanta erro.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         from rest_framework.exceptions import ValidationError
         payload_invalido = {'vagas': []}  # type: ignore[var-annotated]
         mock_api = MagicMock()

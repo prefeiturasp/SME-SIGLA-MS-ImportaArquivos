@@ -12,7 +12,18 @@ from importa_arquivos.services.exceptions import ApiEscolhasException, TipoUEDes
 pytestmark = pytest.mark.django_db
 
 def test_importacao_vagas_create_success(api_client: Any, settings: Any) -> None:
-    """Verifica importacao vagas create success."""
+    """Verifica importacao vagas create success.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+        settings: Parâmetro settings da operação.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     settings.ESCOLHAS_API_URL = 'https://api.exemplo'
     arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
     with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, patch('importa_arquivos.views.importacao_vagas.ApiEscolhasService') as mock_api:
@@ -25,7 +36,17 @@ def test_importacao_vagas_create_success(api_client: Any, settings: Any) -> None
         mock_api.return_value.enviar_vagas.assert_called_once()
 
 def test_importacao_vagas_create_validation_error(api_client: Any) -> None:
-    """Verifica importacao vagas create validation error."""
+    """Verifica importacao vagas create validation error.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     arquivo = SimpleUploadedFile('v.csv', b'invalid', content_type='text/csv')
     with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar:
         mock_validar.side_effect = ValueError('erro de layout')
@@ -34,7 +55,17 @@ def test_importacao_vagas_create_validation_error(api_client: Any) -> None:
         assert resp.status_code == 400
 
 def test_importacao_vagas_create_unexpected_exception(api_client: Any) -> None:
-    """Verifica importacao vagas create unexpected exception."""
+    """Verifica importacao vagas create unexpected exception.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     arquivo = SimpleUploadedFile('v.csv', b'invalid', content_type='text/csv')
     with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar:
         mock_validar.side_effect = Exception('boom')
@@ -44,7 +75,18 @@ def test_importacao_vagas_create_unexpected_exception(api_client: Any) -> None:
         assert resp.data.get('detail') == 'Erro ao validar CSV.'
 
 def test_importacao_vagas_envio_api_exception(api_client: Any, settings: Any) -> None:
-    """Verifica importacao vagas envio api exception."""
+    """Verifica importacao vagas envio api exception.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+        settings: Parâmetro settings da operação.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     settings.ESCOLHAS_API_URL = 'https://api.exemplo'
     arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
     with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, patch('importa_arquivos.views.importacao_vagas.ApiEscolhasService') as mock_api:
@@ -60,7 +102,18 @@ def test_importacao_vagas_envio_api_exception(api_client: Any, settings: Any) ->
         mock_api.return_value.enviar_vagas.assert_called_once()
 
 def test_importacao_vagas_tipo_ue_desabilitado(api_client: Any, settings: Any) -> None:
-    """Verifica importacao vagas tipo ue desabilitado."""
+    """Verifica importacao vagas tipo ue desabilitado.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+        settings: Parâmetro settings da operação.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     settings.ESCOLHA_API_URL = 'https://api.exemplo'
     arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
     with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, patch('importa_arquivos.views.importacao_vagas.ApiEscolhasService') as mock_api:
@@ -73,7 +126,18 @@ def test_importacao_vagas_tipo_ue_desabilitado(api_client: Any, settings: Any) -
         assert 'Tipo de UE desabilitado' in resp.data.get('detail', '')
 
 def test_importacao_vagas_list_success(api_client: Any, cria_vagas: Any) -> None:
-    """Verifica importacao vagas list success."""
+    """Verifica importacao vagas list success.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+        cria_vagas: Parâmetro cria vagas da operação.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     cria_vagas([('teste1.csv', 'PENDENTE'), ('teste2.csv', 'PROCESSADO')])
     url = reverse('importacao-arquivo-vagas-list')
     resp = api_client.get(url)
@@ -83,7 +147,18 @@ def test_importacao_vagas_list_success(api_client: Any, cria_vagas: Any) -> None
     assert resp.data['results'][0]['nome_arquivo'] in ['teste1.csv', 'teste2.csv']
 
 def test_importacao_vagas_retrieve_success(api_client: Any, cria_vagas: Any) -> None:
-    """Verifica importacao vagas retrieve success."""
+    """Verifica importacao vagas retrieve success.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+        cria_vagas: Parâmetro cria vagas da operação.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     objs = cria_vagas([('teste.csv', 'PENDENTE')])
     obj = objs[0]
     url = reverse('importacao-arquivo-vagas-detail', kwargs={'pk': obj.pk})
@@ -97,7 +172,19 @@ class TestImportacaoVagasFiltersAndSearch:
     """Testes para funcionalidades de filtros e busca adicionadas."""
 
     def test_filterset_fields_nome_arquivo(self, api_client: Any, cria_vagas: Any) -> None:
-        """Testa filtro por nome_arquivo."""
+        """Testa filtro por nome_arquivo.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            cria_vagas: Parâmetro cria vagas da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         cria_vagas([('arquivo1.csv', 'PENDENTE'), ('arquivo2.csv', 'PROCESSADO')])
         url = reverse('importacao-arquivo-vagas-list')
         resp = api_client.get(url, {'nome_arquivo': 'arquivo1.csv'})
@@ -106,7 +193,19 @@ class TestImportacaoVagasFiltersAndSearch:
         assert resp.data['results'][0]['nome_arquivo'] == 'arquivo1.csv'
 
     def test_filterset_fields_status(self, api_client: Any, cria_vagas: Any) -> None:
-        """Testa filtro por status."""
+        """Testa filtro por status.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            cria_vagas: Parâmetro cria vagas da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         cria_vagas([('arquivo1.csv', 'PENDENTE'), ('arquivo2.csv', 'PROCESSADO')])
         url = reverse('importacao-arquivo-vagas-list')
         resp = api_client.get(url, {'status': 'PENDENTE'})
@@ -115,7 +214,18 @@ class TestImportacaoVagasFiltersAndSearch:
         assert resp.data['results'][0]['status'] == 'PENDENTE'
 
     def test_filterset_fields_processo_uuid(self, api_client: Any) -> None:
-        """Testa filtro por processo_uuid."""
+        """Testa filtro por processo_uuid.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.models import ImportacaoArquivoVagas
         processo_uuid = str(uuid.uuid4())
@@ -128,7 +238,18 @@ class TestImportacaoVagasFiltersAndSearch:
         assert resp.data['results'][0]['processo_uuid'] == processo_uuid
 
     def test_filterset_fields_processo_nome(self, api_client: Any) -> None:
-        """Testa filtro por processo_nome."""
+        """Testa filtro por processo_nome.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.models import ImportacaoArquivoVagas
         ImportacaoArquivoVagas.objects.create(nome_arquivo='arquivo1.csv', arquivo=SimpleUploadedFile('arquivo1.csv', b'content'), status='PENDENTE', processo_nome='Processo Teste 1')
@@ -140,7 +261,18 @@ class TestImportacaoVagasFiltersAndSearch:
         assert resp.data['results'][0]['processo_nome'] == 'Processo Teste 1'
 
     def test_search_fields_processo_uuid(self, api_client: Any) -> None:
-        """Testa busca por processo_uuid."""
+        """Testa busca por processo_uuid.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.models import ImportacaoArquivoVagas
         processo_uuid = str(uuid.uuid4())
@@ -153,7 +285,18 @@ class TestImportacaoVagasFiltersAndSearch:
         assert resp.data['results'][0]['processo_uuid'] == processo_uuid
 
     def test_search_fields_processo_nome(self, api_client: Any) -> None:
-        """Testa busca por processo_nome."""
+        """Testa busca por processo_nome.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.models import ImportacaoArquivoVagas
         ImportacaoArquivoVagas.objects.create(nome_arquivo='arquivo1.csv', arquivo=SimpleUploadedFile('arquivo1.csv', b'content'), status='PENDENTE', processo_nome='Processo Teste 1')
@@ -168,7 +311,19 @@ class TestImportacaoVagasConcursoFields:
     """Testes para o tratamento dos campos de processo no create."""
 
     def test_create_with_concurso_fields_in_serializer(self, api_client: Any, settings: Any) -> None:
-        """Testa criação com campos de concurso no serializer."""
+        """Testa criação com campos de concurso no serializer.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.ESCOLHA_API_URL = 'https://api.exemplo'
         processo_uuid = str(uuid.uuid4())
         arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
@@ -184,7 +339,19 @@ class TestImportacaoVagasConcursoFields:
             assert call_args[1]['processo_nome'] == 'Processo Teste'
 
     def test_create_with_concurso_fields_in_request_data(self, api_client: Any, settings: Any) -> None:
-        """Testa criação com campos de concurso no request.data."""
+        """Testa criação com campos de concurso no request.data.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.ESCOLHA_API_URL = 'https://api.exemplo'
         processo_uuid = str(uuid.uuid4())
         arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
@@ -200,7 +367,19 @@ class TestImportacaoVagasConcursoFields:
             assert call_args[1]['processo_nome'] == 'Processo Teste'
 
     def test_create_with_empty_concurso_fields(self, api_client: Any, settings: Any) -> None:
-        """Testa criação com campos de concurso vazios."""
+        """Testa criação com campos de concurso vazios.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.ESCOLHA_API_URL = 'https://api.exemplo'
         arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
         with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, patch('importa_arquivos.views.importacao_vagas.ApiEscolhasService') as mock_api:
@@ -218,7 +397,18 @@ class TestImportacaoVagasErrorHandling:
     """Testes para o tratamento de erros com logging."""
 
     def test_validation_error_with_logging(self, api_client: Any) -> None:
-        """Testa erro de validação com logging."""
+        """Testa erro de validação com logging.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         arquivo = SimpleUploadedFile('v.csv', b'invalid', content_type='text/csv')
         with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, patch('importa_arquivos.views.importacao_vagas.logging') as mock_logging:
             mock_validar.side_effect = Exception('erro inesperado')
@@ -230,7 +420,19 @@ class TestImportacaoVagasErrorHandling:
             assert 'Erro inesperado na validação do CSV' in mock_logging.error.call_args[0][0]
 
     def test_api_service_error_with_logging(self, api_client: Any, settings: Any) -> None:
-        """Testa erro na API externa com logging."""
+        """Testa erro na API externa com logging.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+            settings: Parâmetro settings da operação.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         settings.ESCOLHA_API_URL = 'https://api.exemplo'
         arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
         with patch('importa_arquivos.views.importacao_vagas.validar_csv_vagas') as mock_validar, patch('importa_arquivos.views.importacao_vagas.ApiEscolhasService') as mock_api, patch('importa_arquivos.views.importacao_vagas.logging'):
@@ -247,7 +449,17 @@ class TestImportacaoVagasSerializers:
     """Testes para os serializers com os novos campos de processo."""
 
     def test_create_serializer_with_concurso_fields(self) -> None:
-        """Testa ImportacaoArquivoVagasCreateSerializer com campos de concurso."""
+        """Testa ImportacaoArquivoVagasCreateSerializer com campos de concurso.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.serializers import ImportacaoArquivoVagasCreateSerializer
         processo_uuid = str(uuid.uuid4())
@@ -262,7 +474,17 @@ class TestImportacaoVagasSerializers:
         assert instance.tipo == 'VAGAS'
 
     def test_create_serializer_without_concurso_fields(self) -> None:
-        """Testa ImportacaoArquivoVagasCreateSerializer sem campos de concurso."""
+        """Testa ImportacaoArquivoVagasCreateSerializer sem campos de concurso.
+        
+        Args:
+            self: Instância do objeto.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.serializers import ImportacaoArquivoVagasCreateSerializer
         arquivo = SimpleUploadedFile('teste.csv', b'content')
@@ -276,7 +498,18 @@ class TestImportacaoVagasSerializers:
         assert instance.tipo == 'VAGAS'
 
     def test_list_serializer_includes_processo_fields(self, api_client: Any) -> None:
-        """Testa ImportacaoArquivoVagasListSerializer inclui campos de processo."""
+        """Testa ImportacaoArquivoVagasListSerializer inclui campos de processo.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
+        """
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.models import ImportacaoArquivoVagas
         processo_uuid = str(uuid.uuid4())
@@ -294,8 +527,16 @@ class TestImportacaoVagasSerializers:
 
     def test_list_serializer_with_null_processo_fields(self, api_client: Any) -> None:
         """Testa ImportacaoArquivoVagasListSerializer com campos de processo.
-
-        nulos.
+        
+        Args:
+            self: Instância do objeto.
+            api_client: Cliente de API para requisições de teste.
+        
+        Returns:
+            Não retorna valor.
+        
+        Raises:
+            Nenhuma exceção específica documentada.
         """
         from django.core.files.uploadedfile import SimpleUploadedFile
         from importa_arquivos.models import ImportacaoArquivoVagas
@@ -310,7 +551,17 @@ class TestImportacaoVagasSerializers:
         assert 'status' in resp.data
 
 def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(api_client: Any) -> None:
-    """Testa download_erros retorna arquivo vazio quando não há erros."""
+    """Testa download_erros retorna arquivo vazio quando não há erros.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     url = reverse('importacao-arquivo-vagas-download-erros')
     resp = api_client.get(url)
     assert resp.status_code == 200
@@ -320,7 +571,17 @@ def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(api_client: Any) 
     assert resp.content == b''
 
 def test_download_erros_formata_conteudo_corretamente(api_client: Any) -> None:
-    """Testa download_erros formata erros com titulo: conteudo."""
+    """Testa download_erros formata erros com titulo: conteudo.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
     importacao = ImportacaoArquivoVagas.objects.create(nome_arquivo='v.csv', arquivo=arquivo, tipo='VAGAS')
     content_type = ContentType.objects.get_for_model(ImportacaoArquivoVagas)
@@ -335,7 +596,17 @@ def test_download_erros_formata_conteudo_corretamente(api_client: Any) -> None:
     assert '**Linha 2:** erro na linha 2' in conteudo
 
 def test_download_erros_parte_sem_dois_pontos_apenas_append(api_client: Any) -> None:
-    """Testa download_erros: partes sem ':' são adicionadas como estão."""
+    """Testa download_erros: partes sem ':' são adicionadas como estão.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     arquivo = SimpleUploadedFile('v.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
     importacao = ImportacaoArquivoVagas.objects.create(nome_arquivo='v.csv', arquivo=arquivo, tipo='VAGAS')
     content_type = ContentType.objects.get_for_model(ImportacaoArquivoVagas)
@@ -347,7 +618,17 @@ def test_download_erros_parte_sem_dois_pontos_apenas_append(api_client: Any) -> 
     assert 'Mensagem simples sem dois pontos' in conteudo
 
 def test_download_erros_filtra_por_importacao_uuid(api_client: Any) -> None:
-    """Testa download_erros filtra por importacao_uuid quando informado."""
+    """Testa download_erros filtra por importacao_uuid quando informado.
+    
+    Args:
+        api_client: Cliente de API para requisições de teste.
+    
+    Returns:
+        Não retorna valor.
+    
+    Raises:
+        Nenhuma exceção específica documentada.
+    """
     arquivo = SimpleUploadedFile('v1.csv', b'DataFechamentoModulo\n05/09/2025\n', content_type='text/csv')
     importacao1 = ImportacaoArquivoVagas.objects.create(nome_arquivo='v1.csv', arquivo=arquivo, tipo='VAGAS')
     arquivo2 = SimpleUploadedFile('v2.csv', b'DataFechamentoModulo\n06/09/2025\n', content_type='text/csv')

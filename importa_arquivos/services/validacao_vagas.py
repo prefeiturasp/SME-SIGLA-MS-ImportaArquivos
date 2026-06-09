@@ -12,9 +12,18 @@ logger = logging.getLogger(__name__)
 @captura_erros_importacao(param_nome_obj='importacao_obj')
 def validar_csv_vagas(arquivo: Any, importacao_obj: Any=None) -> tuple[list[dict], list[dict]]:
     """Valida o arquivo CSV enviado para VAGAS contra o layout configurado.
-
-    e retorna a lista de registros (linhas) como dicts, além da estrutura do
-    layout.
+    
+    Args:
+        arquivo: Parâmetro arquivo da operação.
+        importacao_obj: Parâmetro importacao obj da operação.
+    
+    Returns:
+        Resultado da operação.
+    
+    Raises:
+        ColunaCSVInvalidaException: Se ocorrer erro nesta operação.
+        LayoutNaoConfiguradoException: Se ocorrer erro nesta operação.
+        LeituraCSVException: Se ocorrer erro nesta operação.
     """
     try:
         layout = LayoutArquivoImportacao.objects.filter(tipo='VAGAS').latest('criado_em')
