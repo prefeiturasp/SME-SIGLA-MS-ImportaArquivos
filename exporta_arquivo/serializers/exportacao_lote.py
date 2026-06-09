@@ -1,17 +1,19 @@
+"""Módulo serializers/exportacao_lote."""
 from rest_framework import serializers
 
 from ..models import CabecalhoExportacaoLote, ExportacaoLote
 
 
 class ExportacaoLoteCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer para criação de exportação de lote.
+    """Serializer para criação de exportação de lote.
+
     O frontend envia concurso_uuid, numero_lote, opcionalmente codigo_cargo e
     concurso_nome.
     lote_uuid mantido para compatibilidade com registros antigos.
     """
 
     class Meta:
+        """Define Meta."""
         model = ExportacaoLote
         fields = [
             "concurso_uuid",
@@ -22,11 +24,10 @@ class ExportacaoLoteCreateSerializer(serializers.ModelSerializer):
 
 
 class ExportacaoLoteListSerializer(serializers.ModelSerializer):
-    """
-    Serializer para listagem e detalhe de exportações de lote.
-    """
+    """Serializer para listagem e detalhe de exportações de lote."""
 
     class Meta:
+        """Define Meta."""
         model = ExportacaoLote
         fields = [
             "uuid",
@@ -43,11 +44,10 @@ class ExportacaoLoteListSerializer(serializers.ModelSerializer):
 
 
 class CabecalhoExportacaoLoteSerializer(serializers.ModelSerializer):
-    """
-    Serializer para leitura e edição do cabeçalho de exportação de lote.
-    """
+    """Serializer para leitura e edição do cabeçalho de exportação de lote."""
 
     class Meta:
+        """Define Meta."""
         model = CabecalhoExportacaoLote
         fields = [
             "uuid",

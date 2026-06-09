@@ -1,5 +1,4 @@
-"""
-Serviço de API para o módulo de concursos.
+"""Serviço de API para o módulo de concursos.
 
 Consulta detalhes de concurso (código, data de criação) a partir do
 concurso_uuid,
@@ -29,7 +28,8 @@ class ApiConcursosService:
         base_url: str | None = None,
         timeout_seconds: int | None = None,
     ) -> None:
-        self.base_url = (
+        """Executa   init  ."""
+        self.base_url = (  # type: ignore[union-attr]
             base_url
             or getattr(settings, "CONCURSOS_API_URL", "http://localhost:8001")
         ).rstrip("/")
@@ -41,8 +41,7 @@ class ApiConcursosService:
         }
 
     def get_concurso(self, concurso_uuid: str) -> dict[str, Any]:
-        """
-        GET {CONCURSOS_API_URL}/api/v1/concursos/{concurso_uuid}/
+        """GET {CONCURSOS_API_URL}/api/v1/concursos/{concurso_uuid}/.
 
         Espera um objeto JSON com, pelo menos, os campos:
         - codigo

@@ -1,3 +1,4 @@
+"""Módulo models/base."""
 import uuid
 
 from django.db import models
@@ -18,9 +19,7 @@ CHOICES_STATUS_IMPORTACAO_ARQUIVO = [
 
 
 class BaseModel(models.Model):
-    """
-    Model base com UUID, criado_em e atualizado_em.
-    """
+    """Model base com UUID, criado_em e atualizado_em."""
 
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     criado_em = models.DateTimeField(
@@ -31,13 +30,12 @@ class BaseModel(models.Model):
     )
 
     class Meta:
+        """Define Meta."""
         abstract = True
 
 
 class BaseModelArquivoImportacao(BaseModel):
-    """
-    Model base com nome do arquivo, arquivo e status.
-    """
+    """Model base com nome do arquivo, arquivo e status."""
 
     nome_arquivo = models.CharField(
         max_length=200, verbose_name="Nome do Arquivo"
@@ -57,4 +55,5 @@ class BaseModelArquivoImportacao(BaseModel):
     )
 
     class Meta:
+        """Define Meta."""
         abstract = True

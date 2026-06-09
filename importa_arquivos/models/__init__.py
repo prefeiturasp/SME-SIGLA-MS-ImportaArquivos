@@ -1,3 +1,4 @@
+"""Módulo models/__init__."""
 from .importacao_erro import ImportacaoErro
 from .importacao_escolhas import ImportacaoEscolhas
 from .importacao_habilitados import ImportacaoArquivoHabilitado

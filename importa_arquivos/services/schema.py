@@ -1,3 +1,4 @@
+"""Módulo services/schema."""
 from pydantic import BaseModel, field_validator
 
 COLUNAS_ESPERADAS = {
@@ -25,6 +26,7 @@ class LinhaLoteSIGPEC(BaseModel):
     @field_validator("empresa", "vaga", mode="before")
     @classmethod
     def nao_vazio(cls, v: str) -> str:
+        """Executa nao vazio."""
         if not v or not str(v).strip():
             raise ValueError("Campo não pode estar vazio.")
         return str(v).strip()

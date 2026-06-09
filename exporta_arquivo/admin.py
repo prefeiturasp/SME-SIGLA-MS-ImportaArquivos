@@ -1,3 +1,4 @@
+"""Módulo admin."""
 from django.contrib import admin
 
 from .models import ExportacaoVagasProcesso, ExportacaoVagasSigpec
@@ -5,6 +6,7 @@ from .models import ExportacaoVagasProcesso, ExportacaoVagasSigpec
 
 @admin.register(ExportacaoVagasSigpec)
 class ExportacaoVagasSigpecAdmin(admin.ModelAdmin):
+    """Define ExportacaoVagasSigpecAdmin."""
     list_display = (
         "uuid",
         "processo_uuid",
@@ -20,6 +22,7 @@ class ExportacaoVagasSigpecAdmin(admin.ModelAdmin):
 
 @admin.register(ExportacaoVagasProcesso)
 class ExportacaoVagasProcessoAdmin(admin.ModelAdmin):
+    """Define ExportacaoVagasProcessoAdmin."""
     list_display = (
         "uuid",
         "processo_uuid",

@@ -1,5 +1,4 @@
-"""
-Serviço de exportação de lotes (formato ERGON/SIGPEC).
+"""Serviço de exportação de lotes (formato ERGON/SIGPEC).
 
 Fluxo:
 1. Busca todos os ConcursoCandidato do lote via MS-Candidatos.
@@ -28,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def _data_para_ddmmyyyy(val: Any) -> str:
+    """Executa  data para ddmmyyyy."""
     try:
         data_obj = datetime.fromisoformat(val.replace("Z", "+00:00"))
     except ValueError:
@@ -39,8 +39,7 @@ def gerar_conteudo_lote(
     candidatos: list[dict[str, Any]],
     escolhas_por_candidato: dict[str, dict[str, Any]],
 ) -> str:
-    """
-    Gera o conteúdo completo do arquivo de exportação de lotes.
+    """Gera o conteúdo completo do arquivo de exportação de lotes.
 
     Cada linha segue o padrão:
         {numero_lote};{codigo_sigpec};{chave_inscrito};{DDMMYYYY};{S|R};{codigo_integracao};
@@ -85,7 +84,7 @@ def gerar_conteudo_lote(
             "nao-escolha": "N",
             "reconvocacao": "R",
         }
-        escolheu = mapa_escolheu.get(situacao, "R")
+        escolheu = mapa_escolheu.get(situacao, "R")  # type: ignore[arg-type]
         codigo_integracao = ""
 
         if situacao == "escolha":
@@ -112,15 +111,14 @@ def gerar_conteudo_lote(
 
 
 def exportar_lote(instance: ExportacaoLote) -> str:
-    """
-    Orquestra a exportação de um lote:
+    """Orquestra a exportação de um lote:.
+
     1. Busca candidatos do lote.
     2. Busca escolhas dos candidatos para o concurso.
     3. Valida que todos têm escolha (levanta ExportacaoLoteIncompletaException
     se não).
     4. Gera e retorna o conteúdo do arquivo.
     """
-
     # 1. Buscar candidatos do lote
     # Usa numero_lote quando disponível (novos registros); fallback para lote_uuid (registros antigos)  # noqa: E501
 

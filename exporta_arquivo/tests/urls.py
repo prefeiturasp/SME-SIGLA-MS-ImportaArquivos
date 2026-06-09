@@ -1,5 +1,5 @@
-"""
-URLconf mínimo para testes do exporta_arquivo (evita carregar importa_arquivos
+"""URLconf mínimo para testes do exporta_arquivo (evita carregar importa_arquivos.
+
 e outras apps).
 """
 
