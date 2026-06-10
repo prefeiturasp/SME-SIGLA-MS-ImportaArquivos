@@ -1,4 +1,4 @@
-"""Django management command para criar o cabeçalho padrão de exportação de.
+"""Comando para criar o cabeçalho padrão de exportação de lote.
 
 Cria um registro de CabecalhoExportacaoLote com os valores padrão do formato
 ERGON/SIGPEC. Se já existir um registro ativo, não cria duplicata (use --force
@@ -19,47 +19,40 @@ from exporta_arquivo.models import CabecalhoExportacaoLote
 
 TABELA_PADRAO = "[c_ERGON][PMSP_ESCOLHA_VAGA_SME][1.0]"
 CHAVE_PADRAO = "[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER]"
-COLUNAS_PADRAO = "[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER][DATA_ESCOLHA][DATE][ESCOLHEU_VAGA][VARCHAR2][SETOR][VARCHAR2]"  # noqa: E501
+COLUNAS_PADRAO = (
+    "[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER]"
+    "[DATA_ESCOLHA][DATE][ESCOLHEU_VAGA][VARCHAR2][SETOR][VARCHAR2]"
+)
 
 
 class Command(BaseCommand):
-    """Representa Command."""
+    """Cria o cabeçalho padrão de exportação de lotes ERGON/SIGPEC."""
 
-    help = "Cria o cabeçalho padrão para exportação de lotes (formato ERGON/SIGPEC)"  # noqa: E501
+    help = (
+        "Cria o cabeçalho padrão para exportação de lotes "
+        "(formato ERGON/SIGPEC)"
+    )
 
     def add_arguments(self, parser: Any) -> None:
-        """Registra argumentos da linha de comando.
-
-        Args:
-            self: Instância do objeto.
-            parser: Parser utilizado na operação.
-
-        Returns:
-            Nenhum valor.
-        """
+        """Registra os argumentos da linha de comando."""
         parser.add_argument(
             "--force",
             action="store_true",
-            help="Desativa registros existentes e cria um novo cabeçalho padrão",  # noqa: E501
+            help=(
+                "Desativa registros existentes e cria um novo "
+                "cabeçalho padrão"
+            ),
         )
 
     def handle(self, *args: Any, **options: Any) -> None:
-        """A lógica principal do comando.
-
-        Args:
-            self: Instância do objeto.
-            *args: Argumentos posicionais variáveis.
-            **options: Opções do comando de management.
-
-        Returns:
-            Nenhum valor.
-        """
+        """Cria ou recria o cabeçalho padrão de exportação."""
         force = options["force"]
         existente = CabecalhoExportacaoLote.objects.filter(ativo=True).first()
         if existente and (not force):
             self.stdout.write(
                 self.style.WARNING(
-                    f"Já existe um cabeçalho ativo (UUID={existente.uuid}). Use --force para criar um novo desativando o atual."  # noqa: E501
+                    f"Já existe um cabeçalho ativo (UUID={existente.uuid}). "
+                    "Use --force para criar um novo desativando o atual."
                 )
             )
             return

@@ -59,14 +59,7 @@ class CabecalhoExportacaoLote(models.Model):
         ordering = ["-criado_em"]
 
     def __str__(self) -> Any:
-        """Retorna representação textual do registro.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Valor calculado conforme a regra aplicada.
-        """
+        """Retorna UUID e situação do cabeçalho."""
         return (
             f'Cabeçalho {self.uuid} ({('ativo' if self.ativo else 'inativo')})'
         )
@@ -78,10 +71,18 @@ class CabecalhoExportacaoLote(models.Model):
             self: Instância do objeto.
 
         Returns:
-            Texto resultante da operação.
+            Bloco de texto com as diretivas do cabeçalho ERGON/SIGPEC.
         """
         sep = self.separador
-        return f"@TABELA={self.tabela}\n@CHAVE={self.chave}\n@TAG INICIO={self.tag_inicio}\n@TAG FIM={self.tag_fim}\n@SEPARADOR={sep}\n@FORMATO DATA={self.formato_data}\n@COLUNAS={self.colunas}\n"  # noqa: E501
+        return (
+            f"@TABELA={self.tabela}\n"
+            f"@CHAVE={self.chave}\n"
+            f"@TAG INICIO={self.tag_inicio}\n"
+            f"@TAG FIM={self.tag_fim}\n"
+            f"@SEPARADOR={sep}\n"
+            f"@FORMATO DATA={self.formato_data}\n"
+            f"@COLUNAS={self.colunas}\n"
+        )
 
 
 auditlog.register(CabecalhoExportacaoLote)

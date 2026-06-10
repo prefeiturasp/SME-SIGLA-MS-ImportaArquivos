@@ -19,14 +19,7 @@ class BaseExportacaoException(Exception):
         self.detalhes = detalhes or ""
 
     def __str__(self) -> str:
-        """Retorna representação textual do registro.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Texto resultante da operação.
-        """
+        """Retorna a mensagem principal do erro."""
         return self.mensagem
 
 
@@ -94,8 +87,6 @@ class ExportacaoLoteIncompletaException(BaseExportacaoException):
             detalhes: Detalhes complementares do erro.
         """
         self.candidatos_sem_escolha = candidatos_sem_escolha
-        msg = (
-            mensagem
-            or f"{len(candidatos_sem_escolha)} candidato(s) sem escolha no lote."  # noqa: E501
-        )
+        qtd = len(candidatos_sem_escolha)
+        msg = mensagem or f"{qtd} candidato(s) sem escolha no lote."
         super().__init__(mensagem=msg, detalhes=detalhes or "")

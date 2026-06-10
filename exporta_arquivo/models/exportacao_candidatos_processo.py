@@ -31,15 +31,11 @@ class ExportacaoCandidatosProcesso(BaseModel):
         ordering = ["-criado_em"]
 
     def __str__(self) -> Any:
-        """Retorna representação textual do registro.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Valor calculado conforme a regra aplicada.
-        """
-        return f"Exportação {self.uuid} (processo={self.processo_uuid}, cargo={self.cargo_uuid})"
+        """Retorna UUID, processo e cargo."""
+        return (
+            f"Exportação {self.uuid} "
+            f"(processo={self.processo_uuid}, cargo={self.cargo_uuid})"
+        )
 
 
 auditlog.register(ExportacaoCandidatosProcesso)

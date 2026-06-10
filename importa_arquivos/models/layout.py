@@ -32,14 +32,7 @@ class LayoutArquivoImportacao(BaseModel):
         ordering = ["-criado_em"]
 
     def __str__(self) -> Any:
-        """Retorna representação textual do registro.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Valor calculado conforme a regra aplicada.
-        """
+        """Retorna o tipo do layout de importação."""
         return self.tipo
 
 

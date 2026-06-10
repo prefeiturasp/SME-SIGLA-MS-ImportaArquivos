@@ -50,14 +50,13 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
         ]
 
     def get_erros(self, obj: Any) -> Any:
-        """Retorna erros.
+        """Obtém erros vinculados à importação.
 
         Args:
-            self: Instância do objeto.
-            obj: Obj utilizado na operação.
+            obj: Instância da importação em listagem.
 
         Returns:
-            Valor calculado para o campo ou propriedade.
+            Lista de erros da importação ou None se vazio.
         """
         if ImportacaoEscolhasListSerializer._content_type_cache is None:
             ImportacaoEscolhasListSerializer._content_type_cache = (
@@ -81,14 +80,13 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
         return erros_list
 
     def get_processo_nome(self, obj: Any) -> Any:
-        """Retorna processo nome.
+        """Obtém nome do processo para serialização.
 
         Args:
-            self: Instância do objeto.
-            obj: Obj utilizado na operação.
+            obj: Instância da importação em listagem.
 
         Returns:
-            Valor calculado para o campo ou propriedade.
+            Nome do processo ou None quando indisponível.
         """
         return None
 
@@ -103,18 +101,7 @@ class ResponseSerializer(serializers.Serializer):
     )
 
     def validate_lstDadosResultadoConvocacaoIngresso(self, value: Any) -> Any:
-        """Valida estrutura dos dados de resultado.
-
-        Args:
-            self: Instância do objeto.
-            value: Valor recebido para validação.
-
-        Returns:
-            Valor validado do campo lstDadosResultadoConvocacaoIngresso.
-
-        Raises:
-            ValidationError: Se os dados não passarem na validação.
-        """
+        """Valida estrutura dos dados de resultado da Prodam."""
         for item in value:
             if not isinstance(item, dict):
                 raise serializers.ValidationError(
@@ -155,18 +142,7 @@ class EscolhasImportacaoSerializer(serializers.Serializer):
     )
 
     def validate_escolhas(self, value: Any) -> Any:
-        """Valida estrutura das escolhas.
-
-        Args:
-            self: Instância do objeto.
-            value: Valor recebido para validação.
-
-        Returns:
-            Valor validado do campo escolhas.
-
-        Raises:
-            ValidationError: Se os dados não passarem na validação.
-        """
+        """Valida estrutura das escolhas enviadas ao MS-Escolhas."""
         for escolha in value:
             required_fields = ["cpf", "codigo_cargo", "situacao"]
             for field in required_fields:

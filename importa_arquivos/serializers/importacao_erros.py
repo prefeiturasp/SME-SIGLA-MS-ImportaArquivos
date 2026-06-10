@@ -25,14 +25,14 @@ class ImportacaoErrosListSerializer(serializers.Serializer):
     erros = serializers.CharField()
 
     def to_representation(self, instance: ImportacaoErro) -> Any:
-        """To representation.
+        """Monta a representação serializada do erro.
 
         Args:
             self: Instância do objeto.
-            instance: Instância do modelo em atualização.
+            instance: Instância do modelo em serialização.
 
         Returns:
-            Valor calculado conforme a regra aplicada.
+            Dicionário pronto para resposta da API.
         """
         data = {
             "mensagem": instance.mensagem,
@@ -59,14 +59,14 @@ class ImportacaoErrosListSerializer(serializers.Serializer):
 def queryset_erros_por_modelo(
     model_cls: Any, importacao_uuid: Any = None
 ) -> Any:
-    """Queryset erros por modelo.
+    """Monta queryset de erros filtrado por modelo de importação.
 
     Args:
-        model_cls: Model cls utilizado na operação.
-        importacao_uuid: UUID de importacao.
+        model_cls: Classe do modelo de importação.
+        importacao_uuid: UUID da importação, se informado.
 
     Returns:
-        Valor calculado conforme a regra aplicada.
+        QuerySet de ImportacaoErro correspondente aos filtros.
     """
     content_type = ContentType.objects.get_for_model(model_cls)
     qs = ImportacaoErro.objects.filter(content_type=content_type)

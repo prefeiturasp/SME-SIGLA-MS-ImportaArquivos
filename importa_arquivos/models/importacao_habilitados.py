@@ -29,14 +29,7 @@ class ImportacaoArquivoHabilitado(BaseModelArquivoImportacao):
         ordering = ["-criado_em"]
 
     def __str__(self) -> Any:
-        """Retorna representação textual do registro.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Valor calculado conforme a regra aplicada.
-        """
+        """Retorna o nome do arquivo de habilitados."""
         return self.nome_arquivo
 
 

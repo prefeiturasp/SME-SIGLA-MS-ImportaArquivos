@@ -65,15 +65,11 @@ class ExportacaoLote(models.Model):
         ordering = ["-criado_em"]
 
     def __str__(self) -> Any:
-        """Retorna representação textual do registro.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Valor calculado conforme a regra aplicada.
-        """
-        return f"Exportação Lote {self.uuid} (concurso={self.concurso_uuid}, lote={self.lote_uuid})"
+        """Retorna UUID, concurso e lote da exportação."""
+        return (
+            f"Exportação Lote {self.uuid} "
+            f"(concurso={self.concurso_uuid}, lote={self.lote_uuid})"
+        )
 
 
 auditlog.register(ExportacaoLote)

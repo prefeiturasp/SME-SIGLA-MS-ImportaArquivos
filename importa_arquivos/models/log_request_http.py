@@ -30,12 +30,6 @@ class LogRequestHttp(BaseModel):
         ordering = ["-criado_em"]
 
     def __str__(self) -> Any:
-        """Retorna representação textual do registro.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Valor calculado conforme a regra aplicada.
-        """
-        return f'Log - {self.metodo_http} {self.url} - Processo: {self.processo_id or 'N/A'}'  # noqa: E501
+        """Retorna método, URL e processo do log HTTP."""
+        processo = self.processo_id or "N/A"
+        return f"Log - {self.metodo_http} {self.url} - Processo: {processo}"
