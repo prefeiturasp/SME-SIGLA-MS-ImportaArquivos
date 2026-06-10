@@ -34,7 +34,6 @@ class ApiLoteCandidatosService:
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
@@ -53,16 +52,16 @@ class ApiLoteCandidatosService:
         """Realiza GET padronizado na API de lotes.
 
         Args:
-            self: Instância do objeto.
-            url: Url utilizado na operação.
-            params: Params utilizado na operação.
-            descricao_contexto: Descricao contexto utilizado na operação.
+            url: URL do endpoint remoto.
+            params: Parâmetros enviados na query string.
+            descricao_contexto: Descrição do contexto para logs de erro.
 
         Returns:
             Lista com os registros obtidos.
 
         Raises:
-            ExportacaoNotFoundException: Se ocorrer erro nesta operação.
+            ExportacaoNotFoundException: Quando os dados não são encontrados ou
+                a API está indisponível.
             ExportacaoServiceUnavailableException: Serviço indisponível.
         """
         try:
@@ -123,7 +122,6 @@ class ApiLoteCandidatosService:
         """Retorna candidatos lote.
 
         Args:
-            self: Instância do objeto.
             lote_uuid: UUID de lote.
 
         Returns:
@@ -139,9 +137,8 @@ class ApiLoteCandidatosService:
         """Retorna candidatos por numero lote.
 
         Args:
-            self: Instância do objeto.
             concurso_uuid: UUID do concurso relacionado.
-            numero_lote: Numero lote utilizado na operação.
+            numero_lote: Número do lote de exportação.
 
         Returns:
             Lista com os registros obtidos.
@@ -163,7 +160,6 @@ class ApiLoteEscolhasService:
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
@@ -185,8 +181,7 @@ class ApiLoteEscolhasService:
         """Retorna escolhas lote.
 
         Args:
-            self: Instância do objeto.
-            candidato_uuids: Candidato uuids utilizado na operação.
+            candidato_uuids: UUIDs dos candidatos consultados.
             concurso_uuid: UUID do concurso relacionado.
 
         Returns:

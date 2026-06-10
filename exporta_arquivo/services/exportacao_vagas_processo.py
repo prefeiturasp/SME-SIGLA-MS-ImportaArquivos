@@ -20,11 +20,11 @@ def formatar_arquivo_vagas_processo(
     """Recebe código do cargo (int) e lista de dicts com chaves 'setor'.
 
     Args:
-        codigo_cargo: Codigo cargo utilizado na operação.
-        linhas: Linhas utilizado na operação.
+        codigo_cargo: Código numérico do cargo.
+        linhas: Linhas de vagas agrupadas por escola.
 
     Returns:
-        Texto resultante da operação.
+        Conteúdo textual gerado.
     """
     partes: list[str] = []
     for item in linhas:
@@ -43,7 +43,7 @@ def buscar_vagas_escolas(
 
     Args:
         processo_uuid: UUID do processo de convocação.
-        cargo_codigo: Cargo codigo utilizado na operação.
+        cargo_codigo: Código numérico do cargo.
 
     Returns:
         Lista com os registros obtidos.

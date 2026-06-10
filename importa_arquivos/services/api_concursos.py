@@ -19,7 +19,6 @@ class ApiConcursosService:
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
@@ -30,14 +29,14 @@ class ApiConcursosService:
         """Obtém codigos cargo do concurso.
 
         Args:
-            self: Instância do objeto.
             concurso_uuid: UUID do concurso relacionado.
 
         Returns:
-            Valor calculado conforme a regra aplicada.
+            Conjunto de códigos inteiros dos cargos vinculados ao concurso.
 
         Raises:
-            CargoConcursoInvalidoException: Se ocorrer erro nesta operação.
+            CargoConcursoInvalidoException: Quando o concurso é inválido ou
+                a API está indisponível.
         """
         url = f"{self.base_url}/api/v1/concursos/{concurso_uuid}/"
         try:

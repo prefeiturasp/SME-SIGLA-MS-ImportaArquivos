@@ -27,10 +27,10 @@ def formatar_arquivo_sigpec(vagas_listas: list[dict[str, Any]]) -> str:
     """Formata lista de vagas no layout texto exigido pelo SIGPEC.
 
     Args:
-        vagas_listas: Vagas listas utilizado na operação.
+        vagas_listas: Lista de vagas por escola para o arquivo SIGPEC.
 
     Returns:
-        Texto resultante da operação.
+        Conteúdo textual gerado.
     """
     partes = list(SIGPEC_HEADER_LINES)
     for item in vagas_listas:
@@ -50,7 +50,7 @@ def buscar_vagas_escolas(
 
     Args:
         processo_uuid: UUID do processo de convocação.
-        cargo_codigo: Cargo codigo utilizado na operação.
+        cargo_codigo: Código numérico do cargo.
 
     Returns:
         Lista com os registros obtidos.

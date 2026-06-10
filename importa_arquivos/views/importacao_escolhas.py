@@ -49,11 +49,8 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self) -> Any:
         """Retorna serializer class.
 
-        Args:
-            self: Instância do objeto.
-
         Returns:
-            Valor calculado para o campo ou propriedade.
+            Valor convertido ou validado.
         """
         if self.action in ("list", "retrieve"):
             return ImportacaoEscolhasListSerializer
@@ -63,7 +60,6 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
         """Cria uma nova importação de escolhas.
 
         Args:
-            self: Instância do objeto.
             request: Requisição HTTP recebida.
             *args: Argumentos posicionais variáveis.
             **kwargs: Argumentos nomeados variáveis.
@@ -216,11 +212,10 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
         """Lista erros.
 
         Args:
-            self: Instância do objeto.
             request: Requisição HTTP recebida.
 
         Returns:
-            Valor calculado conforme a regra aplicada.
+            Valor convertido ou validado.
         """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
         qs = queryset_erros_por_modelo(
@@ -234,11 +229,10 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
         """Download dos erros de importação de escolhas em formato texto.
 
         Args:
-            self: Instância do objeto.
             request: Requisição HTTP recebida.
 
         Returns:
-            Valor calculado conforme a regra aplicada.
+            Valor convertido ou validado.
         """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
         qs = queryset_erros_por_modelo(

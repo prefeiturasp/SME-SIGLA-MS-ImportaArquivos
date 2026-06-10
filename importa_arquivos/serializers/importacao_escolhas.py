@@ -87,7 +87,7 @@ class ResponseSerializer(serializers.Serializer):
     )
 
     def validate_lstDadosResultadoConvocacaoIngresso(self, value: Any) -> Any:
-        """Valida estrutura dos dados de resultado da Prodam."""
+        """Valida lstDadosResultadoConvocacaoIngresso."""
         for item in value:
             if not isinstance(item, dict):
                 raise serializers.ValidationError(
@@ -128,7 +128,7 @@ class EscolhasImportacaoSerializer(serializers.Serializer):
     )
 
     def validate_escolhas(self, value: Any) -> Any:
-        """Valida estrutura das escolhas enviadas ao MS-Escolhas."""
+        """Valida escolhas."""
         for escolha in value:
             required_fields = ["cpf", "codigo_cargo", "situacao"]
             for field in required_fields:

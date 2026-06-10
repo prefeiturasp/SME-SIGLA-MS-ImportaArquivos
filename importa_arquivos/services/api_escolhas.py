@@ -29,7 +29,6 @@ class ApiEscolhasService:
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
@@ -46,9 +45,8 @@ class ApiEscolhasService:
         """Transforma os registros do CSV para o formato esperado pela API.
 
         Args:
-            self: Instância do objeto.
-            registros: Registros utilizado na operação.
-            estrutura: Estrutura utilizado na operação.
+            registros: Lista de registros lidos do arquivo ou da API.
+            estrutura: Definição de colunas do layout de importação.
 
         Returns:
             Lista com os registros obtidos.
@@ -90,20 +88,21 @@ class ApiEscolhasService:
         """Envia vagas.
 
         Args:
-            self: Instância do objeto.
-            registros: Registros utilizado na operação.
-            estrutura: Estrutura utilizado na operação.
+            registros: Lista de registros lidos do arquivo ou da API.
+            estrutura: Definição de colunas do layout de importação.
             processo_uuid: UUID do processo de convocação.
-            processo_nome: Processo nome utilizado na operação.
-            headers: Headers utilizado na operação.
-            importacao_obj: Importacao obj utilizado na operação.
+            processo_nome: Nome do processo exibido na resposta.
+            headers: Cabeçalhos HTTP da requisição.
+            importacao_obj: Registro de importação em andamento.
 
         Returns:
-            Dicionário com os dados retornados pela operação.
+            Dicionário com os dados processados.
 
         Raises:
-            ApiEscolhasException: Se ocorrer erro nesta operação.
-            TipoUEDesabilitadoException: Se ocorrer erro nesta operação.
+            ApiEscolhasException: Quando a API de escolhas falha ou retorna
+                erro.
+            TipoUEDesabilitadoException: Quando o tipo de UE informado está
+                desabilitado para importação.
         """
         url = f"{self.base_url}/api/v1/vagas-escolas/"
         merged_headers = {**self._default_headers, **(headers or {})}
@@ -153,8 +152,7 @@ class ApiEscolhasService:
         """Converte payload Prodam para o formato do MS-Escolhas.
 
         Args:
-            self: Instância do objeto.
-            dados_prodam: Dados prodam utilizado na operação.
+            dados_prodam: Payload retornado pela API Prodam.
 
         Returns:
             Lista com os registros obtidos.
@@ -188,18 +186,18 @@ class ApiEscolhasService:
         """Envia escolhas prodam.
 
         Args:
-            self: Instância do objeto.
             processo_uuid: UUID do processo de convocação.
             concurso_uuid: UUID do concurso relacionado.
-            dados_prodam: Dados prodam utilizado na operação.
-            headers: Headers utilizado na operação.
-            importacao_obj: Importacao obj utilizado na operação.
+            dados_prodam: Payload retornado pela API Prodam.
+            headers: Cabeçalhos HTTP da requisição.
+            importacao_obj: Registro de importação em andamento.
 
         Returns:
-            Dicionário com os dados retornados pela operação.
+            Dicionário com os dados processados.
 
         Raises:
-            ApiEscolhasException: Se ocorrer erro nesta operação.
+            ApiEscolhasException: Quando a API de escolhas falha ou retorna
+                erro.
         """
         url = f"{self.base_url}/api/v1/escolhas/importacao-prodam/"
         merged_headers = {**self._default_headers, **(headers or {})}

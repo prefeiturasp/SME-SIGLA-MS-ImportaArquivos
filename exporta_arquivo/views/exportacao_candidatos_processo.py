@@ -34,11 +34,10 @@ class ExportacaoCandidatosProcessoViewSet(BaseExportacaoViewSet):
         """Gera arquivo.
 
         Args:
-            self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Nenhum valor.
+            Nenhum valor; persiste alterações no banco.
         """
         conteudo = exportar_candidatos_processo(instance)
         desc_safe = self.sanitizar_nome_arquivo(

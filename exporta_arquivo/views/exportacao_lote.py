@@ -138,12 +138,11 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
         """Redownload do arquivo exportado (sucesso ou erro).
 
         Args:
-            self: Instância do objeto.
             request: Requisição HTTP recebida.
             uuid: Identificador único do registro.
 
         Returns:
-            Valor calculado conforme a regra aplicada.
+            Valor convertido ou validado.
         """
         instance = self.get_object()
         if not instance.conteudo_arquivo:

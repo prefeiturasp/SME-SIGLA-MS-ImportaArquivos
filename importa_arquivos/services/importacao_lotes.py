@@ -34,9 +34,9 @@ def _validar_linha_lote(
     """Valida uma linha do arquivo de lotes via schema Pydantic.
 
     Args:
-        row: Row utilizado na operação.
-        num_linha: Num linha utilizado na operação.
-        lote_referencia: Lote referencia utilizado na operação.
+        row: Linha do CSV em processamento.
+        num_linha: Número da linha no arquivo (1-based).
+        lote_referencia: Número do lote esperado nas demais linhas.
 
     Returns:
         Tupla com os objetos criados ou atualizados.
@@ -78,8 +78,8 @@ def validar_txt_lotes(
     """Valida txt lotes.
 
     Args:
-        arquivo: Arquivo utilizado na operação.
-        importacao_obj: Importacao obj utilizado na operação.
+        arquivo: Arquivo enviado para importação.
+        importacao_obj: Registro de importação em andamento.
 
     Returns:
         Lista com os registros obtidos.

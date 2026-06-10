@@ -24,13 +24,13 @@ def registrar_erro(
     """Registrar erro.
 
     Args:
-        importacao_obj: Importacao obj utilizado na operação.
+        importacao_obj: Registro de importação em andamento.
         mensagem: Mensagem principal do erro.
         detalhes: Detalhes complementares do erro.
-        exc: Exc utilizado na operação.
+        exc: Exceção capturada durante o processamento.
 
     Returns:
-        Valor calculado conforme a regra aplicada.
+        Registro de erro criado no banco.
 
     Raises:
         ValueError: Se os dados informados forem inválidos.
@@ -66,10 +66,10 @@ def captura_erros_importacao(
     """Decorator para funções de serviço de importação.
 
     Args:
-        param_nome_obj: Param nome obj utilizado na operação.
+        param_nome_obj: Nome do parâmetro que recebe o objeto de importação.
 
     Returns:
-        Valor calculado conforme a regra aplicada.
+        Decorador que registra falhas e relança a exceção original.
     """
 
     def decorator(func: Callable) -> Callable:

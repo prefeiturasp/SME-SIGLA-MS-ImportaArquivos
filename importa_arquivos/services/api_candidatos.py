@@ -29,7 +29,6 @@ class ApiCandidatosService:
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
@@ -46,9 +45,8 @@ class ApiCandidatosService:
         """Transforma os registros do CSV para o formato esperado pela API.
 
         Args:
-            self: Instância do objeto.
-            registros: Registros utilizado na operação.
-            estrutura: Estrutura utilizado na operação.
+            registros: Lista de registros lidos do arquivo ou da API.
+            estrutura: Definição de colunas do layout de importação.
 
         Returns:
             Lista com os registros obtidos.
@@ -85,19 +83,19 @@ class ApiCandidatosService:
         """Envia habilitados.
 
         Args:
-            self: Instância do objeto.
-            registros: Registros utilizado na operação.
-            estrutura: Estrutura utilizado na operação.
+            registros: Lista de registros lidos do arquivo ou da API.
+            estrutura: Definição de colunas do layout de importação.
             concurso_uuid: UUID do concurso relacionado.
-            concurso_nome: Concurso nome utilizado na operação.
-            headers: Headers utilizado na operação.
-            importacao_obj: Importacao obj utilizado na operação.
+            concurso_nome: Nome do concurso exibido na resposta.
+            headers: Cabeçalhos HTTP da requisição.
+            importacao_obj: Registro de importação em andamento.
 
         Returns:
-            Resposta HTTP com o resultado da operação.
+            Resposta HTTP com o arquivo para download.
 
         Raises:
-            ApiCandidatosException: Se ocorrer erro nesta operação.
+            ApiCandidatosException: Quando a API de candidatos falha ou
+                retorna erro.
         """
         url = f"{self.base_url}/api/v1/candidatos/"
         merged_headers = {**self._default_headers, **(headers or {})}
@@ -137,10 +135,9 @@ class ApiCandidatosService:
         """Salva lotes.
 
         Args:
-            self: Instância do objeto.
             concurso_uuid: UUID do concurso relacionado.
-            lotes: Lotes utilizado na operação.
-            importacao_obj: Importacao obj utilizado na operação.
+            lotes: Lista de lotes a persistir no serviço de candidatos.
+            importacao_obj: Registro de importação em andamento.
 
         Returns:
             Quantidade de registros processados.

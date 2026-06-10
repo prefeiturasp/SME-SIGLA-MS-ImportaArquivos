@@ -28,20 +28,20 @@ def _resolver_colunas(estrutura: list[dict]) -> dict:
     """Percorre estrutura uma única vez e retorna as colunas mapeadas por.
 
     Args:
-        estrutura: Estrutura utilizado na operação.
+        estrutura: Definição de colunas do layout de importação.
 
     Returns:
-        Dicionário com os dados retornados pela operação.
+        Dicionário com os dados processados.
     """
 
     def _eh_obrigatorio(valor: Any) -> Any:
         """Eh obrigatorio.
 
         Args:
-            valor: Valor utilizado na operação.
+            valor: Valor recebido para validação ou conversão.
 
         Returns:
-            Valor calculado conforme a regra aplicada.
+            Valor convertido ou validado.
         """
         try:
             return str(valor).strip() in ("1", "true", "True")
@@ -253,8 +253,8 @@ def validar_csv_habilitados(
     """Valida csv habilitados.
 
     Args:
-        arquivo: Arquivo utilizado na operação.
-        importacao_obj: Importacao obj utilizado na operação.
+        arquivo: Arquivo enviado para importação.
+        importacao_obj: Registro de importação em andamento.
 
     Returns:
         Tupla com os objetos criados ou atualizados.
@@ -285,8 +285,7 @@ def validar_csv_habilitados(
         raise LeituraCSVException(
             "Erro ao ler arquivo de Habilitados",
             detalhes=(
-                "Não foi possível ler o arquivo CSV. "
-                f"Detalhes: {exc!s}."
+                "Não foi possível ler o arquivo CSV. " f"Detalhes: {exc!s}."
             ),
         ) from exc
     headers_csv = set(reader.fieldnames or [])

@@ -10,7 +10,6 @@ class BaseExportacaoException(Exception):
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             mensagem: Mensagem principal do erro.
             detalhes: Detalhes complementares do erro.
         """
@@ -81,7 +80,6 @@ class ExportacaoLoteIncompletaException(BaseExportacaoException):
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             candidatos_sem_escolha: Candidatos sem escolha registrada.
             mensagem: Mensagem principal do erro.
             detalhes: Detalhes complementares do erro.

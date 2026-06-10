@@ -30,10 +30,10 @@ def _data_para_ddmmyyyy(val: Any) -> str:
     """Data para ddmmyyyy.
 
     Args:
-        val: Val utilizado na operação.
+        val: Valor bruto antes da formatação.
 
     Returns:
-        Texto resultante da operação.
+        Conteúdo textual gerado.
     """
     try:
         data_obj = datetime.fromisoformat(val.replace("Z", "+00:00"))
@@ -49,11 +49,11 @@ def gerar_conteudo_lote(
     """Gera conteudo lote.
 
     Args:
-        candidatos: Candidatos utilizado na operação.
-        escolhas_por_candidato: Escolhas por candidato utilizado na operação.
+        candidatos: Candidatos habilitados retornados pela API.
+        escolhas_por_candidato: Mapa de escolhas indexado por candidato.
 
     Returns:
-        Texto resultante da operação.
+        Conteúdo textual gerado.
     """
     cabecalho = """@TABELA=[c_ERGON][PMSP_ESCOLHA_VAGA_SME][1.0]
         @CHAVE=[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER]
@@ -126,10 +126,11 @@ def exportar_lote(instance: ExportacaoLote) -> str:
         instance: Instância do modelo em atualização.
 
     Returns:
-        Texto resultante da operação.
+        Conteúdo textual gerado.
 
     Raises:
-        ExportacaoLoteIncompletaException: Se ocorrer erro nesta operação.
+        ExportacaoLoteIncompletaException: Quando faltam candidatos ou
+            escolhas para completar o lote.
     """
     # 1. Buscar candidatos do lote
     # Usa numero_lote quando disponível (novos registros); fallback para lote_uuid (registros antigos)  # noqa: E501

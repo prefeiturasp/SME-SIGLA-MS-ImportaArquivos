@@ -37,11 +37,10 @@ class ExportacaoVagasProcessoViewSet(BaseExportacaoViewSet):
         """Gera arquivo.
 
         Args:
-            self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Valor calculado conforme a regra aplicada.
+            Resposta HTTP com o arquivo para download.
         """
         response = HttpResponse(
             instance.conteudo_arquivo.encode("utf-8"),
@@ -56,11 +55,10 @@ class ExportacaoVagasProcessoViewSet(BaseExportacaoViewSet):
         """A exportação vagas processo, gera o arquivo e persiste.
 
         Args:
-            self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Nenhum valor.
+            Nenhum valor; persiste alterações no banco.
         """
         vagas_escolas = buscar_vagas_escolas(
             str(instance.processo_uuid), instance.cargo_codigo

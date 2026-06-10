@@ -25,7 +25,6 @@ class ApiProdamService:
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
 
         Raises:

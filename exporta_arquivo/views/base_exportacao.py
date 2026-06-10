@@ -33,11 +33,11 @@ def _sanitizar_nome_arquivo(texto: str, max_len: int = 80) -> str:
     """Remove caracteres inválidos para nome de arquivo e limita tamanho.
 
     Args:
-        texto: Texto utilizado na operação.
-        max_len: Max len utilizado na operação.
+        texto: Texto de entrada a ser sanitizado.
+        max_len: Comprimento máximo permitido para o nome.
 
     Returns:
-        Texto resultante da operação.
+        Nome sanitizado, seguro para uso em arquivo.
     """
     if not texto or not isinstance(texto, str):
         return "arquivo"
@@ -76,11 +76,11 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
         """Sanitiza texto para uso seguro como nome de arquivo.
 
         Args:
-            texto: Texto utilizado na operação.
-            max_len: Max len utilizado na operação.
+            texto: Texto de entrada a ser sanitizado.
+            max_len: Comprimento máximo permitido para o nome.
 
         Returns:
-            Texto resultante da operação.
+            Conteúdo textual gerado.
         """
         return _sanitizar_nome_arquivo(texto, max_len)
 
@@ -133,37 +133,34 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
         """Gera arquivo.
 
         Args:
-            self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
             Nenhum valor.
 
         Raises:
-            NotImplementedError: Se ocorrer erro nesta operação.
+            NotImplementedError: Quando a subclasse não implementa o método.
         """
         raise NotImplementedError("Subclasse deve implementar gerar_arquivo.")
 
     def executar_exportacao(self, instance: Any) -> None:
-        """A exportação após create (ex.: chamar serviço com.
+        """Executa a exportação após o create e persiste conteúdo e nome.
 
         Args:
-            self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Nenhum valor.
+            Nenhum valor; persiste alterações no banco.
 
         Raises:
-            NotImplementedError: Se ocorrer erro nesta operação.
+            NotImplementedError: Quando a subclasse não implementa o método.
         """
         raise NotImplementedError(
             "Subclasse deve implementar executar_exportacao."
         )
 
     def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Cria o registro de exportação.
-        """
+        """Cria o registro de exportação e dispara a geração do arquivo."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
@@ -216,15 +213,14 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="download")
     def download(self, request: Any, uuid: Any = None) -> Any:
-        """Retorna o arquivo da exportação. Se o registro tiver.
+        """Retorna o arquivo .txt persistido no registro de exportação.
 
         Args:
-            self: Instância do objeto.
             request: Requisição HTTP recebida.
             uuid: Identificador único do registro.
 
         Returns:
-            Valor calculado conforme a regra aplicada.
+            Resposta HTTP com o arquivo para download.
         """
         instance = self.get_object()
         return self.gerar_arquivo(instance)

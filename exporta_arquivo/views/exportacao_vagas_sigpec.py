@@ -37,11 +37,10 @@ class ExportacaoVagasSigpecViewSet(BaseExportacaoViewSet):
         """Gera arquivo.
 
         Args:
-            self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Valor calculado conforme a regra aplicada.
+            Resposta HTTP com o arquivo para download.
         """
         response = HttpResponse(
             instance.conteudo_arquivo.encode("utf-8"),
@@ -53,14 +52,13 @@ class ExportacaoVagasSigpecViewSet(BaseExportacaoViewSet):
         return response
 
     def executar_exportacao(self, instance: Any) -> None:
-        """A exportação SIGPEC, gera o arquivo e persiste conteúdo e.
+        """Busca vagas, monta o arquivo SIGPEC e persiste conteúdo e nome.
 
         Args:
-            self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Nenhum valor.
+            Nenhum valor; persiste alterações no banco.
         """
         vagas_escolas = buscar_vagas_escolas(
             str(instance.processo_uuid), instance.cargo_codigo

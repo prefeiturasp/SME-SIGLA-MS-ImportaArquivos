@@ -31,7 +31,6 @@ class ApiConcursosService:
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
@@ -50,14 +49,14 @@ class ApiConcursosService:
         """Retorna concurso.
 
         Args:
-            self: Instância do objeto.
             concurso_uuid: UUID do concurso relacionado.
 
         Returns:
-            Dicionário com os dados retornados pela operação.
+            Dicionário com os dados processados.
 
         Raises:
-            ExportacaoNotFoundException: Se ocorrer erro nesta operação.
+            ExportacaoNotFoundException: Quando o concurso não é encontrado
+                ou a API está indisponível.
             ExportacaoServiceUnavailableException: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/concursos/{concurso_uuid}/"

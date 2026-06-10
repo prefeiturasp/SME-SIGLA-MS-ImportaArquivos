@@ -46,7 +46,10 @@ class CabecalhoExportacaoLote(models.Model):
     colunas = models.CharField(
         max_length=1000,
         verbose_name="@COLUNAS",
-        default="[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER][DATA_ESCOLHA][DATE][ESCOLHEU_VAGA][VARCHAR2][SETOR][VARCHAR2]",
+        default=(
+            "[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER]"
+            "[DATA_ESCOLHA][DATE][ESCOLHEU_VAGA][VARCHAR2][SETOR][VARCHAR2]"
+        ),
     )
     ativo = models.BooleanField(default=True, verbose_name="Ativo")
 
@@ -65,14 +68,7 @@ class CabecalhoExportacaoLote(models.Model):
         )
 
     def render(self) -> str:
-        """Gera o bloco de cabeçalho completo para o arquivo exportado.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Bloco de texto com as diretivas do cabeçalho ERGON/SIGPEC.
-        """
+        """Gera o bloco de cabeçalho completo para o arquivo exportado SIGPEC."""
         sep = self.separador
         return (
             f"@TABELA={self.tabela}\n"

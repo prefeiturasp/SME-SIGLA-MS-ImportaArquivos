@@ -10,7 +10,6 @@ class BaseImportacaoException(Exception):
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             mensagem: Mensagem principal do erro.
             detalhes: Detalhes complementares do erro.
         """
@@ -72,11 +71,10 @@ class ApiCandidatosException(BaseImportacaoException):
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             mensagem: Mensagem principal do erro.
             detalhes: Detalhes complementares do erro.
-            status_code: Status code utilizado na operação.
-            code: Code utilizado na operação.
+            status_code: Código HTTP retornado pelo serviço externo.
+            code: Código de erro de negócio.
         """
         super().__init__(mensagem=mensagem, detalhes=detalhes)
         self.status_code = status_code
@@ -96,11 +94,10 @@ class ApiEscolhasException(BaseImportacaoException):
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             mensagem: Mensagem principal do erro.
             detalhes: Detalhes complementares do erro.
-            status_code: Status code utilizado na operação.
-            code: Code utilizado na operação.
+            status_code: Código HTTP retornado pelo serviço externo.
+            code: Código de erro de negócio.
         """
         super().__init__(mensagem=mensagem, detalhes=detalhes)
         self.status_code = status_code

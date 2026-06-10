@@ -30,7 +30,6 @@ class ApiCandidatosService:
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
@@ -47,7 +46,6 @@ class ApiCandidatosService:
         """Retorna habilitados.
 
         Args:
-            self: Instância do objeto.
             **kwargs: Argumentos nomeados variáveis.
 
         Returns:

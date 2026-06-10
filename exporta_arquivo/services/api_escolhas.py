@@ -26,7 +26,6 @@ class ApiEscolhasService:
         """Inicializa a instância com os parâmetros informados.
 
         Args:
-            self: Instância do objeto.
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
@@ -45,12 +44,11 @@ class ApiEscolhasService:
         """Retorna vagas escolas.
 
         Args:
-            self: Instância do objeto.
             processo_uuid: UUID do processo de convocação.
-            cargo_codigo: Cargo codigo utilizado na operação.
+            cargo_codigo: Código numérico do cargo.
 
         Returns:
-            Dicionário com os dados retornados pela operação.
+            Dicionário com os dados processados.
 
         Raises:
             EscolhasServiceUnavailableException: Serviço indisponível.
@@ -111,8 +109,7 @@ class ApiEscolhasService:
         """Retorna escolhas.
 
         Args:
-            self: Instância do objeto.
-            candidato_uuids: Candidato uuids utilizado na operação.
+            candidato_uuids: UUIDs dos candidatos consultados.
             concurso_uuid: UUID do concurso relacionado.
 
         Returns:

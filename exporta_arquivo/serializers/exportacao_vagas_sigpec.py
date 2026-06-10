@@ -41,7 +41,7 @@ class VagasPayloadSerializer(serializers.Serializer):
     vagas = VagaInputSerializer(many=True, required=True)
 
     def validate_vagas(self, value: Any) -> Any:
-        """Valida se há ao menos uma vaga informada."""
+        """Valida vagas."""
         if not value:
             raise serializers.ValidationError(
                 "Pelo menos uma vaga deve ser enviada."
