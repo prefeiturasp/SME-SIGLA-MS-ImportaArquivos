@@ -22,15 +22,7 @@ class ImportacaoArquivoHabilitadosCreateSerializer(
         fields = ["arquivo", "concurso_uuid", "concurso_nome"]
 
     def create(self, validated_data: Any) -> Any:
-        """Cria e persiste o registro a partir dos dados validados.
-
-        Args:
-            self: Instância do objeto.
-            validated_data: Dados validados pelo serializer.
-
-        Returns:
-            Instância criada e persistida no banco.
-        """
+        """Cria e persiste o registro a partir dos dados validados."""
         arquivo = validated_data.get("arquivo")
         nome_arquivo = (
             getattr(arquivo, "name", None) or "Importação de Habilitados"
@@ -65,14 +57,7 @@ class ImportacaoArquivoHabilitadosListSerializer(serializers.ModelSerializer):
         read_only_fields = ["uuid", "criado_em", "atualizado_em", "erros"]
 
     def get_erros(self, obj: Any) -> Any:
-        """Obtém erros vinculados à importação.
-
-        Args:
-            obj: Instância da importação em listagem.
-
-        Returns:
-            Lista de erros da importação ou None se vazio.
-        """
+        """Obtém erros vinculados à importação de habilitados."""
         if (
             ImportacaoArquivoHabilitadosListSerializer._content_type_cache
             is None

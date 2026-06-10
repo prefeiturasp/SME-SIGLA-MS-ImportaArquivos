@@ -17,7 +17,7 @@ from ..models import (
 
 
 class ImportacaoErrosListSerializer(serializers.Serializer):
-    """Serializer do modelo ImportacaoErrosList."""
+    """Serializer para listagem de erros de importação."""
 
     concurso_uuid = serializers.UUIDField(required=False, allow_null=True)
     processo_uuid = serializers.UUIDField(required=False, allow_null=True)
@@ -25,15 +25,7 @@ class ImportacaoErrosListSerializer(serializers.Serializer):
     erros = serializers.CharField()
 
     def to_representation(self, instance: ImportacaoErro) -> Any:
-        """Monta a representação serializada do erro.
-
-        Args:
-            self: Instância do objeto.
-            instance: Instância do modelo em serialização.
-
-        Returns:
-            Dicionário pronto para resposta da API.
-        """
+        """Monta a representação serializada do erro de acordo com o modelo da importação."""
         data = {
             "mensagem": instance.mensagem,
             "erros": instance.erros,
@@ -59,14 +51,14 @@ class ImportacaoErrosListSerializer(serializers.Serializer):
 def queryset_erros_por_modelo(
     model_cls: Any, importacao_uuid: Any = None
 ) -> Any:
-    """Monta queryset de erros filtrado por modelo de importação.
+    """Monta queryset de erros filtrado por modelo e UUID da importação.
 
     Args:
         model_cls: Classe do modelo de importação.
         importacao_uuid: UUID da importação, se informado.
 
     Returns:
-        QuerySet de ImportacaoErro correspondente aos filtros.
+        QuerySet de ImportacaoErro filtrado por modelo e UUID da importação.
     """
     content_type = ContentType.objects.get_for_model(model_cls)
     qs = ImportacaoErro.objects.filter(content_type=content_type)

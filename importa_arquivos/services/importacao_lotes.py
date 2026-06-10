@@ -85,10 +85,10 @@ def validar_txt_lotes(
         Lista com os registros obtidos.
 
     Raises:
-        ArquivoLotesVazioException: Se ocorrer erro nesta operação.
-        ColunaCSVInvalidaException: Se ocorrer erro nesta operação.
-        ErrosValidacaoLotesException: Se ocorrer erro nesta operação.
-        LeituraCSVException: Se ocorrer erro nesta operação.
+        ArquivoLotesVazioException: Se não tiver texto.
+        ColunaCSVInvalidaException: Se tiver colunas inválidas.
+        ErrosValidacaoLotesException: Se tiver erros de validação.
+        LeituraCSVException: Se não conseguir ler o arquivo CSV.
     """
     try:
         file_bytes = arquivo.read()
@@ -110,7 +110,10 @@ def validar_txt_lotes(
     if colunas_faltando:
         raise ColunaCSVInvalidaException(
             mensagem="Cabecalho invalido para importacao de lotes.",
-            detalhes=f"Colunas ausentes: {sorted(colunas_faltando)}. Esperado: {sorted(COLUNAS_ESPERADAS)}",  # noqa: E501
+            detalhes=(
+                f"Colunas ausentes: {sorted(colunas_faltando)}. "
+                f"Esperado: {sorted(COLUNAS_ESPERADAS)}."
+            ),
         )
     registros: list[dict[str, Any]] = []
     erros: list[str] = []

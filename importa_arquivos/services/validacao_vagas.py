@@ -23,19 +23,19 @@ logger = logging.getLogger(__name__)
 def validar_csv_vagas(
     arquivo: Any, importacao_obj: Any = None
 ) -> tuple[list[dict], list[dict]]:
-    """Valida csv vagas.
+    """O arquivo CSV deve conter as colunas: DataFechamentoModulo.
 
     Args:
-        arquivo: Arquivo utilizado na operação.
-        importacao_obj: Importacao obj utilizado na operação.
+        arquivo: Arquivo CSV a ser validado.
+        importacao_obj: Importacao obj associado à validação.
 
     Returns:
-        Tupla com os objetos criados ou atualizados.
+        Tupla com os registros obtidos e a estrutura do layout.
 
     Raises:
-        ColunaCSVInvalidaException: Se ocorrer erro nesta operação.
-        LayoutNaoConfiguradoException: Se ocorrer erro nesta operação.
-        LeituraCSVException: Se ocorrer erro nesta operação.
+        ColunaCSVInvalidaException: Se tiver colunas inválidas.
+        LayoutNaoConfiguradoException: Se não tiver layout configurado.
+        LeituraCSVException: Se não conseguir ler o arquivo CSV.
     """
     try:
         layout = LayoutArquivoImportacao.objects.filter(tipo="VAGAS").latest(

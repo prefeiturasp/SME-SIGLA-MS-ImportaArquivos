@@ -19,14 +19,7 @@ class BaseImportacaoException(Exception):
         self.detalhes = detalhes or ""
 
     def __str__(self) -> str:
-        """Retorna representação textual do registro.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Texto resultante da operação.
-        """
+        """Retorna representação textual da mensagem do erro."""
         return self.mensagem
 
 

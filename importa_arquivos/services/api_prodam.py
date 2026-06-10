@@ -38,18 +38,13 @@ class ApiProdamService:
         self._senha = settings.PRODAM_API_SENHA
         if not self._token or not self._usuario or (not self._senha):
             raise ValueError(
-                "Configurações da API externa não encontradas. Verifique PRODAM_API_TOKEN, PRODAM_API_USUARIO e PRODAM_API_SENHA no settings.py."
+                "Configurações da API externa não encontradas. Verifique "
+                "PRODAM_API_TOKEN, PRODAM_API_USUARIO e PRODAM_API_SENHA "
+                "no settings.py."
             )
 
     def _get_headers(self) -> dict[str, str]:
-        """Obtém headers.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Dicionário com os dados retornados pela operação.
-        """
+        """Obtém headers para a API PRODAM."""
         return {
             "Authorization": f"Basic {self._token}",
             "Content-Type": "application/json",
@@ -61,11 +56,10 @@ class ApiProdamService:
         """Consulta resultado de convocação/ingresso na API PRODAM.
 
         Args:
-            self: Instância do objeto.
             processo_id: Identificador de processo.
 
         Returns:
-            Dicionário com os dados retornados pela operação.
+            Dicionário com dados validados da resposta da API PRODAM
 
         Raises:
             RequestException: Se a chamada HTTP falhar.
@@ -102,7 +96,9 @@ class ApiProdamService:
             serializer = ResponseSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             logger.info(
-                f'Resposta API externa recebida: retorno={data.get('retorno')}, registros={len(data.get('lstDadosResultadoConvocacaoIngresso', []))}'
+                "Resposta API externa recebida: retorno=%s, registros=%s.",
+                data.get("retorno"),
+                len(data.get("lstDadosResultadoConvocacaoIngresso", [])),
             )
             return serializer.validated_data  # type: ignore[no-any-return]
         except RequestException as exc:

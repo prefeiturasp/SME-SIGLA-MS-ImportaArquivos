@@ -52,30 +52,13 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
     def get_serializer_class(self) -> Any:
-        """Retorna serializer class.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Valor calculado para o campo ou propriedade.
-        """
+        """Retorna serializer class de acordo com a action."""
         if self.action in ("list", "retrieve"):
             return ImportacaoArquivoVagasListSerializer
         return ImportacaoArquivoVagasCreateSerializer
 
     def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Create.
-
-        Args:
-            self: Instância do objeto.
-            request: Requisição HTTP recebida.
-            *args: Argumentos posicionais variáveis.
-            **kwargs: Argumentos nomeados variáveis.
-
-        Returns:
-            Resposta HTTP com os dados serializados.
-        """
+        """Cria uma nova importação de vagas."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
@@ -152,14 +135,10 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="erros/download")
     def download_erros(self, request: Any) -> Any:
-        """Download erros.
-
-        Args:
-            self: Instância do objeto.
-            request: Requisição HTTP recebida.
+        """Download dos erros de importação de vagas em formato texto.
 
         Returns:
-            Valor calculado conforme a regra aplicada.
+            Retorna o arquivo de erros em formato texto.
         """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
         qs = queryset_erros_por_modelo(

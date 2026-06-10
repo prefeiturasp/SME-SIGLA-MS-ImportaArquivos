@@ -73,26 +73,11 @@ def captura_erros_importacao(
     """
 
     def decorator(func: Callable) -> Callable:
-        """Decorator.
-
-        Args:
-            func: Func utilizado na operação.
-
-        Returns:
-            Valor calculado conforme a regra aplicada.
-        """
+        """Decorator para registrar erros de importação."""
 
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            """Wrapper.
-
-            Args:
-                *args: Argumentos posicionais variáveis.
-                **kwargs: Argumentos nomeados variáveis.
-
-            Returns:
-                Valor calculado conforme a regra aplicada.
-            """
+            """Wrapper para capturar erros de importação."""
             importacao_obj = kwargs.get(param_nome_obj)
             try:
                 return func(*args, **kwargs)

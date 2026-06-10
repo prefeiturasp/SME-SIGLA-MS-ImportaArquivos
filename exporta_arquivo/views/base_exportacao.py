@@ -85,30 +85,13 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
         return _sanitizar_nome_arquivo(texto, max_len)
 
     def get_serializer_class(self) -> Any:
-        """Retorna serializer class.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Valor calculado para o campo ou propriedade.
-        """
+        """Retorna serializer class de acordo com a action."""
         if self.action in ("list", "retrieve"):
             return self.list_serializer_class
         return self.create_serializer_class
 
     def list(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Lista registros ou retorna download direto pelos filtros.
-
-        Args:
-            self: Instância do objeto.
-            request: Requisição HTTP recebida.
-            *args: Argumentos posicionais variáveis.
-            **kwargs: Argumentos nomeados variáveis.
-
-        Returns:
-            Resposta HTTP com os dados serializados.
-        """
+        """Lista registros ou retorna download direto pelos filtros."""
         processo_uuid = request.query_params.get("processo_uuid", "").strip()
         cargo_uuid = request.query_params.get("cargo_uuid", "").strip()
         concurso_uuid = (
@@ -179,16 +162,7 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
         )
 
     def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Create.
-
-        Args:
-            self: Instância do objeto.
-            request: Requisição HTTP recebida.
-            *args: Argumentos posicionais variáveis.
-            **kwargs: Argumentos nomeados variáveis.
-
-        Returns:
-            Resposta HTTP com os dados serializados.
+        """Cria o registro de exportação.
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

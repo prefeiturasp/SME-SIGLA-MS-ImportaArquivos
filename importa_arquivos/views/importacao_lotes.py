@@ -55,30 +55,13 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
 
     def get_serializer_class(self) -> Any:
-        """Retorna serializer class.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Valor calculado para o campo ou propriedade.
-        """
+        """Retorna serializer class de acordo com a action."""
         if self.action in ("list", "retrieve"):
             return ImportacaoLotesListSerializer
         return ImportacaoLotesCreateSerializer
 
     def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Create.
-
-        Args:
-            self: Instância do objeto.
-            request: Requisição HTTP recebida.
-            *args: Argumentos posicionais variáveis.
-            **kwargs: Argumentos nomeados variáveis.
-
-        Returns:
-            Resposta HTTP com os dados serializados.
-        """
+        """Cria uma nova importação de lotes."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()

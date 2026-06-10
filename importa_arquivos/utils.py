@@ -19,15 +19,7 @@ class CustomPagination(PageNumberPagination):
     page_size_query_param = "page_size"
 
     def get_paginated_response(self, data: Any) -> Any:
-        """Retorna paginated response.
-
-        Args:
-            self: Instância do objeto.
-            data: Dados de entrada.
-
-        Returns:
-            Valor calculado para o campo ou propriedade.
-        """
+        """Retorna resposta paginada no formato padrão SIGLA."""
         return Response(
             {
                 "links": {

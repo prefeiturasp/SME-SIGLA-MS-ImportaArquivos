@@ -60,30 +60,13 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
     def get_serializer_class(self) -> Any:
-        """Retorna serializer class.
-
-        Args:
-            self: Instância do objeto.
-
-        Returns:
-            Valor calculado para o campo ou propriedade.
-        """
+        """Retorna serializer class de acordo com a action."""
         if self.action in ("list", "retrieve"):
             return ExportacaoLoteListSerializer
         return ExportacaoLoteCreateSerializer
 
     def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Create.
-
-        Args:
-            self: Instância do objeto.
-            request: Requisição HTTP recebida.
-            *args: Argumentos posicionais variáveis.
-            **kwargs: Argumentos nomeados variáveis.
-
-        Returns:
-            Resposta HTTP com os dados serializados.
-        """
+        """Cria o registro de exportação."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
@@ -179,14 +162,14 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def _gerar_conteudo_erro(nomes: list, instance: ExportacaoLote) -> str:
-        """Gerar conteudo erro.
+        """Gera conteudo erro.
 
         Args:
-            nomes: Nomes utilizado na operação.
+            nomes: Nomes dos candidatos sem escolha realizada.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Texto resultante da operação.
+            Texto com os nomes dos candidatos sem escolha realizada.
         """
         lote_id = (
             instance.numero_lote

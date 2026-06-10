@@ -48,15 +48,7 @@ class LayoutArquivoImportacaoViewSet(viewsets.ModelViewSet):
     )
     @action(detail=False, methods=["get"], url_path="download")
     def download(self, request: Any) -> Any:
-        """Download.
-
-        Args:
-            self: Instância do objeto.
-            request: Requisição HTTP recebida.
-
-        Returns:
-            Valor calculado conforme a regra aplicada.
-        """
+        """Download do layout de importação de arquivos em formato CSV."""
         tipo = request.query_params.get("tipo")
         if not tipo:
             return Response(

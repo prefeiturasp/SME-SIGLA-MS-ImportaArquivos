@@ -20,15 +20,7 @@ class ImportacaoLotesCreateSerializer(serializers.ModelSerializer):
         fields = ["arquivo", "concurso_uuid", "concurso_nome"]
 
     def create(self, validated_data: Any) -> Any:
-        """Cria e persiste o registro a partir dos dados validados.
-
-        Args:
-            self: Instância do objeto.
-            validated_data: Dados validados pelo serializer.
-
-        Returns:
-            Instância criada e persistida no banco.
-        """
+        """Cria e persiste o registro a partir dos dados validados."""
         arquivo = validated_data.get("arquivo")
         nome_arquivo = getattr(arquivo, "name", None) or "Importação de Lotes"
         instance = ImportacaoLotes.objects.create(
@@ -75,14 +67,7 @@ class ImportacaoLotesListSerializer(serializers.ModelSerializer):
         ]
 
     def get_erros(self, obj: Any) -> Any:
-        """Obtém erros vinculados à importação.
-
-        Args:
-            obj: Instância da importação em listagem.
-
-        Returns:
-            Lista de erros da importação ou None se vazio.
-        """
+        """Obtém erros vinculados à importação de lotes."""
         if ImportacaoLotesListSerializer._content_type_cache is None:
             ImportacaoLotesListSerializer._content_type_cache = (
                 ContentType.objects.get_for_model(ImportacaoLotes)

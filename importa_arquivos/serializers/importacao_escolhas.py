@@ -50,14 +50,7 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
         ]
 
     def get_erros(self, obj: Any) -> Any:
-        """Obtém erros vinculados à importação.
-
-        Args:
-            obj: Instância da importação em listagem.
-
-        Returns:
-            Lista de erros da importação ou None se vazio.
-        """
+        """Obtém erros vinculados à importação de escolhas."""
         if ImportacaoEscolhasListSerializer._content_type_cache is None:
             ImportacaoEscolhasListSerializer._content_type_cache = (
                 ContentType.objects.get_for_model(ImportacaoEscolhas)
@@ -80,14 +73,7 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
         return erros_list
 
     def get_processo_nome(self, obj: Any) -> Any:
-        """Obtém nome do processo para serialização.
-
-        Args:
-            obj: Instância da importação em listagem.
-
-        Returns:
-            Nome do processo ou None quando indisponível.
-        """
+        """Obtém nome do processo associado à importação de escolhas."""
         return None
 
 

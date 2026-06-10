@@ -100,11 +100,11 @@ def _validar_linhas(
     """Percorre registros uma única vez aplicando todas as validações.
 
     Args:
-        colunas: Colunas utilizado na operação.
-        registros: Registros utilizado na operação.
+        colunas: Colunas mapeadas para validação.
+        registros: Registros a serem validados.
 
     Returns:
-        Dicionário com os dados retornados pela operação.
+        Dicionário com os erros encontrados por linha.
     """
     import re
 
@@ -161,11 +161,11 @@ def _validar_email_duplicado_por_cpf(
     """Valida e-mail duplicado vinculado a CPFs distintos.
 
     Args:
-        colunas: Colunas utilizado na operação.
-        registros: Registros utilizado na operação.
+        colunas: Colunas mapeadas para validação.
+        registros: Registros a serem validados.
 
     Returns:
-        Dicionário com os dados retornados pela operação.
+        Dicionário com os erros encontrados por linha.
     """
     email_col = colunas.get("email_col")
     cpf_col = colunas.get("cpf_col")
@@ -173,27 +173,13 @@ def _validar_email_duplicado_por_cpf(
         return {}
 
     def _normalizar_email(valor: object) -> str:
-        """Normaliza e-mail para comparação.
-
-        Args:
-            valor: Valor utilizado na operação.
-
-        Returns:
-            Texto resultante da operação.
-        """
+        """Normaliza e-mail para comparação."""
         if valor is None:
             return ""
         return str(valor).strip().lower()
 
     def _normalizar_cpf(valor: object) -> str:
-        """Normaliza CPF para comparação.
-
-        Args:
-            valor: Valor utilizado na operação.
-
-        Returns:
-            Texto resultante da operação.
-        """
+        """Normaliza CPF para comparação."""
         if valor is None:
             return ""
         s = str(valor).strip()
@@ -225,12 +211,12 @@ def _validar_codigo_cargo(
     """Valida Codigo_do_Cargo de cada linha do arquivo.
 
     Args:
-        colunas: Colunas utilizado na operação.
-        registros: Registros utilizado na operação.
-        codigos_cargo_concurso: Codigos cargo concurso utilizado na operação.
+        colunas: Colunas mapeadas para validação.
+        registros: Registros a serem validados.
+        codigos_cargo_concurso: Codigos cargo do concurso.
 
     Returns:
-        Dicionário com os dados retornados pela operação.
+        Dicionário com os erros encontrados por linha.
     """
     cargo_col = colunas.get("cargo_col")
     if not cargo_col:
@@ -274,9 +260,9 @@ def validar_csv_habilitados(
         Tupla com os objetos criados ou atualizados.
 
     Raises:
-        ColunaCSVInvalidaException: Se ocorrer erro nesta operação.
-        LayoutNaoConfiguradoException: Se ocorrer erro nesta operação.
-        LeituraCSVException: Se ocorrer erro nesta operação.
+        ColunaCSVInvalidaException: Se tiver colunas inválidas.
+        LayoutNaoConfiguradoException: Se não tiver layout configurado.
+        LeituraCSVException: Se não conseguir ler o arquivo CSV.
     """
     try:
         layout = LayoutArquivoImportacao.objects.filter(
@@ -299,7 +285,8 @@ def validar_csv_habilitados(
         raise LeituraCSVException(
             "Erro ao ler arquivo de Habilitados",
             detalhes=(
-                "Não foi possível ler o arquivo CSV. " f"Detalhes: {exc!s}"
+                "Não foi possível ler o arquivo CSV. "
+                f"Detalhes: {exc!s}."
             ),
         ) from exc
     headers_csv = set(reader.fieldnames or [])

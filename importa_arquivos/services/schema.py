@@ -27,18 +27,7 @@ class LinhaLoteSIGPEC(BaseModel):
     @field_validator("empresa", "vaga", mode="before")
     @classmethod
     def nao_vazio(cls, v: str) -> str:
-        """Nao vazio.
-
-        Args:
-            cls: Classe referenciada.
-            v: V utilizado na operação.
-
-        Returns:
-            Texto resultante da operação.
-
-        Raises:
-            ValueError: Se os dados informados forem inválidos.
-        """
+        """Valida se o campo não está vazio."""
         if not v or not str(v).strip():
             raise ValueError("Campo não pode estar vazio.")
         return str(v).strip()
