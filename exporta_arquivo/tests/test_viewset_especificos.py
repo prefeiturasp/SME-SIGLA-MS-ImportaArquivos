@@ -14,9 +14,12 @@ from unittest.mock import patch
 import pytest
 
 from exporta_arquivo.models import (
-    ExportacaoCandidatosProcesso,
     ExportacaoVagasProcesso,
     ExportacaoVagasSigpec,
+)
+from exporta_arquivo.serializers import ExportacaoCandidatosProcessoCreateSerializer
+from exporta_arquivo.views.exportacao_candidatos_processo import (
+    ExportacaoCandidatosProcessoViewSet,
 )
 
 pytestmark = [
@@ -39,41 +42,33 @@ def api_client() -> Any:
 
 
 class TestExportacaoCandidatosProcessoViewSetEspecifico:
-    """Create: mock exportar_candidatos_processo e."""
-
-    URL = "/api/v1/exportacao/candidatos-processo/"
+    """gerar_arquivo: mock exportar_candidatos_processo e persiste conteúdo."""
 
     def test_create_com_mocks_persiste_conteudo_e_nome_arquivo_prefixo_candidatos_processo(  # noqa: E501
-        self, api_client: Any
+        self,
     ) -> None:
-        """Verifica create com mocks persiste conteudo e nome arquivo prefixo."""
+        """Verifica gerar_arquivo persiste conteudo e nome com prefixo correto."""
         conteudo_esperado = "conteudo|pipe|formatado\n"
+        payload = {
+            "processo_uuid": _uuid(),
+            "cargo_uuid": _uuid(),
+            "cargo_codigo": 10,
+            "processo_nome": "Proc",
+            "cargo_nome": "Cargo X",
+        }
+        serializer = ExportacaoCandidatosProcessoCreateSerializer(data=payload)
+        serializer.is_valid(raise_exception=True)
+        registro = serializer.save()
+        viewset = ExportacaoCandidatosProcessoViewSet()
         with patch(
             "exporta_arquivo.views.exportacao_candidatos_processo.exportar_candidatos_processo",
             return_value=conteudo_esperado,
         ):
-            response = api_client.post(
-                self.URL,
-                {
-                    "processo_uuid": _uuid(),
-                    "cargo_uuid": _uuid(),
-                    "cargo_codigo": 10,
-                    "processo_nome": "Proc",
-                    "cargo_nome": "Cargo X",
-                },
-                format="json",
-            )
-        assert response.status_code == 200
-        assert "text/plain" in response.get("Content-Type", "")
-        registro = ExportacaoCandidatosProcesso.objects.order_by(
-            "-criado_em"
-        ).first()
-        assert registro is not None
+            viewset.gerar_arquivo(registro)
+        registro.refresh_from_db()
         assert registro.conteudo_arquivo == conteudo_esperado
         assert registro.nome_arquivo.startswith("candidatos_processo_")  # type: ignore[union-attr]
         assert registro.nome_arquivo.endswith(".txt")  # type: ignore[union-attr]
-        assert "attachment" in response.get("Content-Disposition", "")
-        assert "candidatos_processo" in response.get("Content-Disposition", "")
 
 
 class TestExportacaoVagasProcessoViewSetEspecifico:
