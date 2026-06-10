@@ -101,6 +101,9 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
                 processo_nome=str(instance.processo_nome)
                 if instance.processo_nome
                 else "",
+                concurso_uuid=str(instance.concurso_uuid)
+                if instance.concurso_uuid
+                else "",
                 importacao_obj=instance,
             )
         except TipoUEDesabilitadoException as exc:

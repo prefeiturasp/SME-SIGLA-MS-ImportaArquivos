@@ -9,7 +9,12 @@ class ImportacaoArquivoVagasCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ImportacaoArquivoVagas
-        fields = ["arquivo", "processo_uuid", "processo_nome"]
+        fields = [
+            "arquivo",
+            "processo_uuid",
+            "processo_nome",
+            "concurso_uuid",
+        ]
 
     def create(self, validated_data):
         arquivo = validated_data.get("arquivo")
@@ -40,6 +45,7 @@ class ImportacaoArquivoVagasListSerializer(serializers.ModelSerializer):
             "status",
             "processo_uuid",
             "processo_nome",
+            "concurso_uuid",
             "criado_em",
             "atualizado_em",
             "erros",
