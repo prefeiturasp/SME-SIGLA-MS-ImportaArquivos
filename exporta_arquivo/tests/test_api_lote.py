@@ -34,7 +34,7 @@ def _mock_response(
     raise_json: Any = False,
     text: Any = "",
 ) -> Any:
-    """Executa  mock response."""
+    """Mock response."""
     resp = MagicMock()
     resp.status_code = status_code
     resp.text = text
@@ -50,7 +50,7 @@ class TestApiLoteCandidatosServiceFazerRequestGet:
 
     @pytest.fixture
     def service(self) -> Any:
-        """Executa service."""
+        """Service."""
         return ApiLoteCandidatosService(
             base_url="http://test", timeout_seconds=5
         )
@@ -206,7 +206,7 @@ class TestApiLoteCandidatosGetCandidatosLote:
 
     @pytest.fixture
     def service(self) -> Any:
-        """Executa service."""
+        """Service."""
         return ApiLoteCandidatosService(
             base_url="http://test", timeout_seconds=5
         )
@@ -242,7 +242,7 @@ class TestApiLoteCandidatosGetPorNumeroLote:
 
     @pytest.fixture
     def service(self) -> Any:
-        """Executa service."""
+        """Service."""
         return ApiLoteCandidatosService(
             base_url="http://test", timeout_seconds=5
         )
@@ -274,7 +274,7 @@ class TestApiLoteEscolhasServiceGetEscolhasLote:
 
     @pytest.fixture
     def service(self) -> Any:
-        """Executa service."""
+        """Service."""
         return ApiLoteEscolhasService(
             base_url="http://test", timeout_seconds=5
         )

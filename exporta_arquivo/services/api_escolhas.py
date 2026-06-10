@@ -23,15 +23,12 @@ class ApiEscolhasService:
     def __init__(
         self, base_url: str | None = None, timeout_seconds: int | None = None
     ) -> None:
-        """Executa   init  .
+        """Inicializa a instância com os parâmetros informados.
 
         Args:
             self: Instância do objeto.
-            base_url: Parâmetro base url.
-            timeout_seconds: Parâmetro timeout seconds.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            base_url: URL base do serviço remoto.
+            timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
         self.base_url = (
             base_url
@@ -45,18 +42,18 @@ class ApiEscolhasService:
     def get_vagas_escolas(
         self, processo_uuid: str, cargo_codigo: str | int
     ) -> dict[str, Any]:
-        """GET {ESCOLHA_API_URL}/api/v1/vagas-escolas/ com query params.
+        """Retorna vagas escolas.
 
         Args:
             self: Instância do objeto.
-            processo_uuid: Parâmetro processo uuid.
-            cargo_codigo: Parâmetro cargo codigo.
+            processo_uuid: UUID do processo de convocação.
+            cargo_codigo: Cargo codigo utilizado na operação.
 
         Returns:
-            Dicionário com os dados processados.
+            Dicionário com os dados retornados pela operação.
 
         Raises:
-            EscolhasServiceUnavailableException: Em 5xx, timeout ou resposta.
+            EscolhasServiceUnavailableException: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/vagas-escolas/"
         params = {
@@ -111,18 +108,18 @@ class ApiEscolhasService:
     def get_escolhas(
         self, candidato_uuids: list[str], concurso_uuid: str
     ) -> list[dict[str, Any]]:
-        """POST {ESCOLHA_API_URL}/api/v1/escolhas/busca/.
+        """Retorna escolhas.
 
         Args:
             self: Instância do objeto.
-            candidato_uuids: Parâmetro candidato uuids.
-            concurso_uuid: Parâmetro concurso uuid.
+            candidato_uuids: Candidato uuids utilizado na operação.
+            concurso_uuid: UUID do concurso relacionado.
 
         Returns:
-            Lista com os registros resultantes.
+            Lista com os registros obtidos.
 
         Raises:
-            EscolhasServiceUnavailableException: em 5xx, timeout ou resposta.
+            EscolhasServiceUnavailableException: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/escolhas/busca/"
         payload = {

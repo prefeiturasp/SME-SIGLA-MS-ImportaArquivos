@@ -31,7 +31,7 @@ class BaseModel(models.Model):
     )
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         abstract = True
 
@@ -57,6 +57,6 @@ class BaseModelArquivoImportacao(BaseModel):
     )
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         abstract = True

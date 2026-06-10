@@ -28,7 +28,7 @@ class TestApiCandidatosService:
 
     @pytest.fixture
     def service(self) -> Any:
-        """Executa service."""
+        """Service."""
         return ApiCandidatosService(base_url="http://test", timeout_seconds=5)
 
     def test_timeout_levanta_service_unavailable(self, service: Any) -> None:
@@ -135,7 +135,7 @@ class TestApiEscolhasService:
 
     @pytest.fixture
     def service(self) -> Any:
-        """Executa service."""
+        """Service."""
         return ApiEscolhasService(base_url="http://test", timeout_seconds=5)
 
     def test_timeout_levanta_service_unavailable(self, service: Any) -> None:

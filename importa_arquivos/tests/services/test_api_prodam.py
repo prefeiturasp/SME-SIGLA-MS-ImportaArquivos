@@ -19,7 +19,7 @@ class TestApiProdamService:
     """Testes para ApiProdamService."""
 
     def test_init_com_configuracoes_validas(self, settings: Any) -> None:
-        """Testa inicialização com configurações válidas."""
+        """Verifica init com configuracoes validas."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -32,7 +32,7 @@ class TestApiProdamService:
         assert service.timeout_seconds == 300
 
     def test_init_com_timeout_customizado(self, settings: Any) -> None:
-        """Testa inicialização com timeout customizado."""
+        """Verifica init com timeout customizado."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -41,7 +41,7 @@ class TestApiProdamService:
         assert service.timeout_seconds == 60
 
     def test_init_sem_token_levanta_erro(self, settings: Any) -> None:
-        """Testa que falta de token levanta ValueError."""
+        """Verifica init sem token levanta erro."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = None
         settings.PRODAM_API_USUARIO = "usuario"
@@ -52,7 +52,7 @@ class TestApiProdamService:
             ApiProdamService()
 
     def test_init_sem_usuario_levanta_erro(self, settings: Any) -> None:
-        """Testa que falta de usuário levanta ValueError."""
+        """Verifica init sem usuario levanta erro."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = None
@@ -63,7 +63,7 @@ class TestApiProdamService:
             ApiProdamService()
 
     def test_init_sem_senha_levanta_erro(self, settings: Any) -> None:
-        """Testa que falta de senha levanta ValueError."""
+        """Verifica init sem senha levanta erro."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -74,7 +74,7 @@ class TestApiProdamService:
             ApiProdamService()
 
     def test_get_headers_retorna_headers_corretos(self, settings: Any) -> None:
-        """Testa que _get_headers retorna headers corretos."""
+        """Verifica get headers retorna headers corretos."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -87,7 +87,7 @@ class TestApiProdamService:
     def test_consultar_resultado_convocacao_ingresso_sucesso(
         self, settings: Any
     ) -> None:
-        """Testa consulta bem-sucedida à API Prodam."""
+        """Verifica consultar resultado convocacao ingresso sucesso."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -125,7 +125,7 @@ class TestApiProdamService:
     def test_consultar_resultado_convocacao_ingresso_cria_log(
         self, settings: Any
     ) -> None:
-        """Testa que um log é criado após a requisição."""
+        """Verifica consultar resultado convocacao ingresso cria log."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -157,7 +157,7 @@ class TestApiProdamService:
     def test_consultar_resultado_convocacao_ingresso_payload_correto(
         self, settings: Any
     ) -> None:
-        """Testa que o payload enviado está correto."""
+        """Verifica consultar resultado convocacao ingresso payload correto."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -191,7 +191,7 @@ class TestApiProdamService:
     def test_consultar_resultado_convocacao_ingresso_request_exception(
         self, settings: Any
     ) -> None:
-        """Testa tratamento de RequestException."""
+        """Verifica consultar resultado convocacao ingresso request exception."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -211,7 +211,7 @@ class TestApiProdamService:
     def test_consultar_resultado_convocacao_ingresso_resposta_invalida(
         self, settings: Any
     ) -> None:
-        """Testa tratamento de resposta inválida."""
+        """Verifica consultar resultado convocacao ingresso resposta invalida."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -239,7 +239,7 @@ class TestApiProdamService:
     def test_consultar_resultado_convocacao_ingresso_resposta_com_erro_validacao(  # noqa: E501
         self, settings: Any
     ) -> None:
-        """Testa tratamento quando resposta não passa na validação do."""
+        """Verifica consultar resultado convocacao ingresso resposta com erro validacao."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -273,7 +273,7 @@ class TestApiProdamService:
     def test_consultar_resultado_convocacao_ingresso_nao_quebra_quando_log_falha(  # noqa: E501
         self, settings: Any
     ) -> None:
-        """Testa que não quebra quando criação de log falha."""
+        """Verifica consultar resultado convocacao ingresso nao quebra quando log falha."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -307,7 +307,7 @@ class TestApiProdamService:
     def test_consultar_resultado_convocacao_ingresso_http_error(
         self, settings: Any
     ) -> None:
-        """Testa tratamento de erro HTTP."""
+        """Verifica consultar resultado convocacao ingresso http error."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"

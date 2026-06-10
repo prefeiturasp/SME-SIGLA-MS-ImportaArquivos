@@ -124,7 +124,7 @@ class TestApiVagasConcursoFields:
     """Testes para os novos campos de concurso no ApiEscolhasService."""
 
     def test_enviar_vagas_com_campos_concurso(self) -> None:
-        """Testa envio de vagas com campos de concurso preenchidos."""
+        """Verifica enviar vagas com campos concurso."""
         import uuid
 
         service = ApiEscolhasService(base_url="https://api.exemplo")

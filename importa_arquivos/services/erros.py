@@ -21,19 +21,19 @@ def registrar_erro(
     detalhes: str | None = None,
     exc: Exception | None = None,
 ) -> ImportacaoErro:
-    """Executa registrar erro.
+    """Registrar erro.
 
     Args:
-        importacao_obj: Parâmetro importacao obj.
-        mensagem: Parâmetro mensagem.
-        detalhes: Parâmetro detalhes.
-        exc: Parâmetro exc.
+        importacao_obj: Importacao obj utilizado na operação.
+        mensagem: Mensagem principal do erro.
+        detalhes: Detalhes complementares do erro.
+        exc: Exc utilizado na operação.
 
     Returns:
-        Resultado da operação.
+        Valor calculado conforme a regra aplicada.
 
     Raises:
-        ValueError: Se ocorrer erro nesta operação.
+        ValueError: Se os dados informados forem inválidos.
     """
     if importacao_obj is None:
         raise ValueError("importacao_obj é obrigatório para registrar erro")
@@ -66,41 +66,32 @@ def captura_erros_importacao(
     """Decorator para funções de serviço de importação.
 
     Args:
-        param_nome_obj: Parâmetro param nome obj.
+        param_nome_obj: Param nome obj utilizado na operação.
 
     Returns:
-        Resultado da operação.
-
-    Raises:
-        Nenhuma exceção específica documentada.
+        Valor calculado conforme a regra aplicada.
     """
 
     def decorator(func: Callable) -> Callable:
-        """Executa decorator.
+        """Decorator.
 
         Args:
-            func: Parâmetro func.
+            func: Func utilizado na operação.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
 
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            """Executa wrapper.
+            """Wrapper.
 
             Args:
                 *args: Argumentos posicionais variáveis.
                 **kwargs: Argumentos nomeados variáveis.
 
             Returns:
-                Resultado da operação.
-
-            Raises:
-                Nenhuma exceção específica documentada.
+                Valor calculado conforme a regra aplicada.
             """
             importacao_obj = kwargs.get(param_nome_obj)
             try:

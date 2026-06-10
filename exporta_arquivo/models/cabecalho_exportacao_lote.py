@@ -51,7 +51,7 @@ class CabecalhoExportacaoLote(models.Model):
     ativo = models.BooleanField(default=True, verbose_name="Ativo")
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         db_table = "cabecalho_exportacao_lote"
         verbose_name = "Cabeçalho de Exportação de Lote"
@@ -59,16 +59,13 @@ class CabecalhoExportacaoLote(models.Model):
         ordering = ["-criado_em"]
 
     def __str__(self) -> Any:
-        """Executa   str  .
+        """Retorna representação textual do registro.
 
         Args:
             self: Instância do objeto.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         return (
             f'Cabeçalho {self.uuid} ({('ativo' if self.ativo else 'inativo')})'
@@ -82,9 +79,6 @@ class CabecalhoExportacaoLote(models.Model):
 
         Returns:
             Texto resultante da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         sep = self.separador
         return f"@TABELA={self.tabela}\n@CHAVE={self.chave}\n@TAG INICIO={self.tag_inicio}\n@TAG FIM={self.tag_fim}\n@SEPARADOR={sep}\n@FORMATO DATA={self.formato_data}\n@COLUNAS={self.colunas}\n"  # noqa: E501

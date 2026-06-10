@@ -26,7 +26,7 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
     _content_type_cache = None
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ImportacaoEscolhas
         fields = [
@@ -50,17 +50,14 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
         ]
 
     def get_erros(self, obj: Any) -> Any:
-        """Retorna os erros associados à importação, se existirem.
+        """Retorna erros.
 
         Args:
             self: Instância do objeto.
-            obj: Parâmetro obj.
+            obj: Obj utilizado na operação.
 
         Returns:
             Valor calculado para o campo ou propriedade.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         if ImportacaoEscolhasListSerializer._content_type_cache is None:
             ImportacaoEscolhasListSerializer._content_type_cache = (
@@ -84,17 +81,14 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
         return erros_list
 
     def get_processo_nome(self, obj: Any) -> Any:
-        """Retorna o nome do processo buscando via API externa se necessário.
+        """Retorna processo nome.
 
         Args:
             self: Instância do objeto.
-            obj: Parâmetro obj.
+            obj: Obj utilizado na operação.
 
         Returns:
             Valor calculado para o campo ou propriedade.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         return None
 
@@ -119,7 +113,7 @@ class ResponseSerializer(serializers.Serializer):
             Valor validado do campo lstDadosResultadoConvocacaoIngresso.
 
         Raises:
-            ValidationError: Se ocorrer erro nesta operação.
+            ValidationError: Se os dados não passarem na validação.
         """
         for item in value:
             if not isinstance(item, dict):
@@ -171,7 +165,7 @@ class EscolhasImportacaoSerializer(serializers.Serializer):
             Valor validado do campo escolhas.
 
         Raises:
-            ValidationError: Se ocorrer erro nesta operação.
+            ValidationError: Se os dados não passarem na validação.
         """
         for escolha in value:
             required_fields = ["cpf", "codigo_cargo", "situacao"]

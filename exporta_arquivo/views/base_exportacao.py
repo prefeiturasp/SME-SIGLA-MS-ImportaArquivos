@@ -33,14 +33,11 @@ def _sanitizar_nome_arquivo(texto: str, max_len: int = 80) -> str:
     """Remove caracteres inválidos para nome de arquivo e limita tamanho.
 
     Args:
-        texto: Parâmetro texto.
-        max_len: Parâmetro max len.
+        texto: Texto utilizado na operação.
+        max_len: Max len utilizado na operação.
 
     Returns:
         Texto resultante da operação.
-
-    Raises:
-        Nenhuma exceção específica documentada.
     """
     if not texto or not isinstance(texto, str):
         return "arquivo"
@@ -76,38 +73,32 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def sanitizar_nome_arquivo(texto: str, max_len: int = 80) -> str:
-        """Remove caracteres inválidos para nome de arquivo e limita tamanho.
+        """Sanitiza texto para uso seguro como nome de arquivo.
 
         Args:
-            texto: Parâmetro texto.
-            max_len: Parâmetro max len.
+            texto: Texto utilizado na operação.
+            max_len: Max len utilizado na operação.
 
         Returns:
             Texto resultante da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         return _sanitizar_nome_arquivo(texto, max_len)
 
     def get_serializer_class(self) -> Any:
-        """Executa get serializer class.
+        """Retorna serializer class.
 
         Args:
             self: Instância do objeto.
 
         Returns:
             Valor calculado para o campo ou propriedade.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         if self.action in ("list", "retrieve"):
             return self.list_serializer_class
         return self.create_serializer_class
 
     def list(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Listagem paginada ou, se processo_uuid, cargo_uuid e cargo_codigo.
+        """Lista registros ou retorna download direto pelos filtros.
 
         Args:
             self: Instância do objeto.
@@ -117,9 +108,6 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
 
         Returns:
             Resposta HTTP com os dados serializados.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         processo_uuid = request.query_params.get("processo_uuid", "").strip()
         cargo_uuid = request.query_params.get("cargo_uuid", "").strip()
@@ -159,14 +147,14 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
     def gerar_arquivo(self, instance: Any) -> None:
-        """Gera resposta de arquivo para os UUIDs dados.
+        """Gera arquivo.
 
         Args:
             self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Não retorna valor.
+            Nenhum valor.
 
         Raises:
             NotImplementedError: Se ocorrer erro nesta operação.
@@ -174,14 +162,14 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
         raise NotImplementedError("Subclasse deve implementar gerar_arquivo.")
 
     def executar_exportacao(self, instance: Any) -> None:
-        """Executa a exportação após create (ex.: chamar serviço com.
+        """A exportação após create (ex.: chamar serviço com.
 
         Args:
             self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Não retorna valor.
+            Nenhum valor.
 
         Raises:
             NotImplementedError: Se ocorrer erro nesta operação.
@@ -191,7 +179,7 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
         )
 
     def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Executa create.
+        """Create.
 
         Args:
             self: Instância do objeto.
@@ -201,9 +189,6 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
 
         Returns:
             Resposta HTTP com os dados serializados.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -262,13 +247,10 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
         Args:
             self: Instância do objeto.
             request: Requisição HTTP recebida.
-            uuid: Parâmetro uuid.
+            uuid: Identificador único do registro.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         instance = self.get_object()
         return self.gerar_arquivo(instance)

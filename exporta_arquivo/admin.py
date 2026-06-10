@@ -7,7 +7,7 @@ from .models import ExportacaoVagasProcesso, ExportacaoVagasSigpec
 
 @admin.register(ExportacaoVagasSigpec)
 class ExportacaoVagasSigpecAdmin(admin.ModelAdmin):
-    """Define ExportacaoVagasSigpecAdmin."""
+    """Configuração do admin para ExportacaoVagasSigpec."""
 
     list_display = (
         "uuid",
@@ -24,7 +24,7 @@ class ExportacaoVagasSigpecAdmin(admin.ModelAdmin):
 
 @admin.register(ExportacaoVagasProcesso)
 class ExportacaoVagasProcessoAdmin(admin.ModelAdmin):
-    """Define ExportacaoVagasProcessoAdmin."""
+    """Configuração do admin para ExportacaoVagasProcesso."""
 
     list_display = (
         "uuid",

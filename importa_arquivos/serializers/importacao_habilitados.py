@@ -16,13 +16,13 @@ class ImportacaoArquivoHabilitadosCreateSerializer(
     """Serializer para criação de importações de arquivos habilitados."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ImportacaoArquivoHabilitado
         fields = ["arquivo", "concurso_uuid", "concurso_nome"]
 
     def create(self, validated_data: Any) -> Any:
-        """Executa create.
+        """Create.
 
         Args:
             self: Instância do objeto.
@@ -30,9 +30,6 @@ class ImportacaoArquivoHabilitadosCreateSerializer(
 
         Returns:
             Resposta HTTP com os dados serializados.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         arquivo = validated_data.get("arquivo")
         nome_arquivo = (
@@ -51,7 +48,7 @@ class ImportacaoArquivoHabilitadosListSerializer(serializers.ModelSerializer):
     _content_type_cache = None
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ImportacaoArquivoHabilitado
         fields = [
@@ -68,17 +65,14 @@ class ImportacaoArquivoHabilitadosListSerializer(serializers.ModelSerializer):
         read_only_fields = ["uuid", "criado_em", "atualizado_em", "erros"]
 
     def get_erros(self, obj: Any) -> Any:
-        """Retorna os erros associados à importação, se existirem.
+        """Retorna erros.
 
         Args:
             self: Instância do objeto.
-            obj: Parâmetro obj.
+            obj: Obj utilizado na operação.
 
         Returns:
             Valor calculado para o campo ou propriedade.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         if (
             ImportacaoArquivoHabilitadosListSerializer._content_type_cache

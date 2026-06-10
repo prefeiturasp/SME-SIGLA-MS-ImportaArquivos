@@ -18,7 +18,7 @@ class TestApiEscolhasServiceEscolhasProdam:
     """Testes para métodos de escolhas Prodam no ApiEscolhasService."""
 
     def test_transformar_escolhas_prodam_para_escolhas_basico(self) -> None:
-        """Testa transformação básica de dados Prodam para formato MS-Escolhas."""
+        """Verifica transformar escolhas prodam para escolhas basico."""
         service = ApiEscolhasService(base_url="https://api.exemplo")
         dados_prodam = [
             {
@@ -42,7 +42,7 @@ class TestApiEscolhasServiceEscolhasProdam:
     def test_transformar_escolhas_prodam_mapeamento_status_desistente(
         self,
     ) -> None:
-        """Status DESISTENTE é filtrado (apenas ALOCADO é mantido)."""
+        """Verifica transformar escolhas prodam mapeamento status desistente."""
         service = ApiEscolhasService(base_url="https://api.exemplo")
         dados_prodam = [
             {
@@ -59,7 +59,7 @@ class TestApiEscolhasServiceEscolhasProdam:
     def test_transformar_escolhas_prodam_mapeamento_status_alocado(
         self,
     ) -> None:
-        """Testa mapeamento de status ALOCADO para ESCOLHA."""
+        """Verifica transformar escolhas prodam mapeamento status alocado."""
         service = ApiEscolhasService(base_url="https://api.exemplo")
         dados_prodam = [
             {
@@ -74,7 +74,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         assert escolhas[0]["situacao"] == "ESCOLHA"
 
     def test_transformar_escolhas_prodam_status_nao_mapeado(self) -> None:
-        """Status não mapeados são filtrados (apenas ALOCADO é mantido)."""
+        """Verifica transformar escolhas prodam status nao mapeado."""
         service = ApiEscolhasService(base_url="https://api.exemplo")
         dados_prodam = [
             {
@@ -89,7 +89,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         assert len(escolhas) == 0
 
     def test_transformar_escolhas_prodam_campos_opcionais_nulos(self) -> None:
-        """Testa transformação quando campos opcionais são None."""
+        """Verifica transformar escolhas prodam campos opcionais nulos."""
         service = ApiEscolhasService(base_url="https://api.exemplo")
         dados_prodam = [
             {
@@ -107,7 +107,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         assert escolhas[0]["tipo_vaga"] == ""
 
     def test_transformar_escolhas_prodam_multiplos_registros(self) -> None:
-        """Apenas registros com status ALOCADO são mantidos."""
+        """Verifica transformar escolhas prodam multiplos registros."""
         service = ApiEscolhasService(base_url="https://api.exemplo")
         dados_prodam = [
             {
@@ -129,7 +129,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         assert escolhas[0]["situacao"] == "ESCOLHA"
 
     def test_enviar_escolhas_prodam_sucesso(self) -> None:
-        """Testa envio bem-sucedido de escolhas Prodam."""
+        """Verifica enviar escolhas prodam sucesso."""
         service = ApiEscolhasService(base_url="https://api.exemplo")
         dados_prodam = [
             {
@@ -162,7 +162,7 @@ class TestApiEscolhasServiceEscolhasProdam:
             assert payload["escolhas"][0]["situacao"] == "ESCOLHA"
 
     def test_enviar_escolhas_prodam_com_headers_customizados(self) -> None:
-        """Testa envio com headers customizados."""
+        """Verifica enviar escolhas prodam com headers customizados."""
         service = ApiEscolhasService(base_url="https://api.exemplo")
         dados_prodam = [
             {
@@ -190,7 +190,7 @@ class TestApiEscolhasServiceEscolhasProdam:
             assert "Accept" in merged_headers
 
     def test_enviar_escolhas_prodam_erro_request_exception(self) -> None:
-        """Testa tratamento de erro RequestException."""
+        """Verifica enviar escolhas prodam erro request exception."""
         service = ApiEscolhasService(base_url="https://api.exemplo")
         dados_prodam = [
             {
@@ -215,7 +215,7 @@ class TestApiEscolhasServiceEscolhasProdam:
     def test_enviar_escolhas_prodam_erro_http_levanta_excecao_especifica(
         self,
     ) -> None:
-        """Em erro HTTP (status != 200), deve levantar ApiEscolhasException."""
+        """Verifica enviar escolhas prodam erro http levanta excecao especifica."""
         service = ApiEscolhasService(base_url="https://api.exemplo")
         dados_prodam = [
             {
@@ -248,7 +248,7 @@ class TestApiEscolhasServiceEscolhasProdam:
     def test_enviar_escolhas_prodam_registra_erro_quando_importacao_obj_fornecido(  # noqa: E501
         self,
     ) -> None:
-        """Testa que erro é registrado quando importacao_obj é fornecido."""
+        """Verifica enviar escolhas prodam registra erro quando importacao obj fornecido."""
         importacao = ImportacaoEscolhas.objects.create(
             processo_id=123, status="PROCESSANDO"
         )
@@ -283,7 +283,7 @@ class TestApiEscolhasServiceEscolhasProdam:
     def test_enviar_escolhas_prodam_nao_quebra_quando_registrar_erro_falha(
         self,
     ) -> None:
-        """Testa que não quebra quando registrar_erro falha."""
+        """Verifica enviar escolhas prodam nao quebra quando registrar erro falha."""
         importacao = ImportacaoEscolhas.objects.create(
             processo_id=123, status="PROCESSANDO"
         )
@@ -314,7 +314,7 @@ class TestApiEscolhasServiceEscolhasProdam:
             )
 
     def test_enviar_escolhas_prodam_timeout(self) -> None:
-        """Testa que o timeout é respeitado."""
+        """Verifica enviar escolhas prodam timeout."""
         service = ApiEscolhasService(
             base_url="https://api.exemplo", timeout_seconds=60
         )

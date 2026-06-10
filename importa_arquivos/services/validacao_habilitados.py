@@ -28,26 +28,20 @@ def _resolver_colunas(estrutura: list[dict]) -> dict:
     """Percorre estrutura uma única vez e retorna as colunas mapeadas por.
 
     Args:
-        estrutura: Parâmetro estrutura.
+        estrutura: Estrutura utilizado na operação.
 
     Returns:
-        Dicionário com os dados processados.
-
-    Raises:
-        Nenhuma exceção específica documentada.
+        Dicionário com os dados retornados pela operação.
     """
 
     def _eh_obrigatorio(valor: Any) -> Any:
-        """Executa  eh obrigatorio.
+        """Eh obrigatorio.
 
         Args:
-            valor: Parâmetro valor.
+            valor: Valor utilizado na operação.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         try:
             return str(valor).strip() in ("1", "true", "True")
@@ -106,14 +100,11 @@ def _validar_linhas(
     """Percorre registros uma única vez aplicando todas as validações.
 
     Args:
-        colunas: Parâmetro colunas.
-        registros: Parâmetro registros.
+        colunas: Colunas utilizado na operação.
+        registros: Registros utilizado na operação.
 
     Returns:
-        Dicionário com os dados processados.
-
-    Raises:
-        Nenhuma exceção específica documentada.
+        Dicionário com os dados retornados pela operação.
     """
     import re
 
@@ -167,17 +158,14 @@ def _validar_linhas(
 def _validar_email_duplicado_por_cpf(
     colunas: dict, registros: list[dict]
 ) -> dict[int, list[str]]:
-    """Valida regra:.
+    """Valida e-mail duplicado vinculado a CPFs distintos.
 
     Args:
-        colunas: Parâmetro colunas.
-        registros: Parâmetro registros.
+        colunas: Colunas utilizado na operação.
+        registros: Registros utilizado na operação.
 
     Returns:
-        Dicionário com os dados processados.
-
-    Raises:
-        Nenhuma exceção específica documentada.
+        Dicionário com os dados retornados pela operação.
     """
     email_col = colunas.get("email_col")
     cpf_col = colunas.get("cpf_col")
@@ -185,32 +173,26 @@ def _validar_email_duplicado_por_cpf(
         return {}
 
     def _normalizar_email(valor: object) -> str:
-        """Executa  normalizar email.
+        """Normaliza e-mail para comparação.
 
         Args:
-            valor: Parâmetro valor.
+            valor: Valor utilizado na operação.
 
         Returns:
             Texto resultante da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         if valor is None:
             return ""
         return str(valor).strip().lower()
 
     def _normalizar_cpf(valor: object) -> str:
-        """Executa  normalizar cpf.
+        """Normaliza CPF para comparação.
 
         Args:
-            valor: Parâmetro valor.
+            valor: Valor utilizado na operação.
 
         Returns:
             Texto resultante da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         if valor is None:
             return ""
@@ -240,18 +222,15 @@ def _validar_email_duplicado_por_cpf(
 def _validar_codigo_cargo(
     colunas: dict, registros: list[dict], codigos_cargo_concurso: set
 ) -> dict[int, list[str]]:
-    """Valida o campo Codigo_do_Cargo linha a linha:.
+    """Valida Codigo_do_Cargo de cada linha do arquivo.
 
     Args:
-        colunas: Parâmetro colunas.
-        registros: Parâmetro registros.
-        codigos_cargo_concurso: Parâmetro codigos cargo concurso.
+        colunas: Colunas utilizado na operação.
+        registros: Registros utilizado na operação.
+        codigos_cargo_concurso: Codigos cargo concurso utilizado na operação.
 
     Returns:
-        Dicionário com os dados processados.
-
-    Raises:
-        Nenhuma exceção específica documentada.
+        Dicionário com os dados retornados pela operação.
     """
     cargo_col = colunas.get("cargo_col")
     if not cargo_col:
@@ -285,14 +264,14 @@ def _validar_codigo_cargo(
 def validar_csv_habilitados(
     arquivo: Any, importacao_obj: Any = None
 ) -> tuple[list[dict], list[dict]]:
-    """Valida o arquivo CSV enviado para HABILITADOS contra o layout.
+    """Valida csv habilitados.
 
     Args:
-        arquivo: Parâmetro arquivo.
-        importacao_obj: Parâmetro importacao obj.
+        arquivo: Arquivo utilizado na operação.
+        importacao_obj: Importacao obj utilizado na operação.
 
     Returns:
-        Resultado da operação.
+        Tupla com os objetos criados ou atualizados.
 
     Raises:
         ColunaCSVInvalidaException: Se ocorrer erro nesta operação.

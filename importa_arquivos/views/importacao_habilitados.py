@@ -34,7 +34,7 @@ from ..services.validacao_habilitados import validar_csv_habilitados
 
 
 class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
-    """Define ImportacaoArquivoHabilitadosViewSet."""
+    """ViewSet para o recurso ImportacaoArquivoHabilitados."""
 
     queryset = ImportacaoArquivoHabilitado.objects.all()
     permission_classes = [AllowAny]
@@ -51,23 +51,20 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def get_serializer_class(self) -> Any:
-        """Executa get serializer class.
+        """Retorna serializer class.
 
         Args:
             self: Instância do objeto.
 
         Returns:
             Valor calculado para o campo ou propriedade.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         if self.action in ("list", "retrieve"):
             return ImportacaoArquivoHabilitadosListSerializer
         return ImportacaoArquivoHabilitadosCreateSerializer
 
     def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Executa create.
+        """Create.
 
         Args:
             self: Instância do objeto.
@@ -77,9 +74,6 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
 
         Returns:
             Resposta HTTP com os dados serializados.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -159,17 +153,14 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="erros/download")
     def download_erros(self, request: Any) -> Any:
-        """Executa download erros.
+        """Download erros.
 
         Args:
             self: Instância do objeto.
             request: Requisição HTTP recebida.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
         qs = queryset_erros_por_modelo(

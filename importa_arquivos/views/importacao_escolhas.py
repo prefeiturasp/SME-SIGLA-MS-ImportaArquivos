@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
-    """Define ImportacaoEscolhasViewSet."""
+    """ViewSet para o recurso ImportacaoEscolhas."""
 
     queryset = ImportacaoEscolhas.objects.all()
     permission_classes = [AllowAny]
@@ -47,16 +47,13 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
     lookup_field = "uuid"
 
     def get_serializer_class(self) -> Any:
-        """Executa get serializer class.
+        """Retorna serializer class.
 
         Args:
             self: Instância do objeto.
 
         Returns:
             Valor calculado para o campo ou propriedade.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         if self.action in ("list", "retrieve"):
             return ImportacaoEscolhasListSerializer
@@ -73,9 +70,6 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
 
         Returns:
             Resposta HTTP com os dados serializados.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -219,17 +213,14 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="erros")
     def listar_erros(self, request: Any) -> Any:
-        """Lista erros de importação de escolhas.
+        """Lista erros.
 
         Args:
             self: Instância do objeto.
             request: Requisição HTTP recebida.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
         qs = queryset_erros_por_modelo(
@@ -247,10 +238,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             request: Requisição HTTP recebida.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
         qs = queryset_erros_por_modelo(

@@ -28,15 +28,12 @@ class ApiConcursosService:
         base_url: str | None = None,
         timeout_seconds: int | None = None,
     ) -> None:
-        """Executa   init  .
+        """Inicializa a instância com os parâmetros informados.
 
         Args:
             self: Instância do objeto.
-            base_url: Parâmetro base url.
-            timeout_seconds: Parâmetro timeout seconds.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            base_url: URL base do serviço remoto.
+            timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
         self.base_url = (  # type: ignore[union-attr]
             base_url
@@ -50,18 +47,18 @@ class ApiConcursosService:
         }
 
     def get_concurso(self, concurso_uuid: str) -> dict[str, Any]:
-        """GET {CONCURSOS_API_URL}/api/v1/concursos/{concurso_uuid}/.
+        """Retorna concurso.
 
         Args:
             self: Instância do objeto.
-            concurso_uuid: Parâmetro concurso uuid.
+            concurso_uuid: UUID do concurso relacionado.
 
         Returns:
-            Dicionário com os dados processados.
+            Dicionário com os dados retornados pela operação.
 
         Raises:
-            ExportacaoNotFoundException: em 404.
-            ExportacaoServiceUnavailableException: em timeout, 5xx ou resposta.
+            ExportacaoNotFoundException: Se ocorrer erro nesta operação.
+            ExportacaoServiceUnavailableException: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/concursos/{concurso_uuid}/"
 

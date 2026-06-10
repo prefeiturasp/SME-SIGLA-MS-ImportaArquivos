@@ -31,13 +31,13 @@ LIST_URL = "/api/v1/exportacao/vagas-sigpec/"
 
 
 def _uuid() -> Any:
-    """Executa  uuid."""
+    """Uuid."""
     return str(uuid.uuid4())
 
 
 @pytest.fixture
 def api_client() -> Any:
-    """Executa api client."""
+    """Api client."""
     from rest_framework.test import APIClient
 
     return APIClient()
@@ -61,7 +61,7 @@ class TestBaseExportacaoList:
     def test_list_sem_query_params_retorna_200_paginado(
         self, api_client: Any
     ) -> None:
-        """GET list sem query params → 200 e resposta paginada."""
+        """Verifica list sem query params retorna 200 paginado."""
         ExportacaoVagasSigpec.objects.create(
             processo_uuid=uuid.uuid4(), cargo_uuid=uuid.uuid4(), cargo_codigo=1
         )
@@ -76,7 +76,7 @@ class TestBaseExportacaoList:
     def test_list_com_processo_e_cargo_uuid_sem_cargo_codigo_retorna_400(
         self, api_client: Any
     ) -> None:
-        """GET list com processo_uuid e cargo_uuid mas sem cargo_codigo → 400."""
+        """Verifica list com processo e cargo uuid sem cargo codigo retorna 400."""
         response = api_client.get(
             LIST_URL, {"processo_uuid": _uuid(), "cargo_uuid": _uuid()}
         )
@@ -92,7 +92,7 @@ class TestBaseExportacaoList:
     def test_list_com_cargo_codigo_nao_numerico_retorna_400(
         self, api_client: Any
     ) -> None:
-        """GET list com cargo_codigo não numérico → 400 e mensagem."""
+        """Verifica list com cargo codigo nao numerico retorna 400."""
         response = api_client.get(
             LIST_URL,
             {
@@ -112,7 +112,7 @@ class TestBaseExportacaoList:
     def test_list_com_params_validos_retorna_arquivo(
         self, api_client: Any
     ) -> None:
-        """GET list com processo_uuid, cargo_uuid e cargo_codigo válidos → 200."""
+        """Verifica list com params validos retorna arquivo."""
         p, c = (_uuid(), _uuid())
         mock_response = HttpResponse(
             b"conteudo mock", content_type="text/plain; charset=utf-8"
@@ -137,7 +137,7 @@ class TestBaseExportacaoGetSerializerClass:
     """get_serializer_class: create usa create_serializer_class;."""
 
     def test_post_create_usa_create_serializer(self, api_client: Any) -> None:
-        """POST (create) usa create_serializer_class (valida campos do create)."""
+        """Verifica post create usa create serializer."""
         with (
             patch(
                 "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao"
@@ -164,7 +164,7 @@ class TestBaseExportacaoGetSerializerClass:
         assert ExportacaoVagasSigpecCreateSerializer.Meta.fields
 
     def test_get_list_usa_list_serializer(self, api_client: Any) -> None:
-        """GET list usa list_serializer_class (resposta com uuid, criado_em,."""
+        """Verifica get list usa list serializer."""
         ExportacaoVagasSigpec.objects.create(
             processo_uuid=uuid.uuid4(), cargo_uuid=uuid.uuid4(), cargo_codigo=1
         )
@@ -188,7 +188,7 @@ class TestBaseExportacaoCreate:
     def test_create_com_dados_validos_mock_executar_retorna_200_arquivo(
         self, api_client: Any
     ) -> None:
-        """POST com dados válidos e mock de executar_exportacao → 200 e."""
+        """Verifica create com dados validos mock executar retorna 200 arquivo."""
         with (
             patch(
                 "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao"
@@ -215,7 +215,7 @@ class TestBaseExportacaoCreate:
     def test_create_executar_levanta_bad_request_retorna_400(
         self, api_client: Any
     ) -> None:
-        """executar_exportacao levanta ExportacaoBadRequestException → 400 e."""
+        """Verifica create executar levanta bad request retorna 400."""
         with patch(
             "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao",
             side_effect=ExportacaoBadRequestException(
@@ -242,7 +242,7 @@ class TestBaseExportacaoCreate:
     def test_create_executar_levanta_not_found_retorna_404(
         self, api_client: Any
     ) -> None:
-        """executar_exportacao levanta ExportacaoNotFoundException → 404 e."""
+        """Verifica create executar levanta not found retorna 404."""
         with patch(
             "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao",
             side_effect=ExportacaoNotFoundException(
@@ -265,7 +265,7 @@ class TestBaseExportacaoCreate:
     def test_create_executar_levanta_service_unavailable_retorna_502(
         self, api_client: Any
     ) -> None:
-        """executar_exportacao levanta ExportacaoServiceUnavailableException →."""
+        """Verifica create executar levanta service unavailable retorna 502."""
         with patch(
             "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao",
             side_effect=ExportacaoServiceUnavailableException(
@@ -293,7 +293,7 @@ class TestBaseExportacaoDownload:
     def test_download_com_registro_com_arquivo_retorna_200_e_corpo(
         self, api_client: Any, registro_com_arquivo: Any
     ) -> None:
-        """GET /<uuid>/download/ com instance que tem conteudo_arquivo e."""
+        """Verifica download com registro com arquivo retorna 200 e corpo."""
         url = f'{LIST_URL.rstrip('/')}/{str(registro_com_arquivo.uuid)}/download/'  # noqa: E501
         response = api_client.get(url)
         assert response.status_code == 200

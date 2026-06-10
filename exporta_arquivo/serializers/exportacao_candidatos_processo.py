@@ -11,7 +11,7 @@ class ExportacaoCandidatosProcessoCreateSerializer(
     """Serializer para criação de exportações de candidatos por processo."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ExportacaoCandidatosProcesso
         fields = [
@@ -31,7 +31,7 @@ class ExportacaoCandidatosProcessoListSerializer(serializers.ModelSerializer):
     """Serializer para listagem e detalhe. cargo_nome e concurso_nome."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ExportacaoCandidatosProcesso
         fields = [

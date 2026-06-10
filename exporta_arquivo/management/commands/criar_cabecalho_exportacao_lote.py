@@ -23,7 +23,7 @@ COLUNAS_PADRAO = "[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER][
 
 
 class Command(BaseCommand):
-    """Define Command."""
+    """Representa Command."""
 
     help = "Cria o cabeçalho padrão para exportação de lotes (formato ERGON/SIGPEC)"  # noqa: E501
 
@@ -32,13 +32,10 @@ class Command(BaseCommand):
 
         Args:
             self: Instância do objeto.
-            parser: Parâmetro parser.
+            parser: Parser utilizado na operação.
 
         Returns:
-            Não retorna valor.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Nenhum valor.
         """
         parser.add_argument(
             "--force",
@@ -47,18 +44,15 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args: Any, **options: Any) -> None:
-        """Executa a lógica principal do comando.
+        """A lógica principal do comando.
 
         Args:
             self: Instância do objeto.
             *args: Argumentos posicionais variáveis.
-            **options: Parâmetro options da operação.
+            **options: Opções do comando de management.
 
         Returns:
-            Não retorna valor.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Nenhum valor.
         """
         force = options["force"]
         existente = CabecalhoExportacaoLote.objects.filter(ativo=True).first()

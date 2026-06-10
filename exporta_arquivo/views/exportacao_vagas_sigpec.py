@@ -34,17 +34,14 @@ class ExportacaoVagasSigpecViewSet(BaseExportacaoViewSet):
     create_serializer_class = ExportacaoVagasSigpecCreateSerializer  # type: ignore[assignment]
 
     def gerar_arquivo(self, instance: Any) -> Any:
-        """Gera resposta de arquivo .txt para os UUIDs dados.
+        """Gera arquivo.
 
         Args:
             self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         response = HttpResponse(
             instance.conteudo_arquivo.encode("utf-8"),
@@ -56,17 +53,14 @@ class ExportacaoVagasSigpecViewSet(BaseExportacaoViewSet):
         return response
 
     def executar_exportacao(self, instance: Any) -> None:
-        """Executa a exportação SIGPEC, gera o arquivo e persiste conteúdo e.
+        """A exportação SIGPEC, gera o arquivo e persiste conteúdo e.
 
         Args:
             self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Não retorna valor.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Nenhum valor.
         """
         vagas_escolas = buscar_vagas_escolas(
             str(instance.processo_uuid), instance.cargo_codigo

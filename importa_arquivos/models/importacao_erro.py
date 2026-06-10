@@ -8,7 +8,7 @@ from .base import BaseModel
 
 
 class ImportacaoErro(BaseModel):
-    """Define ImportacaoErro."""
+    """Representa ImportacaoErro."""
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
@@ -20,7 +20,7 @@ class ImportacaoErro(BaseModel):
     erros = models.TextField(verbose_name="Erros da importação")
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         db_table = "importacao_erros"
         verbose_name = "Erro de Importação"

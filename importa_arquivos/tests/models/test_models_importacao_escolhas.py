@@ -17,7 +17,7 @@ class TestImportacaoEscolhasModel:
     """Testes para o model ImportacaoEscolhas."""
 
     def test_criar_importacao_escolhas_com_valores_minimos(self) -> None:
-        """Testa criação de importação com valores mínimos."""
+        """Verifica criar importacao escolhas com valores minimos."""
         processo_uuid = uuid.uuid4()
         processo_id = 123
         importacao = ImportacaoEscolhas.objects.create(
@@ -32,7 +32,7 @@ class TestImportacaoEscolhasModel:
         assert importacao.atualizado_em is not None
 
     def test_criar_importacao_escolhas_com_todos_campos(self) -> None:
-        """Testa criação de importação com todos os campos preenchidos."""
+        """Verifica criar importacao escolhas com todos campos."""
         processo_uuid = uuid.uuid4()
         processo_id = 456
         concurso_uuid = uuid.uuid4()
@@ -57,7 +57,7 @@ class TestImportacaoEscolhasModel:
         assert importacao.status == "PROCESSANDO"
 
     def test_importacao_escolhas_str_representation(self) -> None:
-        """Testa a representação string do model."""
+        """Verifica importacao escolhas str representation."""
         processo_uuid = uuid.uuid4()
         importacao = ImportacaoEscolhas.objects.create(
             processo_uuid=processo_uuid, processo_id=123
@@ -67,14 +67,14 @@ class TestImportacaoEscolhasModel:
         assert str(processo_uuid) in str_repr
 
     def test_importacao_escolhas_str_representation_sem_uuid(self) -> None:
-        """Testa a representação string quando não há processo_uuid."""
+        """Verifica importacao escolhas str representation sem uuid."""
         importacao = ImportacaoEscolhas.objects.create(processo_id=123)
         str_repr = str(importacao)
         assert "Importação" in str_repr
         assert "N/A" in str_repr
 
     def test_importacao_escolhas_status_choices(self) -> None:
-        """Testa que o status aceita apenas valores válidos."""
+        """Verifica importacao escolhas status choices."""
         processo_uuid = uuid.uuid4()
         for status_code, _status_label in CHOICES_STATUS_IMPORTACAO_ARQUIVO:
             importacao = ImportacaoEscolhas.objects.create(
@@ -85,7 +85,7 @@ class TestImportacaoEscolhasModel:
             assert importacao.status == status_code
 
     def test_importacao_escolhas_ordering(self) -> None:
-        """Testa que o ordering está configurado corretamente."""
+        """Verifica importacao escolhas ordering."""
         processo_uuid1 = uuid.uuid4()
         processo_uuid2 = uuid.uuid4()
         importacao1 = ImportacaoEscolhas.objects.create(
@@ -100,7 +100,7 @@ class TestImportacaoEscolhasModel:
         assert importacoes[1] == importacao1
 
     def test_importacao_escolhas_campos_opcionais(self) -> None:
-        """Testa que campos opcionais podem ser None."""
+        """Verifica importacao escolhas campos opcionais."""
         importacao = ImportacaoEscolhas.objects.create(processo_id=123)
         assert importacao.processo_uuid is None
         assert importacao.processo_id == 123
@@ -108,14 +108,14 @@ class TestImportacaoEscolhasModel:
         assert importacao.dados_prodam is None
 
     def test_importacao_escolhas_auditlog_registrado(self) -> None:
-        """Testa que o model está registrado no auditlog."""
+        """Verifica importacao escolhas auditlog registrado."""
         from auditlog.registry import auditlog
 
         assert ImportacaoEscolhas in auditlog._registry
         assert hasattr(ImportacaoEscolhas, "history")
 
     def test_importacao_escolhas_meta_options(self) -> None:
-        """Testa as opções Meta do model."""
+        """Verifica importacao escolhas meta options."""
         assert ImportacaoEscolhas._meta.db_table == "importacao_escolhas"
         assert (
             ImportacaoEscolhas._meta.verbose_name == "Importação de escolhas"

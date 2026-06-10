@@ -21,20 +21,17 @@ logger = logging.getLogger(__name__)
 
 
 class ApiEscolhasService:
-    """Define ApiEscolhasService."""
+    """Serviço para operações de apiescolhas."""
 
     def __init__(
         self, base_url: str = "https://example.com", timeout_seconds: int = 30
     ) -> None:
-        """Executa   init  .
+        """Inicializa a instância com os parâmetros informados.
 
         Args:
             self: Instância do objeto.
-            base_url: Parâmetro base url.
-            timeout_seconds: Parâmetro timeout seconds.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            base_url: URL base do serviço remoto.
+            timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
@@ -50,14 +47,11 @@ class ApiEscolhasService:
 
         Args:
             self: Instância do objeto.
-            registros: Parâmetro registros.
-            estrutura: Parâmetro estrutura.
+            registros: Registros utilizado na operação.
+            estrutura: Estrutura utilizado na operação.
 
         Returns:
-            Lista com os registros resultantes.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Lista com os registros obtidos.
         """
         mapa: dict[str, str] = {}
         for item in estrutura:
@@ -93,19 +87,19 @@ class ApiEscolhasService:
         headers: dict[str, str] | None = None,
         importacao_obj: Any | None = None,
     ) -> dict:
-        """Executa enviar vagas.
+        """Envia vagas.
 
         Args:
             self: Instância do objeto.
-            registros: Parâmetro registros.
-            estrutura: Parâmetro estrutura.
-            processo_uuid: Parâmetro processo uuid.
-            processo_nome: Parâmetro processo nome.
-            headers: Parâmetro headers.
-            importacao_obj: Parâmetro importacao obj.
+            registros: Registros utilizado na operação.
+            estrutura: Estrutura utilizado na operação.
+            processo_uuid: UUID do processo de convocação.
+            processo_nome: Processo nome utilizado na operação.
+            headers: Headers utilizado na operação.
+            importacao_obj: Importacao obj utilizado na operação.
 
         Returns:
-            Dicionário com os dados processados.
+            Dicionário com os dados retornados pela operação.
 
         Raises:
             ApiEscolhasException: Se ocorrer erro nesta operação.
@@ -156,17 +150,14 @@ class ApiEscolhasService:
     def _transformar_escolhas_prodam_para_escolhas(
         self, dados_prodam: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
-        """Transforma dados da Prodam para o formato esperado pelo MS-Escolhas.
+        """Converte payload Prodam para o formato do MS-Escolhas.
 
         Args:
             self: Instância do objeto.
-            dados_prodam: Lista de dicionários com dados da Prodam.
+            dados_prodam: Dados prodam utilizado na operação.
 
         Returns:
-            Lista com os registros resultantes.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Lista com os registros obtidos.
         """
         escolhas = []
         dados_prodam = [
@@ -194,18 +185,18 @@ class ApiEscolhasService:
         headers: dict[str, str] | None = None,
         importacao_obj: Any | None = None,
     ) -> dict:
-        """Envia escolhas da Prodam para o MS-Escolhas.
+        """Envia escolhas prodam.
 
         Args:
             self: Instância do objeto.
             processo_uuid: UUID do processo de convocação.
-            concurso_uuid: UUID do concurso.
-            dados_prodam: Lista de dicionários com dados da Prodam.
-            headers: Headers adicionais para a requisição.
-            importacao_obj: Objeto de importação para registro de erros.
+            concurso_uuid: UUID do concurso relacionado.
+            dados_prodam: Dados prodam utilizado na operação.
+            headers: Headers utilizado na operação.
+            importacao_obj: Importacao obj utilizado na operação.
 
         Returns:
-            Dicionário com os dados processados.
+            Dicionário com os dados retornados pela operação.
 
         Raises:
             ApiEscolhasException: Se ocorrer erro nesta operação.

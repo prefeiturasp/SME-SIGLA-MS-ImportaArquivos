@@ -26,7 +26,7 @@ class ImportacaoArquivoVagas(BaseModelArquivoImportacao):
     )
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         db_table = "importacao_arquivo_vagas"
         verbose_name = "Importação de arquivo de vagas"
@@ -34,16 +34,13 @@ class ImportacaoArquivoVagas(BaseModelArquivoImportacao):
         ordering = ["-criado_em"]
 
     def __str__(self) -> Any:
-        """Executa   str  .
+        """Retorna representação textual do registro.
 
         Args:
             self: Instância do objeto.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         return self.nome_arquivo
 

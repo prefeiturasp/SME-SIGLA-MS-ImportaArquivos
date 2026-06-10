@@ -27,16 +27,13 @@ logger = logging.getLogger(__name__)
 
 
 def _data_para_ddmmyyyy(val: Any) -> str:
-    """Executa  data para ddmmyyyy.
+    """Data para ddmmyyyy.
 
     Args:
-        val: Parâmetro val.
+        val: Val utilizado na operação.
 
     Returns:
         Texto resultante da operação.
-
-    Raises:
-        Nenhuma exceção específica documentada.
     """
     try:
         data_obj = datetime.fromisoformat(val.replace("Z", "+00:00"))
@@ -49,17 +46,14 @@ def gerar_conteudo_lote(
     candidatos: list[dict[str, Any]],
     escolhas_por_candidato: dict[str, dict[str, Any]],
 ) -> str:
-    """Gera o conteúdo completo do arquivo de exportação de lotes.
+    """Gera conteudo lote.
 
     Args:
-        candidatos: Parâmetro candidatos.
-        escolhas_por_candidato: Parâmetro escolhas por candidato.
+        candidatos: Candidatos utilizado na operação.
+        escolhas_por_candidato: Escolhas por candidato utilizado na operação.
 
     Returns:
         Texto resultante da operação.
-
-    Raises:
-        Nenhuma exceção específica documentada.
     """
     cabecalho = """@TABELA=[c_ERGON][PMSP_ESCOLHA_VAGA_SME][1.0]
         @CHAVE=[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER]
@@ -126,7 +120,7 @@ def gerar_conteudo_lote(
 
 
 def exportar_lote(instance: ExportacaoLote) -> str:
-    """Orquestra a exportação de um lote:.
+    """Exporta lote.
 
     Args:
         instance: Instância do modelo em atualização.

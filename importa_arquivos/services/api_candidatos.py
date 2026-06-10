@@ -21,20 +21,17 @@ logger = logging.getLogger(__name__)
 
 
 class ApiCandidatosService:
-    """Define ApiCandidatosService."""
+    """Serviço para operações de apicandidatos."""
 
     def __init__(
         self, base_url: str = "https://example.com", timeout_seconds: int = 30
     ) -> None:
-        """Executa   init  .
+        """Inicializa a instância com os parâmetros informados.
 
         Args:
             self: Instância do objeto.
-            base_url: Parâmetro base url.
-            timeout_seconds: Parâmetro timeout seconds.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            base_url: URL base do serviço remoto.
+            timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
@@ -50,14 +47,11 @@ class ApiCandidatosService:
 
         Args:
             self: Instância do objeto.
-            registros: Parâmetro registros.
-            estrutura: Parâmetro estrutura.
+            registros: Registros utilizado na operação.
+            estrutura: Estrutura utilizado na operação.
 
         Returns:
-            Lista com os registros resultantes.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Lista com os registros obtidos.
         """
         mapa_coluna_para_payload: dict[str, str] = {}
         for item in estrutura:
@@ -88,16 +82,16 @@ class ApiCandidatosService:
         headers: dict[str, str] | None = None,
         importacao_obj: Any | None = None,
     ) -> Response:
-        """Executa enviar habilitados.
+        """Envia habilitados.
 
         Args:
             self: Instância do objeto.
-            registros: Parâmetro registros.
-            estrutura: Parâmetro estrutura.
-            concurso_uuid: Parâmetro concurso uuid.
-            concurso_nome: Parâmetro concurso nome.
-            headers: Parâmetro headers.
-            importacao_obj: Parâmetro importacao obj.
+            registros: Registros utilizado na operação.
+            estrutura: Estrutura utilizado na operação.
+            concurso_uuid: UUID do concurso relacionado.
+            concurso_nome: Concurso nome utilizado na operação.
+            headers: Headers utilizado na operação.
+            importacao_obj: Importacao obj utilizado na operação.
 
         Returns:
             Resposta HTTP com o resultado da operação.
@@ -140,20 +134,20 @@ class ApiCandidatosService:
     def salvar_lotes(
         self, concurso_uuid: str, lotes: list, importacao_obj: Any = None
     ) -> int:
-        """POST {base_url}/api/v1/habilitados/salvar-lotes/.
+        """Salva lotes.
 
         Args:
             self: Instância do objeto.
-            concurso_uuid: Parâmetro concurso uuid.
-            lotes: Parâmetro lotes.
-            importacao_obj: Parâmetro importacao obj.
+            concurso_uuid: UUID do concurso relacionado.
+            lotes: Lotes utilizado na operação.
+            importacao_obj: Importacao obj utilizado na operação.
 
         Returns:
-            Valor inteiro calculado.
+            Quantidade de registros processados.
 
         Raises:
-            ImportacaoBadRequestException: Em 400.
-            ImportacaoServiceUnavailableException: Em 5xx, timeout ou resposta.
+            ImportacaoBadRequestException: Requisição inválida.
+            ImportacaoServiceUnavailableException: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/habilitados/salvar-lotes/"
         payload = {"concurso_uuid": concurso_uuid, "lotes": lotes}

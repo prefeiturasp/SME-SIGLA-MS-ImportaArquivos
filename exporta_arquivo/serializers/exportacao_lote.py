@@ -9,7 +9,7 @@ class ExportacaoLoteCreateSerializer(serializers.ModelSerializer):
     """Serializer para criação de exportação de lote."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ExportacaoLote
         fields = [
@@ -24,7 +24,7 @@ class ExportacaoLoteListSerializer(serializers.ModelSerializer):
     """Serializer para listagem e detalhe de exportações de lote."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ExportacaoLote
         fields = [
@@ -45,7 +45,7 @@ class CabecalhoExportacaoLoteSerializer(serializers.ModelSerializer):
     """Serializer para leitura e edição do cabeçalho de exportação de lote."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = CabecalhoExportacaoLote
         fields = [

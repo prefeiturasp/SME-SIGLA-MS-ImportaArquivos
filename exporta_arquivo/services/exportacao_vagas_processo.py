@@ -20,14 +20,11 @@ def formatar_arquivo_vagas_processo(
     """Recebe código do cargo (int) e lista de dicts com chaves 'setor'.
 
     Args:
-        codigo_cargo: Parâmetro codigo cargo.
-        linhas: Parâmetro linhas.
+        codigo_cargo: Codigo cargo utilizado na operação.
+        linhas: Linhas utilizado na operação.
 
     Returns:
         Texto resultante da operação.
-
-    Raises:
-        Nenhuma exceção específica documentada.
     """
     partes: list[str] = []
     for item in linhas:
@@ -42,17 +39,14 @@ def buscar_vagas_escolas(
     processo_uuid: str,
     cargo_codigo: int,
 ) -> list[dict[str, Any]]:
-    """Chama ApiEscolhasService (vagas-escolas) com processo_uuid e.
+    """Busca vagas escolas.
 
     Args:
-        processo_uuid: Parâmetro processo uuid.
-        cargo_codigo: Parâmetro cargo codigo.
+        processo_uuid: UUID do processo de convocação.
+        cargo_codigo: Cargo codigo utilizado na operação.
 
     Returns:
-        Lista com os registros resultantes.
-
-    Raises:
-        Nenhuma exceção específica documentada.
+        Lista com os registros obtidos.
     """
     data = ApiEscolhasService().get_vagas_escolas(processo_uuid, cargo_codigo)
     serializer = VagasPayloadSerializer(data=data)

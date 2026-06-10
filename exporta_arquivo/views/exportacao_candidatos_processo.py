@@ -31,17 +31,14 @@ class ExportacaoCandidatosProcessoViewSet(BaseExportacaoViewSet):
     create_serializer_class = ExportacaoCandidatosProcessoCreateSerializer  # type: ignore[assignment]
 
     def gerar_arquivo(self, instance: Any) -> None:
-        """Executa operação.
+        """Gera arquivo.
 
         Args:
             self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Não retorna valor.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Nenhum valor.
         """
         conteudo = exportar_candidatos_processo(instance)
         desc_safe = self.sanitizar_nome_arquivo(

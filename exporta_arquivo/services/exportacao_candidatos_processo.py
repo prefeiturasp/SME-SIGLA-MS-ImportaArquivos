@@ -48,13 +48,10 @@ def _data_para_dd_mm_yyyy(val: Any) -> str:
     """Converte data (ISO ou string) para DD/MM/YYYY.
 
     Args:
-        val: Parâmetro val.
+        val: Val utilizado na operação.
 
     Returns:
         Texto resultante da operação.
-
-    Raises:
-        Nenhuma exceção específica documentada.
     """
     if val is None or val == "":
         return ""
@@ -76,13 +73,10 @@ def _cpf_apenas_digitos(val: Any) -> str:
     """Retorna CPF apenas com dígitos.
 
     Args:
-        val: Parâmetro val.
+        val: Val utilizado na operação.
 
     Returns:
         Texto resultante da operação.
-
-    Raises:
-        Nenhuma exceção específica documentada.
     """
     return re.sub("\\D", "", str(val)) if val is not None else ""
 
@@ -91,13 +85,10 @@ def _campo(val: Any) -> str:
     """Normaliza valor para o arquivo (sem pipe no conteúdo).
 
     Args:
-        val: Parâmetro val.
+        val: Val utilizado na operação.
 
     Returns:
         Texto resultante da operação.
-
-    Raises:
-        Nenhuma exceção específica documentada.
     """
     if val is None:
         return ""
@@ -111,13 +102,10 @@ def formatar_arquivo_candidatos_processo(
     """Gera o conteúdo do arquivo TXT (delimitado por |) sem cabeçalho.
 
     Args:
-        linhas_candidatos: Parâmetro linhas candidatos.
+        linhas_candidatos: Linhas candidatos utilizado na operação.
 
     Returns:
         Texto resultante da operação.
-
-    Raises:
-        Nenhuma exceção específica documentada.
     """
     linhas: list[str] = []
     for item in linhas_candidatos:
@@ -133,17 +121,14 @@ def formatar_arquivo_candidatos_processo(
 def _mapear_habilitado_para_exportacao(
     item: dict[str, Any], dados_concurso: dict[str, Any]
 ) -> dict[str, Any]:
-    """Mapeia item da API de habilitados para a estrutura do arquivo (colunas.
+    """Mapeia habilitado da API para as colunas do arquivo de exportação.
 
     Args:
-        item: Parâmetro item.
-        dados_concurso: Parâmetro dados concurso.
+        item: Item utilizado na operação.
+        dados_concurso: Dados concurso utilizado na operação.
 
     Returns:
-        Dicionário com os dados processados.
-
-    Raises:
-        Nenhuma exceção específica documentada.
+        Dicionário com os dados retornados pela operação.
     """
     candidato = (
         item.get("candidato")
@@ -186,16 +171,13 @@ def _mapear_habilitado_para_exportacao(
 def exportar_candidatos_processo(
     instance: ExportacaoCandidatosProcesso,
 ) -> str:
-    """Orquestra a exportação de candidatos por processo.
+    """Exporta candidatos processo.
 
     Args:
         instance: Instância do modelo em atualização.
 
     Returns:
         Texto resultante da operação.
-
-    Raises:
-        Nenhuma exceção específica documentada.
     """
     dados_concurso = ApiConcursosService().get_concurso(instance.concurso_uuid)  # type: ignore[arg-type]
     instance.concurso_codigo = dados_concurso.get("codigo")
@@ -208,16 +190,13 @@ def exportar_candidatos_processo(
     )
 
     def _chave(i: Any) -> Any:
-        """Executa  chave.
+        """Chave.
 
         Args:
-            i: Parâmetro i.
+            i: I utilizado na operação.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         return (
             i.get("ranking_escolha") is None,

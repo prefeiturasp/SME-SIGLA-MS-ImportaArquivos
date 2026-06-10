@@ -21,7 +21,7 @@ from ..serializers.layout import LayoutArquivoImportacaoSerializer
 
 
 class LayoutArquivoImportacaoViewSet(viewsets.ModelViewSet):
-    """Define LayoutArquivoImportacaoViewSet."""
+    """ViewSet para o recurso LayoutArquivoImportacao."""
 
     queryset = LayoutArquivoImportacao.objects.all()
     serializer_class = LayoutArquivoImportacaoSerializer
@@ -48,17 +48,14 @@ class LayoutArquivoImportacaoViewSet(viewsets.ModelViewSet):
     )
     @action(detail=False, methods=["get"], url_path="download")
     def download(self, request: Any) -> Any:
-        """Executa download.
+        """Download.
 
         Args:
             self: Instância do objeto.
             request: Requisição HTTP recebida.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         tipo = request.query_params.get("tipo")
         if not tipo:

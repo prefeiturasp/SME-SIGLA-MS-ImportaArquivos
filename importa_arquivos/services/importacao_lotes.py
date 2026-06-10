@@ -34,15 +34,12 @@ def _validar_linha_lote(
     """Valida uma linha do arquivo de lotes via schema Pydantic.
 
     Args:
-        row: Parâmetro row.
-        num_linha: Parâmetro num linha.
-        lote_referencia: Parâmetro lote referencia.
+        row: Row utilizado na operação.
+        num_linha: Num linha utilizado na operação.
+        lote_referencia: Lote referencia utilizado na operação.
 
     Returns:
-        Resultado da operação.
-
-    Raises:
-        Nenhuma exceção específica documentada.
+        Tupla com os objetos criados ou atualizados.
     """
     identificacao = row.get("IDENTIFICACAO", "").strip()
     try:
@@ -78,14 +75,14 @@ def _validar_linha_lote(
 def validar_txt_lotes(
     arquivo: Any, importacao_obj: Any = None
 ) -> list[dict[str, Any]]:
-    """Lê e valida o arquivo TXT de lotes.
+    """Valida txt lotes.
 
     Args:
-        arquivo: Parâmetro arquivo.
-        importacao_obj: Parâmetro importacao obj.
+        arquivo: Arquivo utilizado na operação.
+        importacao_obj: Importacao obj utilizado na operação.
 
     Returns:
-        Lista com os registros resultantes.
+        Lista com os registros obtidos.
 
     Raises:
         ArquivoLotesVazioException: Se ocorrer erro nesta operação.

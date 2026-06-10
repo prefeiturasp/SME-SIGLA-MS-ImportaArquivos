@@ -14,13 +14,13 @@ class ImportacaoLotesCreateSerializer(serializers.ModelSerializer):
     """Serializer para criação de importações de lotes."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ImportacaoLotes
         fields = ["arquivo", "concurso_uuid", "concurso_nome"]
 
     def create(self, validated_data: Any) -> Any:
-        """Executa create.
+        """Create.
 
         Args:
             self: Instância do objeto.
@@ -28,9 +28,6 @@ class ImportacaoLotesCreateSerializer(serializers.ModelSerializer):
 
         Returns:
             Resposta HTTP com os dados serializados.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         arquivo = validated_data.get("arquivo")
         nome_arquivo = getattr(arquivo, "name", None) or "Importação de Lotes"
@@ -50,7 +47,7 @@ class ImportacaoLotesListSerializer(serializers.ModelSerializer):
     _content_type_cache = None
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ImportacaoLotes
         fields = [
@@ -78,17 +75,14 @@ class ImportacaoLotesListSerializer(serializers.ModelSerializer):
         ]
 
     def get_erros(self, obj: Any) -> Any:
-        """Executa get erros.
+        """Retorna erros.
 
         Args:
             self: Instância do objeto.
-            obj: Parâmetro obj.
+            obj: Obj utilizado na operação.
 
         Returns:
             Valor calculado para o campo ou propriedade.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         if ImportacaoLotesListSerializer._content_type_cache is None:
             ImportacaoLotesListSerializer._content_type_cache = (

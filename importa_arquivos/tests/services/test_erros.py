@@ -35,7 +35,7 @@ def test_captura_erros_importacao_decorador_cria_registro() -> None:
 
     @captura_erros_importacao("importacao_obj")
     def func_que_falha(importacao_obj: Any = None) -> None:
-        """Executa func que falha."""
+        """Func que falha."""
         raise BaseImportacaoException("msg curta", detalhes="grande")
 
     with pytest.raises(BaseImportacaoException):

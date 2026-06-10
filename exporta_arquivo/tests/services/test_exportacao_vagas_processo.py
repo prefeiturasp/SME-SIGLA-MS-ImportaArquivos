@@ -18,7 +18,7 @@ from exporta_arquivo.services.exportacao_vagas_processo import (
 
 
 class TestFormatarArquivoVagasProcesso:
-    """Formato esperado: codigo_cargo|codigo_eol|v_def|v_prec por linha,."""
+    """Valida formato de linha do arquivo de vagas por processo."""
 
     def test_lista_vazia_retorna_string_vazia(self) -> None:
         """Verifica lista vazia retorna string vazia."""

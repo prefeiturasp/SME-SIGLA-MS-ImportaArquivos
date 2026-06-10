@@ -12,7 +12,7 @@ from .models import (
 
 @admin.register(LayoutArquivoImportacao)
 class LayoutArquivoImportacaoAdmin(admin.ModelAdmin):
-    """Define LayoutArquivoImportacaoAdmin."""
+    """Configuração do admin para LayoutArquivoImportacao."""
 
     list_display = ("tipo", "criado_em", "atualizado_em")
     search_fields = ("tipo",)
@@ -23,7 +23,7 @@ class LayoutArquivoImportacaoAdmin(admin.ModelAdmin):
 
 @admin.register(ImportacaoArquivoHabilitado)
 class ImportacaoArquivoHabilitadoAdmin(admin.ModelAdmin):
-    """Define ImportacaoArquivoHabilitadoAdmin."""
+    """Configuração do admin para ImportacaoArquivoHabilitado."""
 
     list_display = (
         "nome_arquivo",
@@ -40,7 +40,7 @@ class ImportacaoArquivoHabilitadoAdmin(admin.ModelAdmin):
 
 @admin.register(ImportacaoArquivoVagas)
 class ImportacaoArquivoVagasAdmin(admin.ModelAdmin):
-    """Define ImportacaoArquivoVagasAdmin."""
+    """Configuração do admin para ImportacaoArquivoVagas."""
 
     list_display = ("nome_arquivo", "status", "criado_em")
     search_fields = ("nome_arquivo",)
@@ -51,7 +51,7 @@ class ImportacaoArquivoVagasAdmin(admin.ModelAdmin):
 
 @admin.register(ImportacaoErro)
 class ImportacaoErroAdmin(admin.ModelAdmin):
-    """Define ImportacaoErroAdmin."""
+    """Configuração do admin para ImportacaoErro."""
 
     list_display = ("mensagem", "content_type", "object_id", "criado_em")
     search_fields = ("mensagem", "erros")

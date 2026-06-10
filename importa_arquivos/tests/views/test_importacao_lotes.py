@@ -31,20 +31,20 @@ HEADER = "LOTE;EMPRESA;VAGA;IDENTIFICACAO;CHAVE_INSCRITO;NUMFUNC;NUMVINC\n"
 
 
 def _txt_valido(lote: Any = 1) -> Any:
-    """Executa  txt valido."""
+    """Txt valido."""
     linha = f"{lote};EMP01;VAGA01;100;CH01;999;1\n"
     return (HEADER + linha).encode("utf-8")
 
 
 def _arquivo(conteudo: bytes = None, nome: Any = "lotes.txt") -> Any:  # type: ignore[assignment]
-    """Executa  arquivo."""
+    """Arquivo."""
     return SimpleUploadedFile(
         nome, conteudo or _txt_valido(), content_type="text/plain"
     )
 
 
 def _payload(arquivo: Any = None, concurso_uuid: Any = None) -> Any:
-    """Executa  payload."""
+    """Payload."""
     return {
         "arquivo": arquivo or _arquivo(),
         "concurso_uuid": str(concurso_uuid or uuid.uuid4()),
@@ -53,7 +53,7 @@ def _payload(arquivo: Any = None, concurso_uuid: Any = None) -> Any:
 
 
 def _registros_validos() -> Any:
-    """Executa  registros validos."""
+    """Registros validos."""
     return [
         {
             "lote": 1,

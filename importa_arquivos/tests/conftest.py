@@ -26,10 +26,10 @@ def fake_uuid() -> Any:
 
 @pytest.fixture
 def cria_vagas() -> Any:
-    """Executa cria vagas."""
+    """Cria vagas."""
 
     def _cria(pares_nome_status: Any) -> Any:
-        """Executa  cria."""
+        """Cria."""
         objetos = []
         for nome, status in pares_nome_status:
             objetos.append(

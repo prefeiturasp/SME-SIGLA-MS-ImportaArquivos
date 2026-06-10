@@ -36,7 +36,7 @@ def _linha(
     numfunc: Any = 999,
     numvinc: Any = 1,
 ) -> Any:
-    """Executa  linha."""
+    """Linha."""
     return f"{lote};{empresa};{vaga};{identificacao};{chave};{numfunc};{numvinc}\n"  # noqa: E501
 
 
@@ -62,7 +62,7 @@ class TestValidarLinhaLote:
         numfunc: Any = "999",
         numvinc: Any = "1",
     ) -> Any:
-        """Executa  row."""
+        """Row."""
         return {
             "LOTE": lote,
             "EMPRESA": empresa,
@@ -225,7 +225,7 @@ class TestValidarTxtLotes:
         assert resultado[0]["numvinc"] == 3
 
     def test_arquivo_com_bom_utf8_sig_decodificado(self) -> None:
-        """Arquivo com BOM (utf-8-sig) deve ser lido corretamente."""
+        """Verifica arquivo com bom utf8 sig decodificado."""
         conteudo = HEADER + _linha()
         arquivo = MagicMock()
         arquivo.read.return_value = conteudo.encode("utf-8-sig")

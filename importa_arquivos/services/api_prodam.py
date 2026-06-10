@@ -22,14 +22,14 @@ class ApiProdamService:
     DEFAULT_TIMEOUT = 300
 
     def __init__(self, timeout_seconds: int = None) -> None:  # type: ignore[assignment]
-        """Executa   init  .
+        """Inicializa a instância com os parâmetros informados.
 
         Args:
             self: Instância do objeto.
-            timeout_seconds: Parâmetro timeout seconds da operação.
+            timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
 
         Raises:
-            ValueError: Se ocorrer erro nesta operação.
+            ValueError: Se os dados informados forem inválidos.
         """
         self.timeout_seconds = timeout_seconds or self.DEFAULT_TIMEOUT
         self.api_url = settings.PRODAM_ESCOLHAS_API_URL
@@ -42,16 +42,13 @@ class ApiProdamService:
             )
 
     def _get_headers(self) -> dict[str, str]:
-        """Retorna headers para requisição à API PRODAM.
+        """Obtém headers.
 
         Args:
             self: Instância do objeto.
 
         Returns:
-            Dicionário com os dados processados.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Dicionário com os dados retornados pela operação.
         """
         return {
             "Authorization": f"Basic {self._token}",
@@ -65,14 +62,14 @@ class ApiProdamService:
 
         Args:
             self: Instância do objeto.
-            processo_id: ID do processo de convocação.
+            processo_id: Identificador de processo.
 
         Returns:
-            Dicionário com os dados processados.
+            Dicionário com os dados retornados pela operação.
 
         Raises:
-            RequestException: Em caso de erro na requisição.
-            ValueError: Se a resposta não for válida.
+            RequestException: Se a chamada HTTP falhar.
+            ValueError: Se os dados informados forem inválidos.
         """
         url = self.api_url
         headers = self._get_headers()

@@ -105,7 +105,7 @@ def test_importacao_habilitados_create_retorna_400_com_mensagem_e_detalhes(
     mensagem_esperada: Any,
     detalhes_esperados: Any,
 ) -> None:
-    """Testa exceções de importação retornando 400 com detail e detalhes."""
+    """Verifica importacao habilitados create retorna 400 com mensagem e detalhes."""
     arquivo = SimpleUploadedFile(
         "h.csv", b"Inscricao,Nome\n123,Joao\n", content_type="text/csv"
     )
@@ -221,7 +221,7 @@ def test_importacao_habilitados_envio_api_exception(
 def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(
     api_client: Any,
 ) -> None:
-    """Testa download_erros retorna arquivo vazio quando não há erros."""
+    """Verifica download erros retorna arquivo vazio quando sem erros."""
     url = reverse("importacao-arquivo-habilitados-download-erros")
     resp = api_client.get(url)
     assert resp.status_code == 200
@@ -232,7 +232,7 @@ def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(
 
 
 def test_download_erros_formata_conteudo_corretamente(api_client: Any) -> None:
-    """Testa download_erros formata erros com titulo: conteudo."""
+    """Verifica download erros formata conteudo corretamente."""
     arquivo = SimpleUploadedFile(
         "h.csv", b"Inscricao,Nome\n123,Joao\n", content_type="text/csv"
     )
@@ -265,7 +265,7 @@ def test_download_erros_formata_conteudo_corretamente(api_client: Any) -> None:
 def test_download_erros_parte_sem_dois_pontos_apenas_append(
     api_client: Any,
 ) -> None:
-    """Testa download_erros: partes sem ':' são adicionadas como estão."""
+    """Verifica download erros parte sem dois pontos apenas append."""
     arquivo = SimpleUploadedFile(
         "h.csv", b"Inscricao,Nome\n123,Joao\n", content_type="text/csv"
     )
@@ -293,7 +293,7 @@ def test_download_erros_parte_sem_dois_pontos_apenas_append(
 
 
 def test_download_erros_filtra_por_importacao_uuid(api_client: Any) -> None:
-    """Testa download_erros filtra por importacao_uuid quando informado."""
+    """Verifica download erros filtra por importacao uuid."""
     arquivo = SimpleUploadedFile(
         "h.csv", b"Inscricao,Nome\n123,Joao\n", content_type="text/csv"
     )

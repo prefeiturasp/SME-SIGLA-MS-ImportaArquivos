@@ -156,7 +156,7 @@ class TestFormatarArquivoCandidatosProcesso:
         assert "123" in out and "X" in out
 
     def test_dt_nascimento_dd_mm_yyyy_na_saida(self) -> None:
-        """Valores de dt_nascimento já em DD/MM/YYYY (ex.: vindos do mapeador)."""
+        """Verifica dt nascimento dd mm yyyy na saida."""
         linhas = [
             {
                 "codigo": 1,
@@ -170,7 +170,7 @@ class TestFormatarArquivoCandidatosProcesso:
         assert "31/12/1995" in out
 
     def test_cd_cpf_apenas_digitos_na_coluna(self) -> None:
-        """Coluna cd_cpf na saída reflete o valor do item (já normalizado pelo."""
+        """Verifica cd cpf apenas digitos na coluna."""
         linhas = [
             {
                 "codigo": 1,
@@ -193,7 +193,7 @@ class TestExportarCandidatosProcesso:
 
     @pytest.fixture
     def instance(self) -> Any:
-        """Instance mock com processo_uuid, cargo_uuid, cargo_codigo,."""
+        """Mock de instância com UUIDs e código do cargo."""
         from unittest.mock import MagicMock
 
         inst = MagicMock()

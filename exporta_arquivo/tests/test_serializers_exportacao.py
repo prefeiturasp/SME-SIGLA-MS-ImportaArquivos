@@ -31,7 +31,7 @@ from exporta_arquivo.serializers.exportacao_vagas_sigpec import (
 
 
 def _uuid() -> Any:
-    """Executa  uuid."""
+    """Uuid."""
     return str(uuid.uuid4())
 
 
@@ -41,7 +41,7 @@ class TestExportacaoCandidatosProcessoCreateSerializer:
     def test_campos_obrigatorios_processo_uuid_cargo_uuid_cargo_codigo(
         self,
     ) -> None:
-        """Faltando processo_uuid, cargo_uuid ou cargo_codigo deve falhar na."""
+        """Verifica campos obrigatorios processo uuid cargo uuid cargo codigo."""
         base = {
             "processo_uuid": _uuid(),
             "cargo_uuid": _uuid(),
@@ -69,7 +69,7 @@ class TestExportacaoCandidatosProcessoCreateSerializer:
         obj.delete()
 
     def test_campos_opcionais_aceitos(self) -> None:
-        """concurso_uuid, processo_nome, cargo_nome, concurso_codigo,."""
+        """Verifica campos opcionais aceitos."""
         data = {
             "processo_uuid": _uuid(),
             "cargo_uuid": _uuid(),
@@ -98,7 +98,7 @@ class TestExportacaoCandidatosProcessoListSerializer:
     """List: read_only esperados e serialização de instance."""
 
     def test_read_only_fields_esperados(self) -> None:
-        """List serializer tem todos os campos de listagem como read_only."""
+        """Verifica read only fields esperados."""
         expected = {
             "uuid",
             "criado_em",
@@ -118,7 +118,7 @@ class TestExportacaoCandidatosProcessoListSerializer:
         assert set(meta.fields) == expected
 
     def test_instance_serializa_corretamente(self) -> None:
-        """Uma instance do model serializa com todos os campos esperados."""
+        """Verifica instance serializa corretamente."""
         obj = ExportacaoCandidatosProcesso.objects.create(
             processo_uuid=uuid.uuid4(),
             cargo_uuid=uuid.uuid4(),
@@ -142,7 +142,7 @@ class TestExportacaoVagasProcessoCreateSerializer:
     """Create: obrigatórios; create com dados válidos."""
 
     def test_create_com_dados_validos(self) -> None:
-        """Create com processo_uuid, cargo_uuid, cargo_codigo (e opcionais)."""
+        """Verifica create com dados validos."""
         data = {
             "processo_uuid": _uuid(),
             "cargo_uuid": _uuid(),

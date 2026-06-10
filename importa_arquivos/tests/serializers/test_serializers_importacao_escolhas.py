@@ -23,7 +23,7 @@ class TestImportacaoEscolhasCreateSerializer:
     """Testes para ImportacaoEscolhasCreateSerializer."""
 
     def test_serializer_valido_com_dados_completos(self) -> None:
-        """Testa serializer válido com todos os campos obrigatórios."""
+        """Verifica serializer valido com dados completos."""
         processo_uuid = uuid.uuid4()
         processo_id = 123
         concurso_uuid = uuid.uuid4()
@@ -39,14 +39,14 @@ class TestImportacaoEscolhasCreateSerializer:
         assert serializer.validated_data["concurso_uuid"] == concurso_uuid
 
     def test_serializer_invalido_sem_processo_uuid(self) -> None:
-        """Testa que processo_uuid é obrigatório."""
+        """Verifica serializer invalido sem processo uuid."""
         data = {"processo_id": 123}
         serializer = ImportacaoEscolhasCreateSerializer(data=data)
         assert not serializer.is_valid()
         assert "processo_uuid" in serializer.errors
 
     def test_serializer_valido_sem_processo_id(self) -> None:
-        """Testa que processo_id é opcional (pode ser None)."""
+        """Verifica serializer valido sem processo id."""
         processo_uuid = uuid.uuid4()
         concurso_uuid = uuid.uuid4()
         data = {
@@ -60,14 +60,14 @@ class TestImportacaoEscolhasCreateSerializer:
         assert serializer.validated_data.get("processo_id") is None
 
     def test_serializer_invalido_processo_uuid_invalido(self) -> None:
-        """Testa que processo_uuid deve ser um UUID válido."""
+        """Verifica serializer invalido processo uuid invalido."""
         data = {"processo_uuid": "invalid-uuid", "processo_id": 123}
         serializer = ImportacaoEscolhasCreateSerializer(data=data)
         assert not serializer.is_valid()
         assert "processo_uuid" in serializer.errors
 
     def test_serializer_invalido_processo_id_nao_inteiro(self) -> None:
-        """Testa que processo_id deve ser um inteiro."""
+        """Verifica serializer invalido processo id nao inteiro."""
         processo_uuid = uuid.uuid4()
         data = {
             "processo_uuid": str(processo_uuid),
@@ -82,7 +82,7 @@ class TestImportacaoEscolhasListSerializer:
     """Testes para ImportacaoEscolhasListSerializer."""
 
     def test_serializer_lista_todos_campos(self) -> None:
-        """Testa que o serializer lista todos os campos esperados."""
+        """Verifica serializer lista todos campos."""
         processo_uuid = uuid.uuid4()
         concurso_uuid = uuid.uuid4()
         importacao = ImportacaoEscolhas.objects.create(
@@ -104,7 +104,7 @@ class TestImportacaoEscolhasListSerializer:
         assert "erros" in data
 
     def test_serializer_retorna_erros_vazios_quando_nao_existem(self) -> None:
-        """Testa que erros retorna None quando não há erros."""
+        """Verifica serializer retorna erros vazios quando nao existem."""
         processo_uuid = uuid.uuid4()
         importacao = ImportacaoEscolhas.objects.create(
             processo_uuid=processo_uuid, processo_id=123
@@ -113,7 +113,7 @@ class TestImportacaoEscolhasListSerializer:
         assert serializer.data["erros"] is None
 
     def test_serializer_retorna_erros_quando_existem(self) -> None:
-        """Testa que erros são retornados quando existem."""
+        """Verifica serializer retorna erros quando existem."""
         processo_uuid = uuid.uuid4()
         importacao = ImportacaoEscolhas.objects.create(
             processo_uuid=processo_uuid, processo_id=123
@@ -134,7 +134,7 @@ class TestImportacaoEscolhasListSerializer:
         assert "criado_em" in erros[0]
 
     def test_serializer_retorna_multiplos_erros_ordenados(self) -> None:
-        """Testa que múltiplos erros são retornados ordenados por criado_em."""
+        """Verifica serializer retorna multiplos erros ordenados."""
         processo_uuid = uuid.uuid4()
         importacao = ImportacaoEscolhas.objects.create(
             processo_uuid=processo_uuid, processo_id=123
@@ -166,7 +166,7 @@ class TestResponseSerializer:
     """Testes para ResponseSerializer."""
 
     def test_serializer_valido_com_dados_completos(self) -> None:
-        """Testa serializer válido com todos os campos obrigatórios."""
+        """Verifica serializer valido com dados completos."""
         data = {
             "retorno": "TRUE",
             "mensagem": "Sucesso",
@@ -191,7 +191,7 @@ class TestResponseSerializer:
         )
 
     def test_serializer_valido_com_lista_vazia(self) -> None:
-        """Testa serializer válido com lista vazia."""
+        """Verifica serializer valido com lista vazia."""
         data = {
             "retorno": "TRUE",
             "mensagem": "Sucesso",
@@ -201,7 +201,7 @@ class TestResponseSerializer:
         assert serializer.is_valid()
 
     def test_serializer_invalido_sem_retorno(self) -> None:
-        """Testa que retorno é obrigatório."""
+        """Verifica serializer invalido sem retorno."""
         data = {
             "mensagem": "Sucesso",
             "lstDadosResultadoConvocacaoIngresso": [],
@@ -211,21 +211,21 @@ class TestResponseSerializer:
         assert "retorno" in serializer.errors
 
     def test_serializer_invalido_sem_mensagem(self) -> None:
-        """Testa que mensagem é obrigatória."""
+        """Verifica serializer invalido sem mensagem."""
         data = {"retorno": "TRUE", "lstDadosResultadoConvocacaoIngresso": []}
         serializer = ResponseSerializer(data=data)
         assert not serializer.is_valid()
         assert "mensagem" in serializer.errors
 
     def test_serializer_invalido_sem_lista_dados(self) -> None:
-        """Testa que lstDadosResultadoConvocacaoIngresso é obrigatória."""
+        """Verifica serializer invalido sem lista dados."""
         data = {"retorno": "TRUE", "mensagem": "Sucesso"}
         serializer = ResponseSerializer(data=data)
         assert not serializer.is_valid()
         assert "lstDadosResultadoConvocacaoIngresso" in serializer.errors
 
     def test_serializer_valida_campos_obrigatorios_em_cada_item(self) -> None:
-        """Testa validação dos campos obrigatórios em cada item da lista."""
+        """Verifica serializer valida campos obrigatorios em cada item."""
         data = {
             "retorno": "TRUE",
             "mensagem": "Sucesso",
@@ -243,7 +243,7 @@ class TestResponseSerializer:
         assert "lstDadosResultadoConvocacaoIngresso" in serializer.errors
 
     def test_serializer_valida_que_cada_item_eh_dicionario(self) -> None:
-        """Testa que cada item da lista deve ser um dicionário."""
+        """Verifica serializer valida que cada item eh dicionario."""
         data = {
             "retorno": "TRUE",
             "mensagem": "Sucesso",
@@ -258,7 +258,7 @@ class TestEscolhaItemSerializer:
     """Testes para EscolhaItemSerializer."""
 
     def test_serializer_valido_com_dados_completos(self) -> None:
-        """Testa serializer válido com todos os campos."""
+        """Verifica serializer valido com dados completos."""
         data = {
             "codigoPessoaFisica": "12345678901",
             "codigoCargo": "123",
@@ -270,7 +270,7 @@ class TestEscolhaItemSerializer:
         assert serializer.is_valid()
 
     def test_serializer_valido_com_campos_opcionais_nulos(self) -> None:
-        """Testa serializer válido com campos opcionais como None."""
+        """Verifica serializer valido com campos opcionais nulos."""
         data = {
             "codigoPessoaFisica": "12345678901",
             "codigoCargo": "123",
@@ -282,7 +282,7 @@ class TestEscolhaItemSerializer:
         assert serializer.is_valid()
 
     def test_serializer_invalido_sem_codigo_pessoa_fisica(self) -> None:
-        """Testa que codigoPessoaFisica é obrigatório."""
+        """Verifica serializer invalido sem codigo pessoa fisica."""
         data = {"codigoCargo": "123", "descricaoStatus": "ALOCADO"}
         serializer = EscolhaItemSerializer(data=data)
         assert not serializer.is_valid()
@@ -293,7 +293,7 @@ class TestEscolhasImportacaoSerializer:
     """Testes para EscolhasImportacaoSerializer."""
 
     def test_serializer_valido_com_dados_completos(self) -> None:
-        """Testa serializer válido com todos os campos obrigatórios."""
+        """Verifica serializer valido com dados completos."""
         processo_uuid = uuid.uuid4()
         concurso_uuid = uuid.uuid4()
         data = {
@@ -311,7 +311,7 @@ class TestEscolhasImportacaoSerializer:
         assert serializer.is_valid()
 
     def test_serializer_invalido_sem_processo_uuid(self) -> None:
-        """Testa que processo_uuid é obrigatório."""
+        """Verifica serializer invalido sem processo uuid."""
         data = {
             "escolhas": [
                 {
@@ -326,7 +326,7 @@ class TestEscolhasImportacaoSerializer:
         assert "processo_uuid" in serializer.errors
 
     def test_serializer_invalido_sem_escolhas(self) -> None:
-        """Testa que escolhas é obrigatório."""
+        """Verifica serializer invalido sem escolhas."""
         processo_uuid = uuid.uuid4()
         data = {"processo_uuid": str(processo_uuid)}
         serializer = EscolhasImportacaoSerializer(data=data)
@@ -336,7 +336,7 @@ class TestEscolhasImportacaoSerializer:
     def test_serializer_valida_campos_obrigatorios_em_cada_escolha(
         self,
     ) -> None:
-        """Testa validação dos campos obrigatórios em cada escolha."""
+        """Verifica serializer valida campos obrigatorios em cada escolha."""
         processo_uuid = uuid.uuid4()
         data = {
             "processo_uuid": str(processo_uuid),
@@ -354,7 +354,7 @@ class TestEscolhasImportacaoSerializer:
         assert "escolhas" in serializer.errors
 
     def test_serializer_valida_cpf_obrigatorio(self) -> None:
-        """Testa que cpf é obrigatório em cada escolha."""
+        """Verifica serializer valida cpf obrigatorio."""
         processo_uuid = uuid.uuid4()
         data = {
             "processo_uuid": str(processo_uuid),

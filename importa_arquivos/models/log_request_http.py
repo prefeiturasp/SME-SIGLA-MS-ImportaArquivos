@@ -22,7 +22,7 @@ class LogRequestHttp(BaseModel):
     )
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         db_table = "log_request_http"
         verbose_name = "Log de requisição HTTP"
@@ -30,15 +30,12 @@ class LogRequestHttp(BaseModel):
         ordering = ["-criado_em"]
 
     def __str__(self) -> Any:
-        """Executa   str  .
+        """Retorna representação textual do registro.
 
         Args:
             self: Instância do objeto.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         return f'Log - {self.metodo_http} {self.url} - Processo: {self.processo_id or 'N/A'}'  # noqa: E501

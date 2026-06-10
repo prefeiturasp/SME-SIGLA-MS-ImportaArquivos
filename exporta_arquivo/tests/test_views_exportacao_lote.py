@@ -35,19 +35,19 @@ CABECALHO_URL = "/api/v1/exportacao/cabecalho-lote/"
 
 
 def _uuid() -> Any:
-    """Executa  uuid."""
+    """Uuid."""
     return str(uuid.uuid4())
 
 
 @pytest.fixture
 def api_client() -> Any:
-    """Executa api client."""
+    """Api client."""
     return APIClient()
 
 
 @pytest.fixture
 def payload_valido() -> Any:
-    """Executa payload valido."""
+    """Payload valido."""
     return {
         "concurso_uuid": _uuid(),
         "concurso_nome": "Concurso SME 2024",
@@ -58,7 +58,7 @@ def payload_valido() -> Any:
 
 @pytest.fixture
 def registro_exportado() -> Any:
-    """Executa registro exportado."""
+    """Registro exportado."""
     return ExportacaoLote.objects.create(
         concurso_uuid=uuid.uuid4(),
         concurso_nome="Concurso X",

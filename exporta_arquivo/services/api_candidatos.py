@@ -27,15 +27,12 @@ class ApiCandidatosService:
     def __init__(
         self, base_url: str | None = None, timeout_seconds: int | None = None
     ) -> None:
-        """Executa   init  .
+        """Inicializa a instância com os parâmetros informados.
 
         Args:
             self: Instância do objeto.
-            base_url: Parâmetro base url.
-            timeout_seconds: Parâmetro timeout seconds.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            base_url: URL base do serviço remoto.
+            timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
         self.base_url = (
             base_url
@@ -47,18 +44,18 @@ class ApiCandidatosService:
         self._default_headers = {"Accept": "application/json"}
 
     def get_habilitados(self, **kwargs: Any) -> list[dict[str, Any]]:
-        """GET {CANDIDATOS_API_URL}/api/v1/habilitados/ com query params.
+        """Retorna habilitados.
 
         Args:
             self: Instância do objeto.
             **kwargs: Argumentos nomeados variáveis.
 
         Returns:
-            Lista com os registros resultantes.
+            Lista com os registros obtidos.
 
         Raises:
-            CandidatosNotFoundException: Em 404.
-            CandidatosServiceUnavailableException: Em 5xx, timeout ou resposta.
+            CandidatosNotFoundException: Registros não encontrados.
+            CandidatosServiceUnavailableException: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/habilitados/"
         params = {k: str(v) for k, v in kwargs.items() if v is not None}

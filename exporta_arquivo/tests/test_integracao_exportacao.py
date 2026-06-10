@@ -25,13 +25,13 @@ pytestmark = [
 
 
 def _uuid() -> Any:
-    """Executa  uuid."""
+    """Uuid."""
     return str(uuid.uuid4())
 
 
 @pytest.fixture
 def api_client() -> Any:
-    """Executa api client."""
+    """Api client."""
     from rest_framework.test import APIClient
 
     return APIClient()
@@ -61,7 +61,7 @@ class TestIntegracaoCreateCandidatosProcesso:
     def test_create_mockando_apenas_api_externa_retorna_200_e_arquivo_txt(
         self, api_client: Any
     ) -> Any:
-        """POST create com payload válido; mock de requests.get para API."""
+        """Verifica create mockando apenas api externa retorna 200 e arquivo txt."""
         concurso_uuid = _uuid()
         mock_concursos = MagicMock()
         mock_concursos.status_code = 200
@@ -74,7 +74,7 @@ class TestIntegracaoCreateCandidatosProcesso:
         mock_candidatos.json.return_value = _resposta_habilitados_api()
 
         def fake_get(url: Any, *args: Any, **kwargs: Any) -> Any:
-            """Executa fake get."""
+            """Fake get."""
             if "concursos" in url:
                 return mock_concursos
             return mock_candidatos

@@ -60,23 +60,20 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
     def get_serializer_class(self) -> Any:
-        """Executa get serializer class.
+        """Retorna serializer class.
 
         Args:
             self: Instância do objeto.
 
         Returns:
             Valor calculado para o campo ou propriedade.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         if self.action in ("list", "retrieve"):
             return ExportacaoLoteListSerializer
         return ExportacaoLoteCreateSerializer
 
     def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
-        """Executa create.
+        """Create.
 
         Args:
             self: Instância do objeto.
@@ -86,9 +83,6 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
 
         Returns:
             Resposta HTTP com os dados serializados.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -163,13 +157,10 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
         Args:
             self: Instância do objeto.
             request: Requisição HTTP recebida.
-            uuid: Parâmetro uuid.
+            uuid: Identificador único do registro.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         instance = self.get_object()
         if not instance.conteudo_arquivo:
@@ -188,17 +179,14 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def _gerar_conteudo_erro(nomes: list, instance: ExportacaoLote) -> str:
-        """Executa  gerar conteudo erro.
+        """Gerar conteudo erro.
 
         Args:
-            nomes: Parâmetro nomes.
+            nomes: Nomes utilizado na operação.
             instance: Instância do modelo em atualização.
 
         Returns:
             Texto resultante da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         lote_id = (
             instance.numero_lote

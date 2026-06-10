@@ -4,64 +4,58 @@ from __future__ import annotations
 
 
 class BaseImportacaoException(Exception):
-    """Define BaseImportacaoException."""
+    """Erro de negócio relacionado a BaseImportacaoException."""
 
     def __init__(self, mensagem: str, detalhes: str | None = None) -> None:
-        """Executa   init  .
+        """Inicializa a instância com os parâmetros informados.
 
         Args:
             self: Instância do objeto.
-            mensagem: Parâmetro mensagem.
-            detalhes: Parâmetro detalhes.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            mensagem: Mensagem principal do erro.
+            detalhes: Detalhes complementares do erro.
         """
         super().__init__(mensagem)
         self.mensagem = mensagem
         self.detalhes = detalhes or ""
 
     def __str__(self) -> str:
-        """Executa   str  .
+        """Retorna representação textual do registro.
 
         Args:
             self: Instância do objeto.
 
         Returns:
             Texto resultante da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         return self.mensagem
 
 
 class ColunaCSVInvalidaException(BaseImportacaoException):
-    """Define ColunaCSVInvalidaException."""
+    """Erro de negócio relacionado a ColunaCSVInvalidaException."""
 
     pass
 
 
 class CamposObrigatoriosNaoPreenchidosException(BaseImportacaoException):
-    """Define CamposObrigatoriosNaoPreenchidosException."""
+    """Campos obrigatórios ausentes ou inválidos na importação."""
 
     pass
 
 
 class LayoutNaoConfiguradoException(BaseImportacaoException):
-    """Define LayoutNaoConfiguradoException."""
+    """Erro de negócio relacionado a LayoutNaoConfiguradoException."""
 
     pass
 
 
 class LeituraCSVException(BaseImportacaoException):
-    """Define LeituraCSVException."""
+    """Erro de negócio relacionado a LeituraCSVException."""
 
     pass
 
 
 class EmailFormatoInvalidoException(BaseImportacaoException):
-    """Define EmailFormatoInvalidoException."""
+    """Erro de negócio relacionado a EmailFormatoInvalidoException."""
 
     pass
 
@@ -82,17 +76,14 @@ class ApiCandidatosException(BaseImportacaoException):
         status_code: int = 400,
         code: str | None = None,
     ) -> None:
-        """Executa   init  .
+        """Inicializa a instância com os parâmetros informados.
 
         Args:
             self: Instância do objeto.
-            mensagem: Parâmetro mensagem.
-            detalhes: Parâmetro detalhes.
-            status_code: Parâmetro status code.
-            code: Parâmetro code.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            mensagem: Mensagem principal do erro.
+            detalhes: Detalhes complementares do erro.
+            status_code: Status code utilizado na operação.
+            code: Code utilizado na operação.
         """
         super().__init__(mensagem=mensagem, detalhes=detalhes)
         self.status_code = status_code
@@ -109,17 +100,14 @@ class ApiEscolhasException(BaseImportacaoException):
         status_code: int = 400,
         code: str | None = None,
     ) -> None:
-        """Executa   init  .
+        """Inicializa a instância com os parâmetros informados.
 
         Args:
             self: Instância do objeto.
-            mensagem: Parâmetro mensagem.
-            detalhes: Parâmetro detalhes.
-            status_code: Parâmetro status code.
-            code: Parâmetro code.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            mensagem: Mensagem principal do erro.
+            detalhes: Detalhes complementares do erro.
+            status_code: Status code utilizado na operação.
+            code: Code utilizado na operação.
         """
         super().__init__(mensagem=mensagem, detalhes=detalhes)
         self.status_code = status_code
@@ -127,13 +115,13 @@ class ApiEscolhasException(BaseImportacaoException):
 
 
 class ImportacaoBadRequestException(BaseImportacaoException):
-    """Define ImportacaoBadRequestException."""
+    """Erro de negócio relacionado a ImportacaoBadRequestException."""
 
     pass
 
 
 class ImportacaoServiceUnavailableException(BaseImportacaoException):
-    """Define ImportacaoServiceUnavailableException."""
+    """Erro de negócio relacionado a ImportacaoServiceUnavailableException."""
 
     pass
 

@@ -202,7 +202,7 @@ class TestImportacaoVagasFiltersAndSearch:
     def test_filterset_fields_nome_arquivo(
         self, api_client: Any, cria_vagas: Any
     ) -> None:
-        """Testa filtro por nome_arquivo."""
+        """Verifica filterset fields nome arquivo."""
         cria_vagas(
             [("arquivo1.csv", "PENDENTE"), ("arquivo2.csv", "PROCESSADO")]
         )
@@ -215,7 +215,7 @@ class TestImportacaoVagasFiltersAndSearch:
     def test_filterset_fields_status(
         self, api_client: Any, cria_vagas: Any
     ) -> None:
-        """Testa filtro por status."""
+        """Verifica filterset fields status."""
         cria_vagas(
             [("arquivo1.csv", "PENDENTE"), ("arquivo2.csv", "PROCESSADO")]
         )
@@ -226,7 +226,7 @@ class TestImportacaoVagasFiltersAndSearch:
         assert resp.data["results"][0]["status"] == "PENDENTE"
 
     def test_filterset_fields_processo_uuid(self, api_client: Any) -> None:
-        """Testa filtro por processo_uuid."""
+        """Verifica filterset fields processo uuid."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
         from importa_arquivos.models import ImportacaoArquivoVagas
@@ -253,7 +253,7 @@ class TestImportacaoVagasFiltersAndSearch:
         assert resp.data["results"][0]["processo_uuid"] == processo_uuid
 
     def test_filterset_fields_processo_nome(self, api_client: Any) -> None:
-        """Testa filtro por processo_nome."""
+        """Verifica filterset fields processo nome."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
         from importa_arquivos.models import ImportacaoArquivoVagas
@@ -277,7 +277,7 @@ class TestImportacaoVagasFiltersAndSearch:
         assert resp.data["results"][0]["processo_nome"] == "Processo Teste 1"
 
     def test_search_fields_processo_uuid(self, api_client: Any) -> None:
-        """Testa busca por processo_uuid."""
+        """Verifica search fields processo uuid."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
         from importa_arquivos.models import ImportacaoArquivoVagas
@@ -304,7 +304,7 @@ class TestImportacaoVagasFiltersAndSearch:
         assert resp.data["results"][0]["processo_uuid"] == processo_uuid
 
     def test_search_fields_processo_nome(self, api_client: Any) -> None:
-        """Testa busca por processo_nome."""
+        """Verifica search fields processo nome."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
         from importa_arquivos.models import ImportacaoArquivoVagas
@@ -334,7 +334,7 @@ class TestImportacaoVagasConcursoFields:
     def test_create_with_concurso_fields_in_serializer(
         self, api_client: Any, settings: Any
     ) -> None:
-        """Testa criação com campos de concurso no serializer."""
+        """Verifica create with concurso fields in serializer."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         processo_uuid = str(uuid.uuid4())
         arquivo = SimpleUploadedFile(
@@ -379,7 +379,7 @@ class TestImportacaoVagasConcursoFields:
     def test_create_with_concurso_fields_in_request_data(
         self, api_client: Any, settings: Any
     ) -> None:
-        """Testa criação com campos de concurso no request.data."""
+        """Verifica create with concurso fields in request data."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         processo_uuid = str(uuid.uuid4())
         arquivo = SimpleUploadedFile(
@@ -424,7 +424,7 @@ class TestImportacaoVagasConcursoFields:
     def test_create_with_empty_concurso_fields(
         self, api_client: Any, settings: Any
     ) -> None:
-        """Testa criação com campos de concurso vazios."""
+        """Verifica create with empty concurso fields."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         arquivo = SimpleUploadedFile(
             "v.csv",
@@ -464,7 +464,7 @@ class TestImportacaoVagasErrorHandling:
     """Testes para o tratamento de erros com logging."""
 
     def test_validation_error_with_logging(self, api_client: Any) -> None:
-        """Testa erro de validação com logging."""
+        """Verifica validation error with logging."""
         arquivo = SimpleUploadedFile(
             "v.csv", b"invalid", content_type="text/csv"
         )
@@ -492,7 +492,7 @@ class TestImportacaoVagasErrorHandling:
     def test_api_service_error_with_logging(
         self, api_client: Any, settings: Any
     ) -> None:
-        """Testa erro na API externa com logging."""
+        """Verifica api service error with logging."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         arquivo = SimpleUploadedFile(
             "v.csv",
@@ -539,7 +539,7 @@ class TestImportacaoVagasSerializers:
     """Testes para os serializers com os novos campos de processo."""
 
     def test_create_serializer_with_concurso_fields(self) -> None:
-        """Testa ImportacaoArquivoVagasCreateSerializer com campos de concurso."""
+        """Verifica create serializer with concurso fields."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
         from importa_arquivos.serializers import (
@@ -562,7 +562,7 @@ class TestImportacaoVagasSerializers:
         assert instance.tipo == "VAGAS"
 
     def test_create_serializer_without_concurso_fields(self) -> None:
-        """Testa ImportacaoArquivoVagasCreateSerializer sem campos de concurso."""
+        """Verifica create serializer without concurso fields."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
         from importa_arquivos.serializers import (
@@ -582,7 +582,7 @@ class TestImportacaoVagasSerializers:
     def test_list_serializer_includes_processo_fields(
         self, api_client: Any
     ) -> None:
-        """Testa ImportacaoArquivoVagasListSerializer inclui campos de."""
+        """Verifica list serializer includes processo fields."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
         from importa_arquivos.models import ImportacaoArquivoVagas
@@ -609,7 +609,7 @@ class TestImportacaoVagasSerializers:
     def test_list_serializer_with_null_processo_fields(
         self, api_client: Any
     ) -> None:
-        """Testa ImportacaoArquivoVagasListSerializer com campos de processo."""
+        """Verifica list serializer with null processo fields."""
         from django.core.files.uploadedfile import SimpleUploadedFile
 
         from importa_arquivos.models import ImportacaoArquivoVagas
@@ -634,7 +634,7 @@ class TestImportacaoVagasSerializers:
 def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(
     api_client: Any,
 ) -> None:
-    """Testa download_erros retorna arquivo vazio quando não há erros."""
+    """Verifica download erros retorna arquivo vazio quando sem erros."""
     url = reverse("importacao-arquivo-vagas-download-erros")
     resp = api_client.get(url)
     assert resp.status_code == 200
@@ -645,7 +645,7 @@ def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(
 
 
 def test_download_erros_formata_conteudo_corretamente(api_client: Any) -> None:
-    """Testa download_erros formata erros com titulo: conteudo."""
+    """Verifica download erros formata conteudo corretamente."""
     arquivo = SimpleUploadedFile(
         "v.csv", b"DataFechamentoModulo\n05/09/2025\n", content_type="text/csv"
     )
@@ -672,7 +672,7 @@ def test_download_erros_formata_conteudo_corretamente(api_client: Any) -> None:
 def test_download_erros_parte_sem_dois_pontos_apenas_append(
     api_client: Any,
 ) -> None:
-    """Testa download_erros: partes sem ':' são adicionadas como estão."""
+    """Verifica download erros parte sem dois pontos apenas append."""
     arquivo = SimpleUploadedFile(
         "v.csv", b"DataFechamentoModulo\n05/09/2025\n", content_type="text/csv"
     )
@@ -694,7 +694,7 @@ def test_download_erros_parte_sem_dois_pontos_apenas_append(
 
 
 def test_download_erros_filtra_por_importacao_uuid(api_client: Any) -> None:
-    """Testa download_erros filtra por importacao_uuid quando informado."""
+    """Verifica download erros filtra por importacao uuid."""
     arquivo = SimpleUploadedFile(
         "v1.csv",
         b"DataFechamentoModulo\n05/09/2025\n",

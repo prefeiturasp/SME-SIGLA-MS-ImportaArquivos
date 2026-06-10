@@ -13,7 +13,7 @@ class TestLogRequestHttpModel:
     """Testes para o model LogRequestHttp."""
 
     def test_criar_log_request_http_com_valores_minimos(self) -> None:
-        """Testa criação de log com valores mínimos."""
+        """Verifica criar log request http com valores minimos."""
         log = LogRequestHttp.objects.create(
             url="https://api.example.com/endpoint",
             metodo_http="POST",
@@ -28,7 +28,7 @@ class TestLogRequestHttpModel:
         assert log.atualizado_em is not None
 
     def test_criar_log_request_http_com_todos_campos(self) -> None:
-        """Testa criação de log com todos os campos preenchidos."""
+        """Verifica criar log request http com todos campos."""
         processo_id = 123
         url = "https://api.example.com/endpoint"
         metodo = "GET"
@@ -45,7 +45,7 @@ class TestLogRequestHttpModel:
         assert log.resposta_raw == resposta
 
     def test_log_request_http_str_representation(self) -> None:
-        """Testa a representação string do model."""
+        """Verifica log request http str representation."""
         log = LogRequestHttp.objects.create(
             url="https://api.example.com/endpoint",
             metodo_http="POST",
@@ -59,7 +59,7 @@ class TestLogRequestHttpModel:
         assert "123" in str_repr
 
     def test_log_request_http_str_representation_sem_processo_id(self) -> None:
-        """Testa a representação string quando não há processo_id."""
+        """Verifica log request http str representation sem processo id."""
         log = LogRequestHttp.objects.create(
             url="https://api.example.com/endpoint",
             metodo_http="GET",
@@ -70,7 +70,7 @@ class TestLogRequestHttpModel:
         assert "N/A" in str_repr
 
     def test_log_request_http_ordering(self) -> None:
-        """Testa que o ordering está configurado corretamente."""
+        """Verifica log request http ordering."""
         log1 = LogRequestHttp.objects.create(
             url="https://api.example.com/endpoint1",
             metodo_http="POST",
@@ -89,7 +89,7 @@ class TestLogRequestHttpModel:
         assert logs[1] == log1
 
     def test_log_request_http_campos_opcionais(self) -> None:
-        """Testa que processo_id pode ser None."""
+        """Verifica log request http campos opcionais."""
         log = LogRequestHttp.objects.create(
             url="https://api.example.com/endpoint",
             metodo_http="POST",
@@ -98,7 +98,7 @@ class TestLogRequestHttpModel:
         assert log.processo_id is None
 
     def test_log_request_http_meta_options(self) -> None:
-        """Testa as opções Meta do model."""
+        """Verifica log request http meta options."""
         assert LogRequestHttp._meta.db_table == "log_request_http"
         assert LogRequestHttp._meta.verbose_name == "Log de requisição HTTP"
         assert (
@@ -107,7 +107,7 @@ class TestLogRequestHttpModel:
         )
 
     def test_log_request_http_url_max_length(self) -> None:
-        """Testa que a URL pode ter até 500 caracteres."""
+        """Verifica log request http url max length."""
         long_url = "https://api.example.com/" + "a" * 470
         log = LogRequestHttp.objects.create(
             url=long_url, metodo_http="POST", resposta_raw="response"
@@ -115,7 +115,7 @@ class TestLogRequestHttpModel:
         assert len(log.url) <= 500
 
     def test_log_request_http_metodo_http_max_length(self) -> None:
-        """Testa que metodo_http pode ter até 10 caracteres."""
+        """Verifica log request http metodo http max length."""
         log = LogRequestHttp.objects.create(
             url="https://api.example.com/endpoint",
             metodo_http="POST",

@@ -23,7 +23,7 @@ class TestImportacaoEscolhasViewSet:
     def test_create_sucesso_com_dados_prodam(
         self, api_client: Any, settings: Any
     ) -> None:
-        """Testa criação bem-sucedida de importação com dados da Prodam."""
+        """Verifica create sucesso com dados prodam."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
@@ -80,7 +80,7 @@ class TestImportacaoEscolhasViewSet:
     def test_create_sucesso_com_lista_vazia(
         self, api_client: Any, settings: Any
     ) -> None:
-        """Testa criação quando Prodam retorna lista vazia."""
+        """Verifica create sucesso com lista vazia."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
@@ -120,7 +120,7 @@ class TestImportacaoEscolhasViewSet:
     def test_create_erro_prodam_retorno_false(
         self, api_client: Any, settings: Any
     ) -> None:
-        """Testa tratamento quando Prodam retorna retorno=False."""
+        """Verifica create erro prodam retorno false."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
@@ -168,7 +168,7 @@ class TestImportacaoEscolhasViewSet:
     def test_create_erro_ao_consultar_prodam(
         self, api_client: Any, settings: Any
     ) -> None:
-        """Testa tratamento de erro ao consultar API Prodam."""
+        """Verifica create erro ao consultar prodam."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
@@ -205,7 +205,7 @@ class TestImportacaoEscolhasViewSet:
     def test_create_erro_ao_enviar_para_ms_escolhas(
         self, api_client: Any, settings: Any
     ) -> None:
-        """Testa tratamento de erro ao enviar para MS-Escolhas."""
+        """Verifica create erro ao enviar para ms escolhas."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
@@ -261,7 +261,7 @@ class TestImportacaoEscolhasViewSet:
     def test_create_erro_ao_enviar_para_ms_escolhas_com_payload_estruturado_retorna_400(  # noqa: E501
         self, api_client: Any, settings: Any
     ) -> None:
-        """Quando o serviço externo envia payload estruturado, deve retornar."""
+        """Verifica create erro ao enviar para ms escolhas com payload estruturado retorna 400."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
@@ -323,7 +323,7 @@ class TestImportacaoEscolhasViewSet:
     def test_create_validacao_serializer_invalido(
         self, api_client: Any
     ) -> None:
-        """Testa que dados inválidos retornam erro de validação."""
+        """Verifica create validacao serializer invalido."""
         url = reverse("importacao-escolhas-list")
         resp = api_client.post(
             url,
@@ -337,7 +337,7 @@ class TestImportacaoEscolhasViewSet:
         assert resp.status_code == 400
 
     def test_list_success(self, api_client: Any) -> None:
-        """Testa listagem de importações."""
+        """Verifica list success."""
         processo_uuid1 = uuid.uuid4()
         processo_uuid2 = uuid.uuid4()
         ImportacaoEscolhas.objects.create(
@@ -353,7 +353,7 @@ class TestImportacaoEscolhasViewSet:
         assert len(resp.data["results"]) == 2
 
     def test_retrieve_success(self, api_client: Any) -> None:
-        """Testa recuperação de uma importação específica."""
+        """Verifica retrieve success."""
         processo_uuid = uuid.uuid4()
         concurso_uuid = uuid.uuid4()
         importacao = ImportacaoEscolhas.objects.create(
@@ -373,7 +373,7 @@ class TestImportacaoEscolhasViewSet:
         assert resp.data["status"] == "CONCLUIDO"
 
     def test_filterset_processo_uuid(self, api_client: Any) -> None:
-        """Testa filtro por processo_uuid."""
+        """Verifica filterset processo uuid."""
         processo_uuid1 = uuid.uuid4()
         processo_uuid2 = uuid.uuid4()
         ImportacaoEscolhas.objects.create(
@@ -389,7 +389,7 @@ class TestImportacaoEscolhasViewSet:
         assert resp.data["results"][0]["processo_uuid"] == str(processo_uuid1)
 
     def test_filterset_status(self, api_client: Any) -> None:
-        """Testa filtro por status."""
+        """Verifica filterset status."""
         processo_uuid1 = uuid.uuid4()
         processo_uuid2 = uuid.uuid4()
         ImportacaoEscolhas.objects.create(
@@ -405,7 +405,7 @@ class TestImportacaoEscolhasViewSet:
         assert resp.data["results"][0]["status"] == "CONCLUIDO"
 
     def test_filterset_processo_id(self, api_client: Any) -> None:
-        """Testa filtro por processo_id."""
+        """Verifica filterset processo id."""
         processo_uuid1 = uuid.uuid4()
         processo_uuid2 = uuid.uuid4()
         ImportacaoEscolhas.objects.create(
@@ -421,7 +421,7 @@ class TestImportacaoEscolhasViewSet:
         assert resp.data["results"][0]["processo_id"] == 123
 
     def test_search_processo_uuid(self, api_client: Any) -> None:
-        """Testa busca por processo_uuid."""
+        """Verifica search processo uuid."""
         processo_uuid1 = uuid.uuid4()
         processo_uuid2 = uuid.uuid4()
         ImportacaoEscolhas.objects.create(
@@ -437,7 +437,7 @@ class TestImportacaoEscolhasViewSet:
         assert resp.data["results"][0]["processo_uuid"] == str(processo_uuid1)
 
     def test_ordering_criado_em(self, api_client: Any) -> None:
-        """Testa ordenação por criado_em."""
+        """Verifica ordering criado em."""
         processo_uuid1 = uuid.uuid4()
         processo_uuid2 = uuid.uuid4()
         importacao1 = ImportacaoEscolhas.objects.create(
@@ -456,7 +456,7 @@ class TestImportacaoEscolhasViewSet:
         assert resp.data["results"][1]["uuid"] == str(importacao1.uuid)
 
     def test_get_serializer_class_list(self, api_client: Any) -> None:
-        """Testa que get_serializer_class retorna."""
+        """Verifica get serializer class list."""
         url = reverse("importacao-escolhas-list")
         resp = api_client.get(url)
         assert resp.status_code == 200
@@ -466,7 +466,7 @@ class TestImportacaoEscolhasViewSet:
     def test_get_serializer_class_create(
         self, api_client: Any, settings: Any
     ) -> None:
-        """Testa que get_serializer_class retorna."""
+        """Verifica get serializer class create."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
@@ -501,7 +501,7 @@ class TestImportacaoEscolhasViewSet:
     def test_create_registra_dados_prodam(
         self, api_client: Any, settings: Any
     ) -> None:
-        """Testa que dados_prodam são salvos corretamente."""
+        """Verifica create registra dados prodam."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
@@ -555,7 +555,7 @@ class TestImportacaoEscolhasViewSet:
     def test_listar_erros_retorna_lista_vazia_quando_sem_erros(
         self, api_client: Any
     ) -> None:
-        """Testa listar_erros retorna lista vazia quando não há erros."""
+        """Verifica listar erros retorna lista vazia quando sem erros."""
         url = reverse("importacao-escolhas-listar-erros")
         resp = api_client.get(url)
         assert resp.status_code == 200
@@ -564,7 +564,7 @@ class TestImportacaoEscolhasViewSet:
     def test_listar_erros_retorna_erros_existentes(
         self, api_client: Any
     ) -> None:
-        """Testa listar_erros retorna erros de ImportacaoEscolhas."""
+        """Verifica listar erros retorna erros existentes."""
         importacao = ImportacaoEscolhas.objects.create(
             processo_uuid=uuid.uuid4(), processo_id=123, status="ERRO"
         )
@@ -588,7 +588,7 @@ class TestImportacaoEscolhasViewSet:
     def test_listar_erros_filtra_por_importacao_uuid(
         self, api_client: Any
     ) -> None:
-        """Testa listar_erros filtra por importacao_uuid quando informado."""
+        """Verifica listar erros filtra por importacao uuid."""
         importacao1 = ImportacaoEscolhas.objects.create(
             processo_uuid=uuid.uuid4(), processo_id=123, status="ERRO"
         )
@@ -618,7 +618,7 @@ class TestImportacaoEscolhasViewSet:
     def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(
         self, api_client: Any
     ) -> None:
-        """Testa download_erros retorna arquivo vazio quando não há erros."""
+        """Verifica download erros retorna arquivo vazio quando sem erros."""
         url = reverse("importacao-escolhas-download-erros")
         resp = api_client.get(url)
         assert resp.status_code == 200
@@ -630,7 +630,7 @@ class TestImportacaoEscolhasViewSet:
     def test_download_erros_formata_conteudo_corretamente(
         self, api_client: Any
     ) -> None:
-        """Testa download_erros formata erros com titulo: conteudo."""
+        """Verifica download erros formata conteudo corretamente."""
         importacao = ImportacaoEscolhas.objects.create(
             processo_uuid=uuid.uuid4(), processo_id=123, status="ERRO"
         )
@@ -653,7 +653,7 @@ class TestImportacaoEscolhasViewSet:
     def test_download_erros_parte_sem_dois_pontos_apenas_append(
         self, api_client: Any
     ) -> None:
-        """Testa download_erros: partes sem ':' são adicionadas como estão."""
+        """Verifica download erros parte sem dois pontos apenas append."""
         importacao = ImportacaoEscolhas.objects.create(
             processo_uuid=uuid.uuid4(), processo_id=123, status="ERRO"
         )
@@ -673,7 +673,7 @@ class TestImportacaoEscolhasViewSet:
     def test_download_erros_filtra_por_importacao_uuid(
         self, api_client: Any
     ) -> None:
-        """Testa download_erros filtra por importacao_uuid quando informado."""
+        """Verifica download erros filtra por importacao uuid."""
         importacao1 = ImportacaoEscolhas.objects.create(
             processo_uuid=uuid.uuid4(), processo_id=123, status="ERRO"
         )

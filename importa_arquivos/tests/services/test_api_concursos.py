@@ -12,7 +12,7 @@ from importa_arquivos.services.exceptions import CargoConcursoInvalidoException
 
 
 def _make_service() -> Any:
-    """Executa  make service."""
+    """Make service."""
     return ApiConcursosService(
         base_url="http://concursos-api", timeout_seconds=5
     )

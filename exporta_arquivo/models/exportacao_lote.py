@@ -11,7 +11,7 @@ from django.db import models
 
 
 class StatusExportacao(models.TextChoices):
-    """Define StatusExportacao."""
+    """Representa StatusExportacao."""
 
     PENDENTE = ("PENDENTE", "Pendente")
     PROCESSANDO = ("PROCESSANDO", "Processando")
@@ -57,7 +57,7 @@ class ExportacaoLote(models.Model):
     )
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         db_table = "exportacao_lote"
         verbose_name = "Exportação de Lote"
@@ -65,16 +65,13 @@ class ExportacaoLote(models.Model):
         ordering = ["-criado_em"]
 
     def __str__(self) -> Any:
-        """Executa   str  .
+        """Retorna representação textual do registro.
 
         Args:
             self: Instância do objeto.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         return f"Exportação Lote {self.uuid} (concurso={self.concurso_uuid}, lote={self.lote_uuid})"
 

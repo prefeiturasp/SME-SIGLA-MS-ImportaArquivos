@@ -13,7 +13,7 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def layout_vagas() -> Any:
-    """Executa layout vagas."""
+    """Layout vagas."""
     return LayoutArquivoImportacao.objects.create(
         tipo="VAGAS",
         estrutura=[
@@ -27,7 +27,7 @@ def layout_vagas() -> Any:
 
 @pytest.fixture
 def layout_habilitados() -> Any:
-    """Executa layout habilitados."""
+    """Layout habilitados."""
     return LayoutArquivoImportacao.objects.create(
         tipo="HABILITADOS",
         estrutura=[{"coluna": "CPF", "campo_payload": "cpf"}],

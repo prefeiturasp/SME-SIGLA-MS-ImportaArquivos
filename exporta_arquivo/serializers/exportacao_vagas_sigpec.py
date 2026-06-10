@@ -10,7 +10,7 @@ from ..models import ExportacaoVagasSigpec
 
 
 class EscolaParaVagaSerializer(serializers.Serializer):
-    """Define EscolaParaVagaSerializer."""
+    """Serializer do modelo EscolaParaVaga."""
 
     codigo_integracao = serializers.CharField(
         trim_whitespace=True,
@@ -23,7 +23,7 @@ class EscolaParaVagaSerializer(serializers.Serializer):
 
 
 class VagaInputSerializer(serializers.Serializer):
-    """Valida cada objeto dentro de vagas[] com foco em vagas_definitivas,."""
+    """Valida cada item de vagas[], inclusive vagas definitivas."""
 
     vagas_definitivas = serializers.IntegerField(
         required=False, default=0, min_value=0
@@ -36,12 +36,12 @@ class VagaInputSerializer(serializers.Serializer):
 
 
 class VagasPayloadSerializer(serializers.Serializer):
-    """Define VagasPayloadSerializer."""
+    """Serializer do modelo VagasPayload."""
 
     vagas = VagaInputSerializer(many=True, required=True)
 
     def validate_vagas(self, value: Any) -> Any:
-        """Executa validate vagas.
+        """Validate vagas.
 
         Args:
             self: Instância do objeto.
@@ -51,7 +51,7 @@ class VagasPayloadSerializer(serializers.Serializer):
             Valor validado do campo vagas.
 
         Raises:
-            ValidationError: Se ocorrer erro nesta operação.
+            ValidationError: Se os dados não passarem na validação.
         """
         if not value:
             raise serializers.ValidationError(
@@ -64,7 +64,7 @@ class ExportacaoVagasSigpecCreateSerializer(serializers.ModelSerializer):
     """Serializer para criação de exportações de vagas SIGPEC."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ExportacaoVagasSigpec
         fields = [
@@ -82,7 +82,7 @@ class ExportacaoVagasSigpecListSerializer(serializers.ModelSerializer):
     """Serializer para listagem e detalhe. cargo_nome e concurso_nome."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ExportacaoVagasSigpec
         fields = [

@@ -6,10 +6,10 @@ from ..models.layout import LayoutArquivoImportacao
 
 
 class LayoutArquivoImportacaoSerializer(serializers.ModelSerializer):
-    """Define LayoutArquivoImportacaoSerializer."""
+    """Serializer do modelo LayoutArquivoImportacao."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = LayoutArquivoImportacao
         fields = ["uuid", "tipo", "estrutura", "criado_em", "atualizado_em"]

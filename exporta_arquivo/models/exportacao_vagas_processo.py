@@ -16,7 +16,7 @@ class ExportacaoVagasProcesso(BaseModel):
     history = AuditlogHistoryField()
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         db_table = "exportacao_vagas_processo"
         verbose_name = "Exportação de vagas processo"
@@ -24,16 +24,13 @@ class ExportacaoVagasProcesso(BaseModel):
         ordering = ["-criado_em"]
 
     def __str__(self) -> Any:
-        """Executa   str  .
+        """Retorna representação textual do registro.
 
         Args:
             self: Instância do objeto.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         return f"Exportação {self.uuid} (processo={self.processo_uuid}, cargo={self.cargo_uuid})"
 

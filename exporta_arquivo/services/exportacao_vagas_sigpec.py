@@ -24,16 +24,13 @@ SIGPEC_HEADER_LINES = [
 
 
 def formatar_arquivo_sigpec(vagas_listas: list[dict[str, Any]]) -> str:
-    """Recebe lista de dicts com chaves 'codigo_integracao',.
+    """Formata lista de vagas no layout texto exigido pelo SIGPEC.
 
     Args:
-        vagas_listas: Parâmetro vagas listas.
+        vagas_listas: Vagas listas utilizado na operação.
 
     Returns:
         Texto resultante da operação.
-
-    Raises:
-        Nenhuma exceção específica documentada.
     """
     partes = list(SIGPEC_HEADER_LINES)
     for item in vagas_listas:
@@ -49,17 +46,14 @@ def buscar_vagas_escolas(
     processo_uuid: str,
     cargo_codigo: int,
 ) -> list[dict[str, Any]]:
-    """Chama ApiEscolhasService (vagas-escolas) com processo_uuid e.
+    """Busca vagas escolas.
 
     Args:
-        processo_uuid: Parâmetro processo uuid.
-        cargo_codigo: Parâmetro cargo codigo.
+        processo_uuid: UUID do processo de convocação.
+        cargo_codigo: Cargo codigo utilizado na operação.
 
     Returns:
-        Lista com os registros resultantes.
-
-    Raises:
-        Nenhuma exceção específica documentada.
+        Lista com os registros obtidos.
     """
     data = ApiEscolhasService().get_vagas_escolas(processo_uuid, cargo_codigo)
     serializer = VagasPayloadSerializer(data=data)

@@ -11,7 +11,7 @@ sanitizar = BaseExportacaoViewSet.sanitizar_nome_arquivo
 
 
 class TestSanitizarNomeArquivo:
-    """Casos: None, vazio, normal, especiais, acentos, só espaços, max_len,."""
+    """Cobre casos de sanitização de nome de arquivo."""
 
     def test_none_retorna_arquivo(self) -> None:
         """Verifica none retorna arquivo."""

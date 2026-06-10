@@ -14,13 +14,13 @@ class ImportacaoArquivoVagasCreateSerializer(serializers.ModelSerializer):
     """Serializer de criação para importações de vagas."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ImportacaoArquivoVagas
         fields = ["arquivo", "processo_uuid", "processo_nome"]
 
     def create(self, validated_data: Any) -> Any:
-        """Executa create.
+        """Create.
 
         Args:
             self: Instância do objeto.
@@ -28,9 +28,6 @@ class ImportacaoArquivoVagasCreateSerializer(serializers.ModelSerializer):
 
         Returns:
             Resposta HTTP com os dados serializados.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         arquivo = validated_data.get("arquivo")
         nome_arquivo = getattr(arquivo, "name", None) or "Importação de Vagas"
@@ -47,7 +44,7 @@ class ImportacaoArquivoVagasListSerializer(serializers.ModelSerializer):
     _content_type_cache = None
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ImportacaoArquivoVagas
         fields = [
@@ -64,17 +61,14 @@ class ImportacaoArquivoVagasListSerializer(serializers.ModelSerializer):
         read_only_fields = ["uuid", "criado_em", "atualizado_em", "erros"]
 
     def get_erros(self, obj: Any) -> Any:
-        """Retorna os erros associados à importação, se existirem.
+        """Retorna erros.
 
         Args:
             self: Instância do objeto.
-            obj: Parâmetro obj.
+            obj: Obj utilizado na operação.
 
         Returns:
             Valor calculado para o campo ou propriedade.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         if ImportacaoArquivoVagasListSerializer._content_type_cache is None:
             ImportacaoArquivoVagasListSerializer._content_type_cache = (

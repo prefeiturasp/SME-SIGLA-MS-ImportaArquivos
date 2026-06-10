@@ -34,17 +34,14 @@ class ExportacaoVagasProcessoViewSet(BaseExportacaoViewSet):
     create_serializer_class = ExportacaoVagasProcessoCreateSerializer  # type: ignore[assignment]
 
     def gerar_arquivo(self, instance: Any) -> Any:
-        """Gera resposta de arquivo .txt para o registro (formato vagas.
+        """Gera arquivo.
 
         Args:
             self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Resultado da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Valor calculado conforme a regra aplicada.
         """
         response = HttpResponse(
             instance.conteudo_arquivo.encode("utf-8"),
@@ -56,17 +53,14 @@ class ExportacaoVagasProcessoViewSet(BaseExportacaoViewSet):
         return response
 
     def executar_exportacao(self, instance: Any) -> None:
-        """Executa a exportação vagas processo, gera o arquivo e persiste.
+        """A exportação vagas processo, gera o arquivo e persiste.
 
         Args:
             self: Instância do objeto.
             instance: Instância do modelo em atualização.
 
         Returns:
-            Não retorna valor.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            Nenhum valor.
         """
         vagas_escolas = buscar_vagas_escolas(
             str(instance.processo_uuid), instance.cargo_codigo

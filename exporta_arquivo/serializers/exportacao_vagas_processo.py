@@ -9,7 +9,7 @@ class ExportacaoVagasProcessoCreateSerializer(serializers.ModelSerializer):
     """Serializer para criação de exportações de vagas processo."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ExportacaoVagasProcesso
         fields = [
@@ -27,7 +27,7 @@ class ExportacaoVagasProcessoListSerializer(serializers.ModelSerializer):
     """Serializer para listagem e detalhe. cargo_nome e concurso_nome."""
 
     class Meta:
-        """Define Meta."""
+        """Representa Meta."""
 
         model = ExportacaoVagasProcesso
         fields = [

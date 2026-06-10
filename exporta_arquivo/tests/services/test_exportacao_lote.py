@@ -27,7 +27,7 @@ from exporta_arquivo.services.exportacao_lote import (
 
 
 def _uuid() -> Any:
-    """Executa  uuid."""
+    """Uuid."""
     return str(uuid.uuid4())
 
 
@@ -38,7 +38,7 @@ def _candidato(
     chave_inscrito: Any = "123",
     nome: Any = "João",
 ) -> Any:
-    """Executa  candidato."""
+    """Candidato."""
     cand_uuid = cand_uuid or _uuid()
     return {
         "uuid": cand_uuid,
@@ -54,7 +54,7 @@ def _escolha(
     situacao: Any = "escolha",
     codigo_integracao: Any = "ESCOLA01",
 ) -> Any:
-    """Executa  escolha."""
+    """Escolha."""
     return {
         "candidato_uuid": candidato_uuid,
         "situacao": situacao,
@@ -64,7 +64,7 @@ def _escolha(
 
 
 def _recusa(candidato_uuid: Any) -> Any:
-    """Executa  recusa."""
+    """Recusa."""
     return {
         "candidato_uuid": candidato_uuid,
         "situacao": "recusa",
@@ -193,7 +193,7 @@ class TestGerarConteudoLote:
         assert ";B;" in out
 
     def test_lookup_por_uuid_do_campo_candidato(self) -> None:
-        """Candidato com uuid aninhado em 'candidato.uuid' deve ser encontrado."""
+        """Verifica lookup por uuid do campo candidato."""
         inner_uuid = _uuid()
         outer_uuid = _uuid()
         candidato = {
@@ -208,7 +208,7 @@ class TestGerarConteudoLote:
         assert ";S;INNR;" in out
 
     def test_lookup_fallback_por_uuid_externo(self) -> None:
-        """Quando candidato.candidato.uuid não bate, usa o uuid externo."""
+        """Verifica lookup fallback por uuid externo."""
         outer_uuid = _uuid()
         candidato = {
             "uuid": outer_uuid,
@@ -228,7 +228,7 @@ class TestExportarLote:
 
     @pytest.fixture
     def instance(self) -> Any:
-        """Executa instance."""
+        """Instance."""
         from exporta_arquivo.models import ExportacaoLote
 
         return ExportacaoLote.objects.create(
@@ -330,7 +330,7 @@ class TestExportarLote:
     def test_candidato_sem_uuid_nao_incluido_na_lista_enviada_a_api_escolhas(
         self, instance: Any
     ) -> None:
-        """Candidatos com uuid vazio não entram na lista enviada à API de."""
+        """Verifica candidato sem uuid nao incluido na lista enviada a api escolhas."""
         cand_uuid = _uuid()
         candidatos = [
             {
@@ -367,7 +367,7 @@ class TestExportarLote:
     def test_primeira_escolha_por_candidato_prevalece(
         self, instance: Any
     ) -> None:
-        """Mantém apenas a primeira escolha por candidato (lista já ordenada."""
+        """Verifica primeira escolha por candidato prevalece."""
         cand_uuid = _uuid()
         candidatos = [_candidato(cand_uuid=cand_uuid)]
         escolha_recente = {

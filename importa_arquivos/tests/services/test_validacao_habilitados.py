@@ -24,7 +24,7 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def layout_com_cargo() -> None:
-    """Executa layout com cargo."""
+    """Layout com cargo."""
     estrutura = [
         {
             "coluna": "Inscricao",
@@ -66,7 +66,7 @@ def test_validar_csv_habilitados_sem_layout() -> None:
 
 
 def _criar_layout_minimo() -> None:
-    """Executa  criar layout minimo."""
+    """Criar layout minimo."""
     estrutura = [
         {
             "coluna": "Inscricao",
@@ -88,7 +88,7 @@ def _criar_layout_minimo() -> None:
 
 
 def _csv_bytes(text: str) -> io.BytesIO:
-    """Executa  csv bytes."""
+    """Csv bytes."""
     return io.BytesIO(text.encode("utf-8"))
 
 
@@ -294,7 +294,7 @@ def test_validar_codigo_cargo_identificado_por_campo_payload() -> None:
 
 
 def _mock_concursos_service(codigos: set) -> Any:
-    """Executa  mock concursos service."""
+    """Mock concursos service."""
     mock_service = MagicMock()
     mock_service.obter_codigos_cargo_do_concurso.return_value = codigos
     return patch(
@@ -304,13 +304,13 @@ def _mock_concursos_service(codigos: set) -> Any:
 
 
 class _FakeImportacaoObj:
-    """Define _FakeImportacaoObj."""
+    """Representa FakeImportacaoObj."""
 
     concurso_uuid = "uuid-concurso-123"
     status = "PENDENTE"
 
     def save(self, **kwargs: Any) -> None:
-        """Executa save."""
+        """Save."""
         pass
 
 

@@ -13,34 +13,31 @@ logger = logging.getLogger(__name__)
 
 
 class ApiConcursosService:
-    """Define ApiConcursosService."""
+    """Serviço para operações de apiconcursos."""
 
     def __init__(self, base_url: str, timeout_seconds: int = 10) -> None:
-        """Executa   init  .
+        """Inicializa a instância com os parâmetros informados.
 
         Args:
             self: Instância do objeto.
-            base_url: Parâmetro base url.
-            timeout_seconds: Parâmetro timeout seconds.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            base_url: URL base do serviço remoto.
+            timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
 
     def obter_codigos_cargo_do_concurso(self, concurso_uuid: str) -> set[int]:
-        """Consulta GET {base_url}/api/v1/concursos/{concurso_uuid}/ e retorna.
+        """Obtém codigos cargo do concurso.
 
         Args:
             self: Instância do objeto.
-            concurso_uuid: Parâmetro concurso uuid.
+            concurso_uuid: UUID do concurso relacionado.
 
         Returns:
-            Resultado da operação.
+            Valor calculado conforme a regra aplicada.
 
         Raises:
-            CargoConcursoInvalidoException: se concurso não for encontrado.
+            CargoConcursoInvalidoException: Se ocorrer erro nesta operação.
         """
         url = f"{self.base_url}/api/v1/concursos/{concurso_uuid}/"
         try:

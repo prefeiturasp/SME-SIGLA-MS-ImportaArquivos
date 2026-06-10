@@ -26,13 +26,13 @@ pytestmark = [
 
 
 def _uuid() -> Any:
-    """Executa  uuid."""
+    """Uuid."""
     return str(uuid.uuid4())
 
 
 @pytest.fixture
 def api_client() -> Any:
-    """Executa api client."""
+    """Api client."""
     from rest_framework.test import APIClient
 
     return APIClient()

@@ -4,34 +4,28 @@ from __future__ import annotations
 
 
 class BaseExportacaoException(Exception):
-    """Define BaseExportacaoException."""
+    """Erro de negócio relacionado a BaseExportacaoException."""
 
     def __init__(self, mensagem: str, detalhes: str | None = None) -> None:
-        """Executa   init  .
+        """Inicializa a instância com os parâmetros informados.
 
         Args:
             self: Instância do objeto.
-            mensagem: Parâmetro mensagem.
-            detalhes: Parâmetro detalhes.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            mensagem: Mensagem principal do erro.
+            detalhes: Detalhes complementares do erro.
         """
         super().__init__(mensagem)
         self.mensagem = mensagem
         self.detalhes = detalhes or ""
 
     def __str__(self) -> str:
-        """Executa   str  .
+        """Retorna representação textual do registro.
 
         Args:
             self: Instância do objeto.
 
         Returns:
             Texto resultante da operação.
-
-        Raises:
-            Nenhuma exceção específica documentada.
         """
         return self.mensagem
 
@@ -91,16 +85,13 @@ class ExportacaoLoteIncompletaException(BaseExportacaoException):
         mensagem: str | None = None,
         detalhes: str | None = None,
     ) -> None:
-        """Executa   init  .
+        """Inicializa a instância com os parâmetros informados.
 
         Args:
             self: Instância do objeto.
-            candidatos_sem_escolha: Parâmetro candidatos sem escolha.
-            mensagem: Parâmetro mensagem.
-            detalhes: Parâmetro detalhes.
-
-        Raises:
-            Nenhuma exceção específica documentada.
+            candidatos_sem_escolha: Candidatos sem escolha registrada.
+            mensagem: Mensagem principal do erro.
+            detalhes: Detalhes complementares do erro.
         """
         self.candidatos_sem_escolha = candidatos_sem_escolha
         msg = (
