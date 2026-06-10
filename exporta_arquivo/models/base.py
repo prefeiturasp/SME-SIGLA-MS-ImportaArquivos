@@ -1,12 +1,12 @@
+"""Módulo models/base."""
+
 import uuid
 
 from django.db import models
 
 
 class BaseModel(models.Model):
-    """
-    Model base com UUID, criado_em e atualizado_em.
-    """
+    """Model base com UUID, criado_em e atualizado_em."""
 
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
     criado_em = models.DateTimeField(
@@ -60,4 +60,6 @@ class BaseModel(models.Model):
     )
 
     class Meta:
+        """Representa Meta."""
+
         abstract = True

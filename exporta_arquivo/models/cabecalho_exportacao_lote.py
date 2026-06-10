@@ -1,4 +1,9 @@
+"""Módulo models/cabecalho_exportacao_lote."""
+
+from __future__ import annotations
+
 import uuid
+from typing import Any
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -6,10 +11,7 @@ from django.db import models
 
 
 class CabecalhoExportacaoLote(models.Model):
-    """
-    Cabeçalho configurável para o arquivo de exportação de lotes.
-    Cada linha @-prefixada do arquivo é um campo editável.
-    """
+    """Cabeçalho configurável para o arquivo de exportação de lotes."""
 
     history = AuditlogHistoryField()
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
@@ -19,7 +21,6 @@ class CabecalhoExportacaoLote(models.Model):
     atualizado_em = models.DateTimeField(
         auto_now=True, verbose_name="Data de Atualização"
     )
-
     tabela = models.CharField(
         max_length=500,
         verbose_name="@TABELA",
@@ -31,26 +32,16 @@ class CabecalhoExportacaoLote(models.Model):
         default="[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER]",
     )
     tag_inicio = models.CharField(
-        max_length=255,
-        verbose_name="@TAG INICIO",
-        blank=True,
-        default="",
+        max_length=255, verbose_name="@TAG INICIO", blank=True, default=""
     )
     tag_fim = models.CharField(
-        max_length=255,
-        verbose_name="@TAG FIM",
-        blank=True,
-        default="",
+        max_length=255, verbose_name="@TAG FIM", blank=True, default=""
     )
     separador = models.CharField(
-        max_length=10,
-        verbose_name="@SEPARADOR",
-        default=";",
+        max_length=10, verbose_name="@SEPARADOR", default=";"
     )
     formato_data = models.CharField(
-        max_length=50,
-        verbose_name="@FORMATO DATA",
-        default="DD/MM/YYYY",
+        max_length=50, verbose_name="@FORMATO DATA", default="DD/MM/YYYY"
     )
     colunas = models.CharField(
         max_length=1000,
@@ -63,18 +54,21 @@ class CabecalhoExportacaoLote(models.Model):
     ativo = models.BooleanField(default=True, verbose_name="Ativo")
 
     class Meta:
+        """Representa Meta."""
+
         db_table = "cabecalho_exportacao_lote"
         verbose_name = "Cabeçalho de Exportação de Lote"
         verbose_name_plural = "Cabeçalhos de Exportação de Lote"
         ordering = ["-criado_em"]
 
-    def __str__(self):
+    def __str__(self) -> Any:
+        """Retorna UUID e situação do cabeçalho."""
         return (
-            f"Cabeçalho {self.uuid} ({'ativo' if self.ativo else 'inativo'})"
+            f'Cabeçalho {self.uuid} ({('ativo' if self.ativo else 'inativo')})'
         )
 
     def render(self) -> str:
-        """Gera o bloco de cabeçalho completo para o arquivo exportado."""
+        """Gera o bloco de cabeçalho completo para o arquivo exportado SIGPEC."""
         sep = self.separador
         return (
             f"@TABELA={self.tabela}\n"

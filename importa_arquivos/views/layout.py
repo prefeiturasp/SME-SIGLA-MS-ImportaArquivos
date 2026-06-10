@@ -1,5 +1,10 @@
+"""Módulo views/layout."""
+
+from __future__ import annotations
+
 import csv
 import io
+from typing import Any
 
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -16,6 +21,8 @@ from ..serializers.layout import LayoutArquivoImportacaoSerializer
 
 
 class LayoutArquivoImportacaoViewSet(viewsets.ModelViewSet):
+    """ViewSet para o recurso LayoutArquivoImportacao."""
+
     queryset = LayoutArquivoImportacao.objects.all()
     serializer_class = LayoutArquivoImportacaoSerializer
     permission_classes = [AllowAny]
@@ -40,35 +47,31 @@ class LayoutArquivoImportacaoViewSet(viewsets.ModelViewSet):
         responses={200: "text/csv"},
     )
     @action(detail=False, methods=["get"], url_path="download")
-    def download(self, request):
+    def download(self, request: Any) -> Any:
+        """Download do layout de importação de arquivos em formato CSV."""
         tipo = request.query_params.get("tipo")
         if not tipo:
             return Response(
                 {"detail": "Parâmetro tipo é obrigatório."}, status=400
             )
-
         layout = LayoutArquivoImportacao.objects.filter(tipo=tipo).first()
         if not layout:
             return Response(
                 {"detail": "Layout não encontrado para o tipo informado."},
                 status=404,
             )
-
         estrutura = layout.estrutura or []
         colunas = [
             str(item.get("coluna"))
             for item in estrutura
             if isinstance(item, dict) and item.get("coluna")
         ]
-
         delimiter = ";" if str(tipo).upper() == "VAGAS" else ","
-
         buffer = io.StringIO()
         writer = csv.writer(buffer, delimiter=delimiter)
         if colunas:
             writer.writerow(colunas)
         content = buffer.getvalue()
-
         response = HttpResponse(
             content, content_type="text/csv; charset=utf-8"
         )

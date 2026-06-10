@@ -1,18 +1,16 @@
-"""
-Serviços para integração com API de candidatos.
-"""
+"""Serviços para integração com API de candidatos."""
+
+from __future__ import annotations
 
 import json
 import logging
 from typing import Any
 
 from requests import RequestException, Response
-from requests.exceptions import RequestException  # noqa: F811
+from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
-from importa_arquivos.services.erros import (
-    captura_erros_importacao,
-)
+from importa_arquivos.services.erros import captura_erros_importacao
 from importa_arquivos.services.exceptions import (
     ApiCandidatosException,
     ImportacaoBadRequestException,
@@ -23,9 +21,17 @@ logger = logging.getLogger(__name__)
 
 
 class ApiCandidatosService:
+    """Serviço para operações de apicandidatos."""
+
     def __init__(
-        self, base_url: str = "https://example.com", timeout_seconds: int = 150
-    ):
+        self, base_url: str = "https://example.com", timeout_seconds: int = 30
+    ) -> None:
+        """Inicializa a instância com os parâmetros informados.
+
+        Args:
+            base_url: URL base do serviço remoto.
+            timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
+        """
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
         self._default_headers = {
@@ -36,8 +42,14 @@ class ApiCandidatosService:
     def _transformar_registros(
         self, registros: list[dict[str, Any]], estrutura: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
-        """
-        Transforma os registros do CSV para o formato esperado pela API.
+        """Transforma os registros do CSV para o formato esperado pela API.
+
+        Args:
+            registros: Lista de registros lidos do arquivo ou da API.
+            estrutura: Definição de colunas do layout de importação.
+
+        Returns:
+            Lista com os registros obtidos.
         """
         mapa_coluna_para_payload: dict[str, str] = {}
         for item in estrutura:
@@ -47,7 +59,6 @@ class ApiCandidatosService:
             campo_payload = item.get("campo_payload")
             if coluna and campo_payload:
                 mapa_coluna_para_payload[str(coluna)] = str(campo_payload)
-
         transformados: list[dict[str, Any]] = []
         for row in registros:
             novo: dict[str, Any] = {}
@@ -69,11 +80,26 @@ class ApiCandidatosService:
         headers: dict[str, str] | None = None,
         importacao_obj: Any | None = None,
     ) -> Response:
+        """Envia habilitados.
+
+        Args:
+            registros: Lista de registros lidos do arquivo ou da API.
+            estrutura: Definição de colunas do layout de importação.
+            concurso_uuid: UUID do concurso relacionado.
+            concurso_nome: Nome do concurso exibido na resposta.
+            headers: Cabeçalhos HTTP da requisição.
+            importacao_obj: Registro de importação em andamento.
+
+        Returns:
+            Resposta HTTP com o arquivo para download.
+
+        Raises:
+            ApiCandidatosException: Quando a API de candidatos falha ou
+                retorna erro.
+        """
         url = f"{self.base_url}/api/v1/candidatos/"
         merged_headers = {**self._default_headers, **(headers or {})}
-
         dados_transformados = self._transformar_registros(registros, estrutura)
-
         payload = {
             "concurso_uuid": concurso_uuid,
             "concurso_nome": concurso_nome,
@@ -89,41 +115,39 @@ class ApiCandidatosService:
         except RequestException as exc:
             logger.error("Erro ao enviar candidatos: %s", exc)
             raise
-
         if response.status_code >= 400:
             raise ApiCandidatosException(
                 mensagem="Falha ao enviar candidatos para API externa",
                 detalhes=response.text or f"Status {response.status_code}",
                 status_code=response.status_code,
             )
-
         logger.info(
             "Candidatos enviados: %s (concurso=%s)",
             len(dados_transformados),
             concurso_uuid,
         )
-        return response.json()
+        return response.json()  # type: ignore[no-any-return]
 
     @captura_erros_importacao(param_nome_obj="importacao_obj")
     def salvar_lotes(
-        self, concurso_uuid: str, lotes: list, importacao_obj=None
+        self, concurso_uuid: str, lotes: list, importacao_obj: Any = None
     ) -> int:
-        """
-        POST {base_url}/api/v1/habilitados/salvar-lotes/
+        """Salva lotes.
 
-        Retorna o total de candidatos atualizados.
+        Args:
+            concurso_uuid: UUID do concurso relacionado.
+            lotes: Lista de lotes a persistir no serviço de candidatos.
+            importacao_obj: Registro de importação em andamento.
+
+        Returns:
+            Quantidade de registros processados.
 
         Raises:
-            ImportacaoBadRequestException: Em 400.
-            ImportacaoServiceUnavailableException: Em 5xx, timeout ou resposta
-            não-JSON.
+            ImportacaoBadRequestException: Requisição inválida.
+            ImportacaoServiceUnavailableException: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/habilitados/salvar-lotes/"
-        payload = {
-            "concurso_uuid": concurso_uuid,
-            "lotes": lotes,
-        }
-
+        payload = {"concurso_uuid": concurso_uuid, "lotes": lotes}
         try:
             response = http_client.post(
                 url,
@@ -137,7 +161,6 @@ class ApiCandidatosService:
                 mensagem="Serviço de candidatos (salvar-lotes) indisponível.",
                 detalhes=str(exc),
             ) from exc
-
         if response.status_code == 400:
             logger.error(
                 "API salvar-lotes retornou status %s: %s",
@@ -152,11 +175,9 @@ class ApiCandidatosService:
                 detail = payload_erro.get("detail", mensagem)
             except (ValueError, json.JSONDecodeError):
                 detail = "Erro JSONDecodeError"
-
             raise ImportacaoBadRequestException(
                 mensagem=mensagem, detalhes=detail
             )
-
         if response.status_code >= 500:
             logger.error(
                 "API salvar-lotes retornou status %s: %s",
@@ -167,7 +188,6 @@ class ApiCandidatosService:
                 mensagem="Serviço de candidatos (salvar-lotes) indisponível.",
                 detalhes=f"Status {response.status_code}: {response.text}",
             )
-
         if response.status_code not in (200, 201):
             logger.error(
                 "API salvar-lotes retornou status %s: %s",
@@ -178,5 +198,4 @@ class ApiCandidatosService:
                 mensagem="Erro ao salvar lotes.",
                 detalhes=f"Status {response.status_code}: {response.text}",
             )
-
         return int(response.json().get("total_atualizados", 0))

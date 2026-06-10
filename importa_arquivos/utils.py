@@ -1,3 +1,9 @@
+"""Módulo utils."""
+
+from __future__ import annotations
+
+from typing import Any
+
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -6,11 +12,14 @@ DEFAULT_PAGE_SIZE = 10
 
 
 class CustomPagination(PageNumberPagination):
-    page = DEFAULT_PAGE
+    """Representa CustomPagination."""
+
+    page = DEFAULT_PAGE  # type: ignore[assignment]
     page_size = DEFAULT_PAGE_SIZE
     page_size_query_param = "page_size"
 
-    def get_paginated_response(self, data):
+    def get_paginated_response(self, data: Any) -> Any:
+        """Retorna resposta paginada no formato padrão SIGLA."""
         return Response(
             {
                 "links": {
@@ -24,4 +33,4 @@ class CustomPagination(PageNumberPagination):
                 ),
                 "results": data,
             }
-        )
+        )  # type: ignore[has-type,union-attr]

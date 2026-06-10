@@ -1,9 +1,17 @@
+"""Módulo serializers/exportacao_vagas_sigpec."""
+
+from __future__ import annotations
+
+from typing import Any
+
 from rest_framework import serializers
 
 from ..models import ExportacaoVagasSigpec
 
 
 class EscolaParaVagaSerializer(serializers.Serializer):
+    """Serializer do modelo EscolaParaVaga."""
+
     codigo_integracao = serializers.CharField(
         trim_whitespace=True,
         required=False,
@@ -11,15 +19,11 @@ class EscolaParaVagaSerializer(serializers.Serializer):
         allow_null=True,
         default="",
     )
-
     codigo_eol = serializers.CharField(required=False)
 
 
 class VagaInputSerializer(serializers.Serializer):
-    """
-    Valida cada objeto dentro de vagas[] com foco em vagas_definitivas,
-    vagas_precarias e escola.codigo_integracao.
-    """
+    """Valida cada item de vagas[], inclusive vagas definitivas."""
 
     vagas_definitivas = serializers.IntegerField(
         required=False, default=0, min_value=0
@@ -32,9 +36,12 @@ class VagaInputSerializer(serializers.Serializer):
 
 
 class VagasPayloadSerializer(serializers.Serializer):
+    """Serializer do modelo VagasPayload."""
+
     vagas = VagaInputSerializer(many=True, required=True)
 
-    def validate_vagas(self, value):
+    def validate_vagas(self, value: Any) -> Any:
+        """Valida vagas."""
         if not value:
             raise serializers.ValidationError(
                 "Pelo menos uma vaga deve ser enviada."
@@ -43,15 +50,11 @@ class VagasPayloadSerializer(serializers.Serializer):
 
 
 class ExportacaoVagasSigpecCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer para criação de exportações de vagas SIGPEC.
-    Aceita processo_uuid, cargo_uuid, concurso_uuid (opcional), concurso_nome
-    (opcional),
-    processo_nome (opcional), cargo_nome (opcional), cargo_codigo
-    (obrigatório).
-    """
+    """Serializer para criação de exportações de vagas SIGPEC."""
 
     class Meta:
+        """Representa Meta."""
+
         model = ExportacaoVagasSigpec
         fields = [
             "processo_uuid",
@@ -65,12 +68,11 @@ class ExportacaoVagasSigpecCreateSerializer(serializers.ModelSerializer):
 
 
 class ExportacaoVagasSigpecListSerializer(serializers.ModelSerializer):
-    """
-    Serializer para listagem e detalhe. cargo_nome e concurso_nome apenas do
-    modelo (sem chamada a API).
-    """
+    """Serializer para listagem e detalhe. cargo_nome e concurso_nome."""
 
     class Meta:
+        """Representa Meta."""
+
         model = ExportacaoVagasSigpec
         fields = [
             "uuid",

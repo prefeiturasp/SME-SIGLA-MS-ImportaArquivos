@@ -1,13 +1,24 @@
 """Exceções do módulo de exportação."""
 
+from __future__ import annotations
+
 
 class BaseExportacaoException(Exception):
-    def __init__(self, mensagem: str, detalhes: str | None = None):
+    """Erro de negócio relacionado a BaseExportacaoException."""
+
+    def __init__(self, mensagem: str, detalhes: str | None = None) -> None:
+        """Inicializa a instância com os parâmetros informados.
+
+        Args:
+            mensagem: Mensagem principal do erro.
+            detalhes: Detalhes complementares do erro.
+        """
         super().__init__(mensagem)
         self.mensagem = mensagem
         self.detalhes = detalhes or ""
 
     def __str__(self) -> str:
+        """Retorna a mensagem principal do erro."""
         return self.mensagem
 
 
@@ -18,9 +29,7 @@ class ExportacaoNotFoundException(BaseExportacaoException):
 
 
 class ExportacaoServiceUnavailableException(BaseExportacaoException):
-    """
-    API de convocação ou escolha indisponível ou retornando erro (502/503).
-    """
+    """API de convocação ou escolha indisponível ou retornando erro."""
 
     pass
 
@@ -67,10 +76,15 @@ class ExportacaoLoteIncompletaException(BaseExportacaoException):
         candidatos_sem_escolha: list[str],
         mensagem: str | None = None,
         detalhes: str | None = None,
-    ):
+    ) -> None:
+        """Inicializa a instância com os parâmetros informados.
+
+        Args:
+            candidatos_sem_escolha: Candidatos sem escolha registrada.
+            mensagem: Mensagem principal do erro.
+            detalhes: Detalhes complementares do erro.
+        """
         self.candidatos_sem_escolha = candidatos_sem_escolha
-        msg = (
-            mensagem
-            or f"{len(candidatos_sem_escolha)} candidato(s) sem escolha no lote."  # noqa: E501
-        )
+        qtd = len(candidatos_sem_escolha)
+        msg = mensagem or f"{qtd} candidato(s) sem escolha no lote."
         super().__init__(mensagem=msg, detalhes=detalhes or "")

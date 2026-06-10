@@ -1,8 +1,9 @@
-"""
-Serviço de API para o módulo de escolhas (vagas-escolas).
+"""Serviço de API para o módulo de escolhas (vagas-escolas).
 
 Faz GET em vagas-escolas com processo_uuid e cargo_codigo.
 """
+
+from __future__ import annotations
 
 import logging
 from typing import Any
@@ -20,41 +21,43 @@ class ApiEscolhasService:
     """Cliente para a API de escolhas (GET vagas-escolas)."""
 
     def __init__(
-        self,
-        base_url: str | None = None,
-        timeout_seconds: int | None = None,
-    ):
+        self, base_url: str | None = None, timeout_seconds: int | None = None
+    ) -> None:
+        """Inicializa a instância com os parâmetros informados.
+
+        Args:
+            base_url: URL base do serviço remoto.
+            timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
+        """
         self.base_url = (
             base_url
             or getattr(settings, "ESCOLHA_API_URL", "http://localhost:8004")
-        ).rstrip("/")
+        ).rstrip("/")  # type: ignore[union-attr]
         self.timeout_seconds = timeout_seconds or getattr(
             settings, "ESCOLHA_API_TIMEOUT", 30
         )
-        self._default_headers = {
-            "Accept": "application/json",
-        }
+        self._default_headers = {"Accept": "application/json"}
 
     def get_vagas_escolas(
-        self,
-        processo_uuid: str,
-        cargo_codigo: str | int,
+        self, processo_uuid: str, cargo_codigo: str | int
     ) -> dict[str, Any]:
-        """
-        GET {ESCOLHA_API_URL}/api/v1/vagas-escolas/ com query params
-        processo_uuid e cargo_codigo.
-        Retorna o corpo da resposta (dict, ex.: com chave 'vagas').
+        """Retorna vagas escolas.
+
+        Args:
+            processo_uuid: UUID do processo de convocação.
+            cargo_codigo: Código numérico do cargo.
+
+        Returns:
+            Dicionário com os dados processados.
 
         Raises:
-            EscolhasServiceUnavailableException: Em 5xx, timeout ou resposta
-            não-JSON.
+            EscolhasServiceUnavailableException: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/vagas-escolas/"
         params = {
             "processo_uuid": processo_uuid,
             "cargo_codigo": str(cargo_codigo),
         }
-
         try:
             response = http_client.get(
                 url,
@@ -70,7 +73,6 @@ class ApiEscolhasService:
                 mensagem="Serviço de vagas por escola indisponível.",
                 detalhes=str(exc),
             ) from exc
-
         if response.status_code >= 500:
             logger.error(
                 "API escolha retornou status %s: %s",
@@ -81,13 +83,11 @@ class ApiEscolhasService:
                 mensagem="Serviço de vagas por escola indisponível.",
                 detalhes=f"Status {response.status_code}",
             )
-
         if response.status_code != 200:
             raise EscolhasServiceUnavailableException(
                 mensagem="Erro ao obter vagas por escola.",
                 detalhes=f"Status {response.status_code}",
             )
-
         try:
             data = response.json()
         except ValueError as exc:
@@ -96,36 +96,33 @@ class ApiEscolhasService:
                 mensagem="Resposta inválida do serviço de vagas.",
                 detalhes=str(exc),
             ) from exc
-
         if not isinstance(data, dict):
             raise EscolhasServiceUnavailableException(
                 mensagem="Resposta inválida do serviço de vagas.",
                 detalhes="Esperado objeto JSON.",
             )
-
         return data
 
     def get_escolhas(
-        self,
-        candidato_uuids: list[str],
-        concurso_uuid: str,
+        self, candidato_uuids: list[str], concurso_uuid: str
     ) -> list[dict[str, Any]]:
-        """
-        POST {ESCOLHA_API_URL}/api/v1/escolhas/busca/
-        Body: {"candidato_uuid": [...], "concurso_uuid": "..."}
+        """Retorna escolhas.
 
-        Retorna lista de Escolha com vaga_escola.escola.codigo_integracao.
+        Args:
+            candidato_uuids: UUIDs dos candidatos consultados.
+            concurso_uuid: UUID do concurso relacionado.
+
+        Returns:
+            Lista com os registros obtidos.
 
         Raises:
-            EscolhasServiceUnavailableException: em 5xx, timeout ou resposta
-            inválida.
+            EscolhasServiceUnavailableException: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/escolhas/busca/"
         payload = {
             "candidato_uuid": [str(u) for u in candidato_uuids],
             "concurso_uuid": str(concurso_uuid),
         }
-
         try:
             response = http_client.post(
                 url,
@@ -138,10 +135,8 @@ class ApiEscolhasService:
                 "Erro ao chamar API de escolhas (busca lote): %s", exc
             )
             raise EscolhasServiceUnavailableException(
-                mensagem="Serviço de escolhas indisponível.",
-                detalhes=str(exc),
+                mensagem="Serviço de escolhas indisponível.", detalhes=str(exc)
             ) from exc
-
         if response.status_code >= 500:
             logger.error(
                 "API escolhas retornou status %s: %s",
@@ -152,11 +147,9 @@ class ApiEscolhasService:
                 mensagem="Serviço de escolhas indisponível.",
                 detalhes=f"Status {response.status_code}",
             )
-
         if response.status_code != 200:
             raise EscolhasServiceUnavailableException(
                 mensagem="Erro ao obter escolhas do lote.",
                 detalhes=f"Status {response.status_code}",
             )
-
-        return response.json()
+        return response.json()  # type: ignore[no-any-return]

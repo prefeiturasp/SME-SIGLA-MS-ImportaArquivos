@@ -1,5 +1,5 @@
-"""
-Testes do comportamento da BaseExportacaoViewSet uma vez, via
+"""Testes do comportamento da BaseExportacaoViewSet uma vez, via.
+
 ExportacaoVagasSigpecViewSet como proxy.
 Cobre: list (com/sem query params), create (sucesso e exceções), download,
 get_serializer_class.
@@ -7,7 +7,10 @@ Usa ROOT_URLCONF mínimo (exporta_arquivo.tests.urls) para não carregar
 importa_arquivos.
 """
 
+from __future__ import annotations
+
 import uuid
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -24,27 +27,25 @@ pytestmark = [
     pytest.mark.django_db,
     pytest.mark.urls("exporta_arquivo.tests.urls"),
 ]
-
 LIST_URL = "/api/v1/exportacao/vagas-sigpec/"
 
 
-def _uuid():
+def _uuid() -> Any:
+    """Uuid."""
     return str(uuid.uuid4())
 
 
 @pytest.fixture
-def api_client():
+def api_client() -> Any:
+    """Api client."""
     from rest_framework.test import APIClient
 
     return APIClient()
 
 
 @pytest.fixture
-def registro_com_arquivo():
-    """
-    Registro no banco com conteudo_arquivo e nome_arquivo preenchidos (para
-    download).
-    """
+def registro_com_arquivo() -> Any:
+    """Registro no banco com conteudo_arquivo e nome_arquivo preenchidos (para."""
     return ExportacaoVagasSigpec.objects.create(
         processo_uuid=uuid.uuid4(),
         cargo_uuid=uuid.uuid4(),
@@ -54,21 +55,15 @@ def registro_com_arquivo():
     )
 
 
-# --- list ---
-
-
 class TestBaseExportacaoList:
-    """
-    list: sem params (paginado), com params inválidos (400), com params válidos
-    (arquivo).
-    """
+    """list: sem params (paginado), com params inválidos (400), com params."""
 
-    def test_list_sem_query_params_retorna_200_paginado(self, api_client):
-        """GET list sem query params → 200 e resposta paginada."""
+    def test_list_sem_query_params_retorna_200_paginado(
+        self, api_client: Any
+    ) -> None:
+        """Verifica list sem query params retorna 200 paginado."""
         ExportacaoVagasSigpec.objects.create(
-            processo_uuid=uuid.uuid4(),
-            cargo_uuid=uuid.uuid4(),
-            cargo_codigo=1,
+            processo_uuid=uuid.uuid4(), cargo_uuid=uuid.uuid4(), cargo_codigo=1
         )
         response = api_client.get(LIST_URL)
         assert response.status_code == 200
@@ -79,15 +74,11 @@ class TestBaseExportacaoList:
         assert "page_size" in data or "links" in data
 
     def test_list_com_processo_e_cargo_uuid_sem_cargo_codigo_retorna_400(
-        self, api_client
-    ):
-        """
-        GET list com processo_uuid e cargo_uuid mas sem cargo_codigo → 400 e
-        mensagem sobre cargo_codigo na query.
-        """
+        self, api_client: Any
+    ) -> None:
+        """Verifica list com processo e cargo uuid sem cargo codigo retorna 400."""
         response = api_client.get(
-            LIST_URL,
-            {"processo_uuid": _uuid(), "cargo_uuid": _uuid()},
+            LIST_URL, {"processo_uuid": _uuid(), "cargo_uuid": _uuid()}
         )
         assert response.status_code == 400
         data = response.json()
@@ -98,11 +89,10 @@ class TestBaseExportacaoList:
             or "envie" in data["detail"].lower()
         )
 
-    def test_list_com_cargo_codigo_nao_numerico_retorna_400(self, api_client):
-        """
-        GET list com cargo_codigo não numérico → 400 e mensagem cargo_codigo
-        numérico.
-        """
+    def test_list_com_cargo_codigo_nao_numerico_retorna_400(
+        self, api_client: Any
+    ) -> None:
+        """Verifica list com cargo codigo nao numerico retorna 400."""
         response = api_client.get(
             LIST_URL,
             {
@@ -119,12 +109,11 @@ class TestBaseExportacaoList:
             or "numerico" in data["detail"].lower()
         )
 
-    def test_list_com_params_validos_retorna_arquivo(self, api_client):
-        """
-        GET list com processo_uuid, cargo_uuid e cargo_codigo válidos → 200 e
-        resposta de arquivo (mock).
-        """
-        p, c = _uuid(), _uuid()
+    def test_list_com_params_validos_retorna_arquivo(
+        self, api_client: Any
+    ) -> None:
+        """Verifica list com params validos retorna arquivo."""
+        p, c = (_uuid(), _uuid())
         mock_response = HttpResponse(
             b"conteudo mock", content_type="text/plain; charset=utf-8"
         )
@@ -144,22 +133,14 @@ class TestBaseExportacaoList:
         assert "text/plain" in response.get("Content-Type", "")
 
 
-# --- get_serializer_class ---
-
-
 class TestBaseExportacaoGetSerializerClass:
-    """
-    get_serializer_class: create usa create_serializer_class; list/retrieve usa
-    list_serializer_class.
-    """
+    """get_serializer_class: create usa create_serializer_class;."""
 
-    def test_post_create_usa_create_serializer(self, api_client):
-        """
-        POST (create) usa create_serializer_class (valida campos do create).
-        """
+    def test_post_create_usa_create_serializer(self, api_client: Any) -> None:
+        """Verifica post create usa create serializer."""
         with (
             patch(
-                "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao",
+                "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao"
             ),
             patch(
                 "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.gerar_arquivo",
@@ -180,19 +161,12 @@ class TestBaseExportacaoGetSerializerClass:
             ExportacaoVagasSigpecCreateSerializer,
         )
 
-        assert (
-            ExportacaoVagasSigpecCreateSerializer.Meta.fields
-        )  # create serializer tem esses campos
+        assert ExportacaoVagasSigpecCreateSerializer.Meta.fields
 
-    def test_get_list_usa_list_serializer(self, api_client):
-        """
-        GET list usa list_serializer_class (resposta com uuid, criado_em,
-        etc.).
-        """
+    def test_get_list_usa_list_serializer(self, api_client: Any) -> None:
+        """Verifica get list usa list serializer."""
         ExportacaoVagasSigpec.objects.create(
-            processo_uuid=uuid.uuid4(),
-            cargo_uuid=uuid.uuid4(),
-            cargo_codigo=1,
+            processo_uuid=uuid.uuid4(), cargo_uuid=uuid.uuid4(), cargo_codigo=1
         )
         response = api_client.get(LIST_URL)
         assert response.status_code == 200
@@ -208,25 +182,16 @@ class TestBaseExportacaoGetSerializerClass:
             assert key in data["results"][0]
 
 
-# --- create ---
-
-
 class TestBaseExportacaoCreate:
-    """
-    create: dados válidos + mock executar_exportacao → 200 e arquivo; exceções
-    → 400/404/502.
-    """
+    """create: dados válidos + mock executar_exportacao → 200 e arquivo;."""
 
     def test_create_com_dados_validos_mock_executar_retorna_200_arquivo(
-        self, api_client
-    ):
-        """
-        POST com dados válidos e mock de executar_exportacao → 200 e resposta
-        de arquivo.
-        """
+        self, api_client: Any
+    ) -> None:
+        """Verifica create com dados validos mock executar retorna 200 arquivo."""
         with (
             patch(
-                "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao",
+                "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao"
             ),
             patch(
                 "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.gerar_arquivo",
@@ -247,11 +212,10 @@ class TestBaseExportacaoCreate:
         assert response.status_code == 200
         assert "text/plain" in response.get("Content-Type", "")
 
-    def test_create_executar_levanta_bad_request_retorna_400(self, api_client):
-        """
-        executar_exportacao levanta ExportacaoBadRequestException → 400 e
-        detail.
-        """
+    def test_create_executar_levanta_bad_request_retorna_400(
+        self, api_client: Any
+    ) -> None:
+        """Verifica create executar levanta bad request retorna 400."""
         with patch(
             "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao",
             side_effect=ExportacaoBadRequestException(
@@ -275,10 +239,10 @@ class TestBaseExportacaoCreate:
             or "inválido" in data["mensagem"].lower()
         )
 
-    def test_create_executar_levanta_not_found_retorna_404(self, api_client):
-        """
-        executar_exportacao levanta ExportacaoNotFoundException → 404 e detail.
-        """
+    def test_create_executar_levanta_not_found_retorna_404(
+        self, api_client: Any
+    ) -> None:
+        """Verifica create executar levanta not found retorna 404."""
         with patch(
             "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao",
             side_effect=ExportacaoNotFoundException(
@@ -299,12 +263,9 @@ class TestBaseExportacaoCreate:
         assert "detail" in data
 
     def test_create_executar_levanta_service_unavailable_retorna_502(
-        self, api_client
-    ):
-        """
-        executar_exportacao levanta ExportacaoServiceUnavailableException → 502
-        e detail.
-        """
+        self, api_client: Any
+    ) -> None:
+        """Verifica create executar levanta service unavailable retorna 502."""
         with patch(
             "exporta_arquivo.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao",
             side_effect=ExportacaoServiceUnavailableException(
@@ -326,23 +287,14 @@ class TestBaseExportacaoCreate:
         assert "indisponível" in data["detail"] or "detail" in data
 
 
-# --- download (action) ---
-
-
 class TestBaseExportacaoDownload:
-    """
-    download: GET /<uuid>/download/ com instance que tem conteudo e nome → 200
-    e corpo do arquivo.
-    """
+    """download: GET /<uuid>/download/ com instance que tem conteudo e nome."""
 
     def test_download_com_registro_com_arquivo_retorna_200_e_corpo(
-        self, api_client, registro_com_arquivo
-    ):
-        """
-        GET /<uuid>/download/ com instance que tem conteudo_arquivo e
-        nome_arquivo → 200 e corpo.
-        """
-        url = f"{LIST_URL.rstrip('/')}/{str(registro_com_arquivo.uuid)}/download/"  # noqa: E501
+        self, api_client: Any, registro_com_arquivo: Any
+    ) -> None:
+        """Verifica download com registro com arquivo retorna 200 e corpo."""
+        url = f'{LIST_URL.rstrip('/')}/{str(registro_com_arquivo.uuid)}/download/'  # noqa: E501
         response = api_client.get(url)
         assert response.status_code == 200
         assert b"conteudo" in response.content

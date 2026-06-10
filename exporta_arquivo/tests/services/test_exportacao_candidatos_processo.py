@@ -1,11 +1,14 @@
-"""
-Testes de funções puras e orquestração do serviço
+"""Testes de funções puras e orquestração do serviço.
+
 exportacao_candidatos_processo.
 Funções puras + validações + exportar_candidatos_processo (com mock de API).
 Sem HTTP/DB; mocks no ponto de uso.
 """
 
+from __future__ import annotations
+
 import uuid
+from typing import Any
 
 import pytest
 
@@ -19,73 +22,81 @@ from exporta_arquivo.services.exportacao_candidatos_processo import (
 
 
 class TestDataParaDdMmYyyy:
-    """
-    _data_para_dd_mm_yyyy: None, "", ISO com T, YYYY-MM-DD, já DD/MM/YYYY,
-    inválido.
-    """
+    """_data_para_dd_mm_yyyy: None, "", ISO com T, YYYY-MM-DD, já."""
 
-    def test_none_retorna_vazio(self):
+    def test_none_retorna_vazio(self) -> None:
+        """Verifica none retorna vazio."""
         assert _data_para_dd_mm_yyyy(None) == ""
 
-    def test_string_vazia_retorna_vazio(self):
+    def test_string_vazia_retorna_vazio(self) -> None:
+        """Verifica string vazia retorna vazio."""
         assert _data_para_dd_mm_yyyy("") == ""
 
-    def test_iso_com_t_retorna_dd_mm_yyyy(self):
+    def test_iso_com_t_retorna_dd_mm_yyyy(self) -> None:
+        """Verifica iso com t retorna dd mm yyyy."""
         assert _data_para_dd_mm_yyyy("2024-07-03T00:00:00") == "03/07/2024"
 
-    def test_yyyy_mm_dd_retorna_dd_mm_yyyy(self):
+    def test_yyyy_mm_dd_retorna_dd_mm_yyyy(self) -> None:
+        """Verifica yyyy mm dd retorna dd mm yyyy."""
         assert _data_para_dd_mm_yyyy("2024-07-03") == "03/07/2024"
 
-    def test_ja_dd_mm_yyyy_retorna_igual(self):
+    def test_ja_dd_mm_yyyy_retorna_igual(self) -> None:
+        """Verifica ja dd mm yyyy retorna igual."""
         assert _data_para_dd_mm_yyyy("03/07/2024") == "03/07/2024"
 
-    def test_invalido_retorna_string_original(self):
-        # Sem "-" nem "/" com 8+ chars: retorna s
+    def test_invalido_retorna_string_original(self) -> None:
+        """Verifica invalido retorna string original."""
         assert _data_para_dd_mm_yyyy("invalido") == "invalido"
 
 
 class TestCpfApenasDigitos:
     """_cpf_apenas_digitos: None, só dígitos, com pontuação, vazio."""
 
-    def test_none_retorna_vazio(self):
+    def test_none_retorna_vazio(self) -> None:
+        """Verifica none retorna vazio."""
         assert _cpf_apenas_digitos(None) == ""
 
-    def test_so_digitos_retorna_igual(self):
+    def test_so_digitos_retorna_igual(self) -> None:
+        """Verifica so digitos retorna igual."""
         assert _cpf_apenas_digitos("12345678900") == "12345678900"
 
-    def test_com_pontuacao_remove_tudo_que_nao_e_digito(self):
+    def test_com_pontuacao_remove_tudo_que_nao_e_digito(self) -> None:
+        """Verifica com pontuacao remove tudo que nao e digito."""
         assert _cpf_apenas_digitos("123.456.789-00") == "12345678900"
 
-    def test_vazio_retorna_vazio(self):
+    def test_vazio_retorna_vazio(self) -> None:
+        """Verifica vazio retorna vazio."""
         assert _cpf_apenas_digitos("") == ""
 
 
 class TestCampo:
-    """_campo: None, com pipe, com \\n/\\r."""
+    r"""_campo: None, com pipe, com \\n/\\r."""
 
-    def test_none_retorna_vazio(self):
+    def test_none_retorna_vazio(self) -> None:
+        """Verifica none retorna vazio."""
         assert _campo(None) == ""
 
-    def test_com_pipe_substitui_por_espaco(self):
+    def test_com_pipe_substitui_por_espaco(self) -> None:
+        """Verifica com pipe substitui por espaco."""
         assert "|" not in _campo("a|b|c")
         assert " " in _campo("a|b|c")
 
-    def test_com_newline_e_cr_substitui_por_espaco(self):
+    def test_com_newline_e_cr_substitui_por_espaco(self) -> None:
+        """Verifica com newline e cr substitui por espaco."""
         assert _campo("linha1\nlinha2") == "linha1 linha2"
         assert _campo("linha1\rlinha2") == "linha1 linha2"
 
 
 class TestFormatarArquivoCandidatosProcesso:
-    """
-    formatar_arquivo_candidatos_processo: lista vazia; 1 linha; várias;
-    codigo/data_criacao; dt_nascimento e cd_cpf.
-    """
+    """formatar_arquivo_candidatos_processo: lista vazia; 1 linha; várias;."""
 
-    def test_lista_vazia_retorna_string_vazia(self):
+    def test_lista_vazia_retorna_string_vazia(self) -> None:
+        """Verifica lista vazia retorna string vazia."""
         out = formatar_arquivo_candidatos_processo([])
         assert out == ""
 
-    def test_uma_linha_dados_minimos(self):
+    def test_uma_linha_dados_minimos(self) -> None:
+        """Verifica uma linha dados minimos."""
         linhas = [
             {
                 "codigo": 100,
@@ -102,10 +113,11 @@ class TestFormatarArquivoCandidatosProcesso:
         assert "12345678900" in out
         assert "Fulano" in out
         assert "15/03/1990" in out
-        assert out.count("|") >= 20  # várias colunas
+        assert out.count("|") >= 20
         assert out.endswith("\n")
 
-    def test_varias_linhas(self):
+    def test_varias_linhas(self) -> None:
+        """Verifica varias linhas."""
         linhas = [
             {
                 "codigo": 1,
@@ -128,7 +140,8 @@ class TestFormatarArquivoCandidatosProcesso:
         assert "111" in linhas_out[0]
         assert "222" in linhas_out[1]
 
-    def test_codigo_none_data_criacao_vazia(self):
+    def test_codigo_none_data_criacao_vazia(self) -> None:
+        """Verifica codigo none data criacao vazia."""
         linhas = [
             {
                 "codigo": None,
@@ -142,11 +155,8 @@ class TestFormatarArquivoCandidatosProcesso:
         assert out
         assert "123" in out and "X" in out
 
-    def test_dt_nascimento_dd_mm_yyyy_na_saida(self):
-        """
-        Valores de dt_nascimento já em DD/MM/YYYY (ex.: vindos do mapeador)
-        aparecem na saída.
-        """
+    def test_dt_nascimento_dd_mm_yyyy_na_saida(self) -> None:
+        """Verifica dt nascimento dd mm yyyy na saida."""
         linhas = [
             {
                 "codigo": 1,
@@ -159,11 +169,8 @@ class TestFormatarArquivoCandidatosProcesso:
         out = formatar_arquivo_candidatos_processo(linhas)
         assert "31/12/1995" in out
 
-    def test_cd_cpf_apenas_digitos_na_coluna(self):
-        """
-        Coluna cd_cpf na saída reflete o valor do item (já normalizado pelo
-        mapeador).
-        """
+    def test_cd_cpf_apenas_digitos_na_coluna(self) -> None:
+        """Verifica cd cpf apenas digitos na coluna."""
         linhas = [
             {
                 "codigo": 1,
@@ -182,17 +189,11 @@ class TestFormatarArquivoCandidatosProcesso:
 
 
 class TestExportarCandidatosProcesso:
-    """
-    exportar_candidatos_processo: recebe instance; mock de APIs; retorna
-    conteúdo formatado (str).
-    """
+    """exportar_candidatos_processo: recebe instance; mock de APIs; retorna."""
 
     @pytest.fixture
-    def instance(self):
-        """
-        Instance mock com processo_uuid, cargo_uuid, cargo_codigo,
-        concurso_uuid.
-        """
+    def instance(self) -> Any:
+        """Mock de instância com UUIDs e código do cargo."""
         from unittest.mock import MagicMock
 
         inst = MagicMock()
@@ -202,7 +203,10 @@ class TestExportarCandidatosProcesso:
         inst.concurso_uuid = uuid.uuid4()
         return inst
 
-    def test_retorno_vazio_quando_habilitados_vazio(self, instance):
+    def test_retorno_vazio_quando_habilitados_vazio(
+        self, instance: Any
+    ) -> None:
+        """Verifica retorno vazio quando habilitados vazio."""
         from unittest.mock import patch
 
         with (
@@ -218,13 +222,14 @@ class TestExportarCandidatosProcesso:
                 "criado_em": "2024-01-01T00:00:00",
             }
             mock_api_candidatos.return_value.get_habilitados.return_value = []
-
             out = exportar_candidatos_processo(instance)
-
         assert out == ""
         instance.save.assert_called_once()
 
-    def test_retorno_formatado_ordenacao_por_ranking(self, instance):
+    def test_retorno_formatado_ordenacao_por_ranking(
+        self, instance: Any
+    ) -> None:
+        """Verifica retorno formatado ordenacao por ranking."""
         from unittest.mock import patch
 
         habilitados_api = [
@@ -264,23 +269,21 @@ class TestExportarCandidatosProcesso:
             mock_api_candidatos.return_value.get_habilitados.return_value = (
                 habilitados_api
             )
-
             out = exportar_candidatos_processo(instance)
-
         assert out
         assert out.endswith("\n")
         linhas = out.strip().split("\n")
         assert len(linhas) == 2
-        # Ordenação por ranking_escolha: 1 antes de 2 → Candidato B primeiro
         assert "Candidato B" in linhas[0]
         assert "222" in linhas[0]
         assert "Candidato A" in linhas[1]
         assert "111" in linhas[1]
-        assert "15/01/1990" in out  # dt_nascimento em DD/MM/YYYY (1990-01-15)
+        assert "15/01/1990" in out
 
     def test_atualiza_instance_com_dados_concurso_e_retorna_string(
-        self, instance
-    ):
+        self, instance: Any
+    ) -> None:
+        """Verifica atualiza instance com dados concurso e retorna string."""
         from unittest.mock import patch
 
         with (
@@ -296,9 +299,7 @@ class TestExportarCandidatosProcesso:
                 "criado_em": "2024-06-01T00:00:00",
             }
             mock_api_candidatos.return_value.get_habilitados.return_value = []
-
             out = exportar_candidatos_processo(instance)
-
         assert out == ""
         assert instance.concurso_codigo == 99
         assert instance.concurso_data_criacao == "2024-06-01T00:00:00"

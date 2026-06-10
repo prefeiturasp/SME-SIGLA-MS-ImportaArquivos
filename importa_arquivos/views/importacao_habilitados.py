@@ -1,5 +1,10 @@
+"""Módulo views/importacao_habilitados."""
+
+from __future__ import annotations
+
 import logging
 from datetime import datetime
+from typing import Any
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -29,6 +34,8 @@ from ..services.validacao_habilitados import validar_csv_habilitados
 
 
 class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
+    """ViewSet para o recurso ImportacaoArquivoHabilitados."""
+
     queryset = ImportacaoArquivoHabilitado.objects.all()
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -43,23 +50,23 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
     ordering = ["-criado_em"]
     pagination_class = None
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> Any:
+        """Retorna serializer class de acordo com a action."""
         if self.action in ("list", "retrieve"):
             return ImportacaoArquivoHabilitadosListSerializer
         return ImportacaoArquivoHabilitadosCreateSerializer
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
+        """Cria uma nova importação de habilitados."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
-
         serializer.validated_data.get("concurso_uuid") or request.data.get(
             "concurso_uuid"
         )
         serializer.validated_data.get("concurso_nome") or request.data.get(
             "concurso_nome"
         )
-
         try:
             registros, estrutura = validar_csv_habilitados(
                 instance.arquivo, importacao_obj=instance
@@ -89,10 +96,9 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
                 {"detail": "Erro ao validar arquivo de Habilitados."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         try:
             ApiCandidatosService(
-                base_url=settings.CANDIDATOS_API_URL,
+                base_url=settings.CANDIDATOS_API_URL
             ).enviar_habilitados(
                 registros=registros,
                 estrutura=estrutura,
@@ -121,7 +127,6 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
         else:
             instance.status = "CONCLUIDO"
             instance.save(update_fields=["status"])
-
         instance.refresh_from_db()
         serializer = ImportacaoArquivoHabilitadosListSerializer(instance)
         headers = self.get_success_headers(serializer.data)
@@ -130,7 +135,12 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=False, methods=["get"], url_path="erros/download")
-    def download_erros(self, request):
+    def download_erros(self, request: Any) -> Any:
+        """Download dos erros de importação de habilitados em formato texto.
+
+        Returns:
+            Retorna o arquivo de erros em formato texto.
+        """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
         qs = queryset_erros_por_modelo(
             ImportacaoArquivoHabilitado, importacao_uuid=importacao_uuid

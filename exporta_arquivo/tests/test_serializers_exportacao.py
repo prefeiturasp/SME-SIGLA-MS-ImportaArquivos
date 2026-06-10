@@ -1,50 +1,47 @@
-"""
-Testes dos serializers de exportação: create (campos obrigatórios) e list
+"""Testes dos serializers de exportação: create (campos obrigatórios) e list.
+
 (read_only, serialização de instance).
 """
 
+from __future__ import annotations
+
 import uuid
+from typing import Any
 
 import pytest
 
 pytestmark = pytest.mark.django_db
-
-from exporta_arquivo.models import (  # noqa: E402
+from exporta_arquivo.models import (
     ExportacaoCandidatosProcesso,
     ExportacaoVagasProcesso,
     ExportacaoVagasSigpec,
 )
-from exporta_arquivo.serializers.exportacao_candidatos_processo import (  # noqa: E402
+from exporta_arquivo.serializers.exportacao_candidatos_processo import (
     ExportacaoCandidatosProcessoCreateSerializer,
     ExportacaoCandidatosProcessoListSerializer,
 )
-from exporta_arquivo.serializers.exportacao_vagas_processo import (  # noqa: E402
+from exporta_arquivo.serializers.exportacao_vagas_processo import (
     ExportacaoVagasProcessoCreateSerializer,
     ExportacaoVagasProcessoListSerializer,
 )
-from exporta_arquivo.serializers.exportacao_vagas_sigpec import (  # noqa: E402
+from exporta_arquivo.serializers.exportacao_vagas_sigpec import (
     ExportacaoVagasSigpecCreateSerializer,
     ExportacaoVagasSigpecListSerializer,
 )
 
 
-def _uuid():
+def _uuid() -> Any:
+    """Uuid."""
     return str(uuid.uuid4())
 
 
-# --- Candidatos processo ---
-
-
 class TestExportacaoCandidatosProcessoCreateSerializer:
-    """
-    Create: obrigatórios processo_uuid, cargo_uuid, cargo_codigo; opcionais.
-    """
+    """Create: obrigatórios processo_uuid, cargo_uuid, cargo_codigo;."""
 
-    def test_campos_obrigatorios_processo_uuid_cargo_uuid_cargo_codigo(self):
-        """
-        Faltando processo_uuid, cargo_uuid ou cargo_codigo deve falhar na
-        validação.
-        """
+    def test_campos_obrigatorios_processo_uuid_cargo_uuid_cargo_codigo(
+        self,
+    ) -> None:
+        """Verifica campos obrigatorios processo uuid cargo uuid cargo codigo."""
         base = {
             "processo_uuid": _uuid(),
             "cargo_uuid": _uuid(),
@@ -52,35 +49,27 @@ class TestExportacaoCandidatosProcessoCreateSerializer:
         }
         serializer = ExportacaoCandidatosProcessoCreateSerializer(data=base)
         assert serializer.is_valid(), serializer.errors
-        # Sem processo_uuid
         s1 = ExportacaoCandidatosProcessoCreateSerializer(
             data={"cargo_uuid": _uuid(), "cargo_codigo": 100}
         )
         assert not s1.is_valid()
         assert "processo_uuid" in s1.errors
-        # Sem cargo_uuid
         s2 = ExportacaoCandidatosProcessoCreateSerializer(
             data={"processo_uuid": _uuid(), "cargo_codigo": 100}
         )
         assert not s2.is_valid()
         assert "cargo_uuid" in s2.errors
-        # Sem cargo_codigo: modelo aceita null; serializer pode ou não exigir
         ExportacaoCandidatosProcessoCreateSerializer(
             data={"processo_uuid": _uuid(), "cargo_uuid": _uuid()}
         )
-        # Se o model tem null=True em cargo_codigo, is_valid pode passar; a view/service exige  # noqa: E501
-        # Testamos que com cargo_codigo válido o create funciona
         s4 = ExportacaoCandidatosProcessoCreateSerializer(data=base)
         assert s4.is_valid()
         obj = s4.save()
         assert obj.cargo_codigo == 100
         obj.delete()
 
-    def test_campos_opcionais_aceitos(self):
-        """
-        concurso_uuid, processo_nome, cargo_nome, concurso_codigo,
-        concurso_data_criacao são opcionais.
-        """
+    def test_campos_opcionais_aceitos(self) -> None:
+        """Verifica campos opcionais aceitos."""
         data = {
             "processo_uuid": _uuid(),
             "cargo_uuid": _uuid(),
@@ -108,8 +97,8 @@ class TestExportacaoCandidatosProcessoCreateSerializer:
 class TestExportacaoCandidatosProcessoListSerializer:
     """List: read_only esperados e serialização de instance."""
 
-    def test_read_only_fields_esperados(self):
-        """List serializer tem todos os campos de listagem como read_only."""
+    def test_read_only_fields_esperados(self) -> None:
+        """Verifica read only fields esperados."""
         expected = {
             "uuid",
             "criado_em",
@@ -128,8 +117,8 @@ class TestExportacaoCandidatosProcessoListSerializer:
         assert set(meta.read_only_fields) == expected
         assert set(meta.fields) == expected
 
-    def test_instance_serializa_corretamente(self):
-        """Uma instance do model serializa com todos os campos esperados."""
+    def test_instance_serializa_corretamente(self) -> None:
+        """Verifica instance serializa corretamente."""
         obj = ExportacaoCandidatosProcesso.objects.create(
             processo_uuid=uuid.uuid4(),
             cargo_uuid=uuid.uuid4(),
@@ -149,17 +138,11 @@ class TestExportacaoCandidatosProcessoListSerializer:
         obj.delete()
 
 
-# --- Vagas processo ---
-
-
 class TestExportacaoVagasProcessoCreateSerializer:
     """Create: obrigatórios; create com dados válidos."""
 
-    def test_create_com_dados_validos(self):
-        """
-        Create com processo_uuid, cargo_uuid, cargo_codigo (e opcionais) cria
-        registro.
-        """
+    def test_create_com_dados_validos(self) -> None:
+        """Verifica create com dados validos."""
         data = {
             "processo_uuid": _uuid(),
             "cargo_uuid": _uuid(),
@@ -175,7 +158,8 @@ class TestExportacaoVagasProcessoCreateSerializer:
 class TestExportacaoVagasProcessoListSerializer:
     """List: read_only e serialização de instance."""
 
-    def test_read_only_e_serializacao(self):
+    def test_read_only_e_serializacao(self) -> None:
+        """Verifica read only e serializacao."""
         expected_fields = {
             "uuid",
             "criado_em",
@@ -191,9 +175,7 @@ class TestExportacaoVagasProcessoListSerializer:
         meta = ExportacaoVagasProcessoListSerializer.Meta
         assert set(meta.read_only_fields) == expected_fields
         obj = ExportacaoVagasProcesso.objects.create(
-            processo_uuid=uuid.uuid4(),
-            cargo_uuid=uuid.uuid4(),
-            cargo_codigo=5,
+            processo_uuid=uuid.uuid4(), cargo_uuid=uuid.uuid4(), cargo_codigo=5
         )
         serializer = ExportacaoVagasProcessoListSerializer(instance=obj)
         data = serializer.data
@@ -202,15 +184,11 @@ class TestExportacaoVagasProcessoListSerializer:
         obj.delete()
 
 
-# --- Vagas SIGPEC ---
-
-
 class TestExportacaoVagasSigpecCreateSerializer:
-    """
-    Create: cargo_codigo obrigatório na prática; create com dados válidos.
-    """
+    """Create: cargo_codigo obrigatório na prática; create com dados."""
 
-    def test_create_com_dados_validos(self):
+    def test_create_com_dados_validos(self) -> None:
+        """Verifica create com dados validos."""
         data = {
             "processo_uuid": _uuid(),
             "cargo_uuid": _uuid(),
@@ -226,7 +204,8 @@ class TestExportacaoVagasSigpecCreateSerializer:
 class TestExportacaoVagasSigpecListSerializer:
     """List: read_only e serialização."""
 
-    def test_read_only_e_serializacao(self):
+    def test_read_only_e_serializacao(self) -> None:
+        """Verifica read only e serializacao."""
         expected_fields = {
             "uuid",
             "criado_em",
@@ -242,9 +221,7 @@ class TestExportacaoVagasSigpecListSerializer:
         meta = ExportacaoVagasSigpecListSerializer.Meta
         assert set(meta.read_only_fields) == expected_fields
         obj = ExportacaoVagasSigpec.objects.create(
-            processo_uuid=uuid.uuid4(),
-            cargo_uuid=uuid.uuid4(),
-            cargo_codigo=7,
+            processo_uuid=uuid.uuid4(), cargo_uuid=uuid.uuid4(), cargo_codigo=7
         )
         serializer = ExportacaoVagasSigpecListSerializer(instance=obj)
         data = serializer.data

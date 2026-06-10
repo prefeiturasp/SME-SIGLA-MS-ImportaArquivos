@@ -1,11 +1,14 @@
-"""
-Testes dos clientes de API externa (ApiCandidatosService, ApiEscolhasService).
+"""Testes dos clientes de API externa (ApiCandidatosService,.
+
 Mock de requests: timeout, 5xx, JSON inválido → exceções do domínio
 (CandidatosServiceUnavailableException, EscolhasServiceUnavailableException,
 etc.).
 Usados apenas pelo exporta_arquivo; sem duplicar testes de outros apps.
 """
 
+from __future__ import annotations
+
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -19,20 +22,17 @@ from exporta_arquivo.services.exceptions import (
     EscolhasServiceUnavailableException,
 )
 
-# --- ApiCandidatosService ---
-
 
 class TestApiCandidatosService:
-    """
-    get_habilitados: timeout, 5xx, JSON inválido → ServiceUnavailable; 404 →
-    NotFound.
-    """
+    """get_habilitados: timeout, 5xx, JSON inválido → ServiceUnavailable;."""
 
     @pytest.fixture
-    def service(self):
+    def service(self) -> Any:
+        """Service."""
         return ApiCandidatosService(base_url="http://test", timeout_seconds=5)
 
-    def test_timeout_levanta_service_unavailable(self, service):
+    def test_timeout_levanta_service_unavailable(self, service: Any) -> None:
+        """Verifica timeout levanta service unavailable."""
         with patch(
             "sigla_sdk.http.api_client.http_client.get", side_effect=Timeout()
         ):
@@ -47,7 +47,8 @@ class TestApiCandidatosService:
                 or "habilitados" in exc_info.value.mensagem.lower()
             )
 
-    def test_5xx_levanta_service_unavailable(self, service):
+    def test_5xx_levanta_service_unavailable(self, service: Any) -> None:
+        """Verifica 5xx levanta service unavailable."""
         resp = MagicMock()
         resp.status_code = 503
         resp.text = "Service Unavailable"
@@ -65,7 +66,10 @@ class TestApiCandidatosService:
                 or "indisponível" in exc_info.value.mensagem.lower()
             )
 
-    def test_resposta_nao_json_levanta_service_unavailable(self, service):
+    def test_resposta_nao_json_levanta_service_unavailable(
+        self, service: Any
+    ) -> None:
+        """Verifica resposta nao json levanta service unavailable."""
         resp = MagicMock()
         resp.status_code = 200
         resp.json.side_effect = ValueError("Invalid JSON")
@@ -83,7 +87,8 @@ class TestApiCandidatosService:
                 or "resposta" in exc_info.value.mensagem.lower()
             )
 
-    def test_404_levanta_not_found(self, service):
+    def test_404_levanta_not_found(self, service: Any) -> None:
+        """Verifica 404 levanta not found."""
         resp = MagicMock()
         resp.status_code = 404
         with patch(
@@ -98,7 +103,8 @@ class TestApiCandidatosService:
                 or "habilitados" in exc_info.value.mensagem.lower()
             )
 
-    def test_200_lista_retorna_lista(self, service):
+    def test_200_lista_retorna_lista(self, service: Any) -> None:
+        """Verifica 200 lista retorna lista."""
         resp = MagicMock()
         resp.status_code = 200
         resp.json.return_value = [{"id": 1}]
@@ -110,7 +116,8 @@ class TestApiCandidatosService:
             )
         assert out == [{"id": 1}]
 
-    def test_200_results_retorna_results(self, service):
+    def test_200_results_retorna_results(self, service: Any) -> None:
+        """Verifica 200 results retorna results."""
         resp = MagicMock()
         resp.status_code = 200
         resp.json.return_value = {"results": [{"id": 1}]}
@@ -123,17 +130,16 @@ class TestApiCandidatosService:
         assert out == [{"id": 1}]
 
 
-# --- ApiEscolhasService ---
-
-
 class TestApiEscolhasService:
     """get_vagas_escolas: timeout, 5xx, JSON inválido → ServiceUnavailable."""
 
     @pytest.fixture
-    def service(self):
+    def service(self) -> Any:
+        """Service."""
         return ApiEscolhasService(base_url="http://test", timeout_seconds=5)
 
-    def test_timeout_levanta_service_unavailable(self, service):
+    def test_timeout_levanta_service_unavailable(self, service: Any) -> None:
+        """Verifica timeout levanta service unavailable."""
         with patch(
             "sigla_sdk.http.api_client.http_client.get", side_effect=Timeout()
         ):
@@ -146,7 +152,8 @@ class TestApiEscolhasService:
                 or "vagas" in exc_info.value.mensagem.lower()
             )
 
-    def test_5xx_levanta_service_unavailable(self, service):
+    def test_5xx_levanta_service_unavailable(self, service: Any) -> None:
+        """Verifica 5xx levanta service unavailable."""
         resp = MagicMock()
         resp.status_code = 502
         resp.text = "Bad Gateway"
@@ -162,7 +169,10 @@ class TestApiEscolhasService:
                 or "indisponível" in exc_info.value.mensagem.lower()
             )
 
-    def test_resposta_nao_json_levanta_service_unavailable(self, service):
+    def test_resposta_nao_json_levanta_service_unavailable(
+        self, service: Any
+    ) -> None:
+        """Verifica resposta nao json levanta service unavailable."""
         resp = MagicMock()
         resp.status_code = 200
         resp.json.side_effect = ValueError("Invalid JSON")
@@ -178,7 +188,8 @@ class TestApiEscolhasService:
                 or "resposta" in exc_info.value.mensagem.lower()
             )
 
-    def test_200_dict_retorna_dict(self, service):
+    def test_200_dict_retorna_dict(self, service: Any) -> None:
+        """Verifica 200 dict retorna dict."""
         resp = MagicMock()
         resp.status_code = 200
         resp.json.return_value = {"vagas": []}

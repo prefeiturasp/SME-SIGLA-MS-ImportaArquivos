@@ -1,6 +1,11 @@
+"""Módulo views/importacao_escolhas."""
+
+from __future__ import annotations
+
 import contextlib
 import logging
 from datetime import datetime
+from typing import Any
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -29,6 +34,8 @@ logger = logging.getLogger(__name__)
 
 
 class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
+    """ViewSet para o recurso ImportacaoEscolhas."""
+
     queryset = ImportacaoEscolhas.objects.all()
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -39,56 +46,50 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
     lookup_field = "uuid"
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> Any:
+        """Retorna serializer class.
+
+        Returns:
+            Valor convertido ou validado.
+        """
         if self.action in ("list", "retrieve"):
             return ImportacaoEscolhasListSerializer
         return ImportacaoEscolhasCreateSerializer
 
-    def create(self, request, *args, **kwargs):
-        """
-        Cria uma nova importação de escolhas.
+    def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
+        """Cria uma nova importação de escolhas.
 
-        Fluxo:
-        1. Valida dados recebidos do front
-        2. Cria registro de importação com status PENDENTE
-        3. Consulta API externa
-        4. Valida resposta da API externa
-        5. Transforma dados para formato MS-Escolhas
-        6. Envia dados para MS-Escolhas
-        7. Atualiza status da importação
+        Args:
+            request: Requisição HTTP recebida.
+            *args: Argumentos posicionais variáveis.
+            **kwargs: Argumentos nomeados variáveis.
+
+        Returns:
+            Resposta HTTP com os dados serializados.
         """
-        # 1. Validar dados recebidos do front
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        # 2. Criar registro de importação
         processo_uuid = serializer.validated_data.get("processo_uuid")
         processo_id = serializer.validated_data.get("processo_id")
         concurso_uuid = serializer.validated_data.get("concurso_uuid")
-
         if not processo_id:
             processo_id = 819
             logger.info(
                 f"Usando processo_id fixo (819) para processo_uuid={processo_uuid}"  # noqa: E501
             )
-
         instance = ImportacaoEscolhas.objects.create(
             processo_uuid=processo_uuid,
             processo_id=processo_id,
             concurso_uuid=concurso_uuid,
             status="PROCESSANDO",
         )
-
         try:
-            # 3. Consultar API externa
             logger.info(f"Consultando API externa: processo_id={processo_id}")
             resposta_api = (
                 ApiProdamService().consultar_resultado_convocacao_ingresso(
                     processo_id=processo_id
                 )
             )
-
-            # Verificar se a resposta foi bem-sucedida
             if resposta_api.get("retorno") != "TRUE":
                 mensagem_erro = resposta_api.get(
                     "mensagem", "Erro desconhecido na API PRODAM"
@@ -105,16 +106,11 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                     {"detail": f"Erro na API PRODAM: {mensagem_erro}"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
-            # 4. Obter lista de dados
             dados_prodam = resposta_api.get(
                 "lstDadosResultadoConvocacaoIngresso", []
             )
-
-            # Sempre salvar os dados retornados da API (mesmo se vazio)
             instance.dados_prodam = dados_prodam
             instance.save(update_fields=["dados_prodam"])
-
             if not dados_prodam:
                 logger.warning("API PRODAM retornou lista vazia")
                 instance.status = "CONCLUIDO"
@@ -125,8 +121,6 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                 return Response(
                     serializer_response.data, status=status.HTTP_201_CREATED
                 )
-
-            # 5. Transformar e enviar para MS-Escolhas
             logger.info(
                 f"Enviando {len(dados_prodam)} registros para MS-Escolhas"
             )
@@ -134,22 +128,17 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                 base_url=settings.ESCOLHA_API_URL,
                 timeout_seconds=settings.ESCOLHA_API_TIMEOUT,
             )
-
             api_escolhas_service.enviar_escolhas_prodam(
                 processo_uuid=processo_uuid,
                 concurso_uuid=concurso_uuid,
                 dados_prodam=dados_prodam,
                 importacao_obj=instance,
             )
-
-            # 6. Atualizar status e quantidade de registros
             instance.status = "CONCLUIDO"
             instance.save()
-
             logger.info(
                 f"Importação concluída com sucesso: {len(dados_prodam)} registros"  # noqa: E501
             )
-
         except ApiEscolhasException as exc:
             logger.error(
                 f"Erro da API de escolhas durante importação: {exc}",
@@ -157,7 +146,6 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             )
             instance.status = "ERRO"
             instance.save()
-
             with contextlib.suppress(Exception):
                 registrar_erro(
                     instance,
@@ -165,7 +153,6 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                     detalhes=exc.detalhes or str(exc),
                     exc=exc,
                 )
-
             resposta = {
                 "detail": exc.mensagem
                 or "Falha ao processar importação de escolhas",
@@ -183,7 +170,6 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             )
             instance.status = "ERRO"
             instance.save()
-
             with contextlib.suppress(Exception):
                 registrar_erro(
                     instance,
@@ -201,7 +187,6 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             )
             instance.status = "ERRO"
             instance.save()
-
             with contextlib.suppress(Exception):
                 registrar_erro(
                     instance,
@@ -209,13 +194,10 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                     detalhes=str(exc),
                     exc=exc,
                 )
-
             return Response(
                 {"detail": f"Erro ao processar importação: {str(exc)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-        # 7. Retornar resposta
         instance.refresh_from_db()
         serializer_response = ImportacaoEscolhasListSerializer(instance)
         headers = self.get_success_headers(serializer_response.data)
@@ -226,8 +208,15 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=False, methods=["get"], url_path="erros")
-    def listar_erros(self, request):
-        """Lista erros de importação de escolhas."""
+    def listar_erros(self, request: Any) -> Any:
+        """Lista erros.
+
+        Args:
+            request: Requisição HTTP recebida.
+
+        Returns:
+            Valor convertido ou validado.
+        """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
         qs = queryset_erros_por_modelo(
             ImportacaoEscolhas, importacao_uuid=importacao_uuid
@@ -236,8 +225,15 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"], url_path="erros/download")
-    def download_erros(self, request):
-        """Download dos erros de importação de escolhas em formato texto."""
+    def download_erros(self, request: Any) -> Any:
+        """Download dos erros de importação de escolhas em formato texto.
+
+        Args:
+            request: Requisição HTTP recebida.
+
+        Returns:
+            Valor convertido ou validado.
+        """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
         qs = queryset_erros_por_modelo(
             ImportacaoEscolhas, importacao_uuid=importacao_uuid

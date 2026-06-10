@@ -1,5 +1,4 @@
-"""
-Views para exportação de lotes e gerenciamento do cabeçalho.
+"""Views para exportação de lotes e gerenciamento do cabeçalho.
 
 ExportacaoLoteViewSet:
   - POST /exportacao/lote/  → exporta lote; retorna arquivo .txt (200) ou
@@ -12,7 +11,10 @@ CabecalhoExportacaoLoteViewSet:
   - CRUD completo para edição do cabeçalho configurável
 """
 
+from __future__ import annotations
+
 import logging
+from typing import Any
 
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -30,9 +32,7 @@ from ..serializers import (
     ExportacaoLoteCreateSerializer,
     ExportacaoLoteListSerializer,
 )
-from ..services.exceptions import (
-    ExportacaoLoteIncompletaException,
-)
+from ..services.exceptions import ExportacaoLoteIncompletaException
 from ..services.exportacao_lote import exportar_lote
 from .base_exportacao import _sanitizar_nome_arquivo
 
@@ -40,15 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 class ExportacaoLoteViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para exportação de lotes.
-
-    - create: valida, executa exportação e retorna arquivo .txt (200) ou
-              arquivo de erro com nomes de candidatos sem escolha (422).
-    - list: histórico paginado de exportações.
-    - retrieve: detalhe de uma exportação.
-    - download (GET /<uuid>/download/): redownload do arquivo exportado.
-    """
+    """ViewSet para exportação de lotes."""
 
     queryset = ExportacaoLote.objects.all()
     lookup_field = "uuid"
@@ -67,16 +59,17 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
     ordering = ["-criado_em"]
     pagination_class = CustomPagination
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> Any:
+        """Retorna serializer class de acordo com a action."""
         if self.action in ("list", "retrieve"):
             return ExportacaoLoteListSerializer
         return ExportacaoLoteCreateSerializer
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
+        """Cria o registro de exportação."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
-
         try:
             conteudo = exportar_lote(instance)
         except ExportacaoLoteIncompletaException as exc:
@@ -93,14 +86,12 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
                 else str(instance.lote_uuid)
             )
             nome_arquivo_erro = f"candidatos_sem_escolha_lote_{_sanitizar_nome_arquivo(str(lote_id))}.txt"  # noqa: E501
-
             instance.conteudo_arquivo = conteudo_erro
             instance.nome_arquivo = nome_arquivo_erro
             instance.status = "ATENCAO"
             instance.save(
                 update_fields=["conteudo_arquivo", "nome_arquivo", "status"]
             )
-
             response = HttpResponse(
                 conteudo_erro.encode("utf-8"),
                 content_type="text/plain; charset=utf-8",
@@ -110,18 +101,16 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
                 f'attachment; filename="{nome_arquivo_erro}"'
             )
             return response
-
         except Exception as exc:
             logger.warning(
                 f"Exportação: {instance.uuid} | {exc.mensagem} | {exc.detalhes}"  # noqa: E501
-            )
+            )  # type: ignore[attr-defined]
             instance.status = "ERRO"
             instance.save(update_fields=["status"])
             return Response(
                 {"mensagem": exc.mensagem, "detail": exc.detalhes},
                 status=status.HTTP_400_BAD_REQUEST,
-            )
-
+            )  # type: ignore[attr-defined]
         lote_id = (
             instance.numero_lote
             if instance.numero_lote is not None
@@ -136,10 +125,8 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
         instance.save(
             update_fields=["conteudo_arquivo", "nome_arquivo", "status"]
         )
-
         response = HttpResponse(
-            conteudo.encode("utf-8"),
-            content_type="text/plain; charset=utf-8",
+            conteudo.encode("utf-8"), content_type="text/plain; charset=utf-8"
         )
         response["Content-Disposition"] = (
             f'attachment; filename="{nome_arquivo}"'
@@ -147,8 +134,16 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
         return response
 
     @action(detail=True, methods=["get"], url_path="download")
-    def download(self, request, uuid=None):
-        """Redownload do arquivo exportado (sucesso ou erro)."""
+    def download(self, request: Any, uuid: Any = None) -> Any:
+        """Redownload do arquivo exportado (sucesso ou erro).
+
+        Args:
+            request: Requisição HTTP recebida.
+            uuid: Identificador único do registro.
+
+        Returns:
+            Valor convertido ou validado.
+        """
         instance = self.get_object()
         if not instance.conteudo_arquivo:
             return Response(
@@ -166,24 +161,28 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def _gerar_conteudo_erro(nomes: list, instance: ExportacaoLote) -> str:
+        """Gera conteudo erro.
+
+        Args:
+            nomes: Nomes dos candidatos sem escolha realizada.
+            instance: Instância do modelo em atualização.
+
+        Returns:
+            Texto com os nomes dos candidatos sem escolha realizada.
+        """
         lote_id = (
             instance.numero_lote
             if instance.numero_lote is not None
             else instance.lote_uuid
         )
-        linhas = [
-            f"Candidatos sem escolha realizada no lote {lote_id}:",
-        ]
+        linhas = [f"Candidatos sem escolha realizada no lote {lote_id}:"]
         for nome in nomes:
             linhas.append(f"- {nome}")
         return "\n".join(linhas) + "\n"
 
 
 class CabecalhoExportacaoLoteViewSet(viewsets.ModelViewSet):
-    """
-    CRUD para o cabeçalho configurável de exportação de lotes.
-    Use GET / para listar, POST para criar, PATCH/<uuid>/ para editar.
-    """
+    """CRUD para o cabeçalho configurável de exportação de lotes."""
 
     queryset = CabecalhoExportacaoLote.objects.all()
     serializer_class = CabecalhoExportacaoLoteSerializer

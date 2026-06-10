@@ -1,5 +1,4 @@
-"""
-ViewSet de exportação de vagas em formato vagas processo.
+"""ViewSet de exportação de vagas em formato vagas processo.
 
 - list: listagem (ou, se processo_uuid e cargo_uuid na query, retorna arquivo
 .txt — compatibilidade).
@@ -8,6 +7,10 @@ ViewSet de exportação de vagas em formato vagas processo.
 cargo_uuid, concurso_*).
 - download (detail): retorna arquivo .txt da exportação.
 """
+
+from __future__ import annotations
+
+from typing import Any
 
 from django.http import HttpResponse
 
@@ -24,25 +27,20 @@ from .base_exportacao import BaseExportacaoViewSet
 
 
 class ExportacaoVagasProcessoViewSet(BaseExportacaoViewSet):
-    """
-    ViewSet para exportação de vagas processo.
-
-    - list: lista registros (filtros, busca, ordenação, paginação).
-    - create: cria o registro, executa a exportação e retorna o arquivo .txt
-    para download.
-    - retrieve: detalhe de um registro.
-    - download (GET em /<uuid>/download/): retorna arquivo .txt para download.
-    - GET list com processo_uuid e cargo_uuid na query: retorna arquivo .txt
-    (comportamento legado).
-    """
+    """ViewSet para exportação de vagas processo."""
 
     queryset = ExportacaoVagasProcesso.objects.all()
-    list_serializer_class = ExportacaoVagasProcessoListSerializer
-    create_serializer_class = ExportacaoVagasProcessoCreateSerializer
+    list_serializer_class = ExportacaoVagasProcessoListSerializer  # type: ignore[assignment]
+    create_serializer_class = ExportacaoVagasProcessoCreateSerializer  # type: ignore[assignment]
 
-    def gerar_arquivo(self, instance):
-        """
-        Gera resposta de arquivo .txt para o registro (formato vagas processo).
+    def gerar_arquivo(self, instance: Any) -> Any:
+        """Gera arquivo.
+
+        Args:
+            instance: Instância do modelo em atualização.
+
+        Returns:
+            Resposta HTTP com o arquivo para download.
         """
         response = HttpResponse(
             instance.conteudo_arquivo.encode("utf-8"),
@@ -53,16 +51,18 @@ class ExportacaoVagasProcessoViewSet(BaseExportacaoViewSet):
         )
         return response
 
-    def executar_exportacao(self, instance):
-        """
-        Executa a exportação vagas processo, gera o arquivo e persiste conteúdo
-        e nome no registro.
+    def executar_exportacao(self, instance: Any) -> None:
+        """A exportação vagas processo, gera o arquivo e persiste.
+
+        Args:
+            instance: Instância do modelo em atualização.
+
+        Returns:
+            Nenhum valor; persiste alterações no banco.
         """
         vagas_escolas = buscar_vagas_escolas(
-            str(instance.processo_uuid),
-            instance.cargo_codigo,
+            str(instance.processo_uuid), instance.cargo_codigo
         )
-
         conteudo = formatar_arquivo_vagas_processo(
             instance.cargo_codigo, vagas_escolas
         )

@@ -1,5 +1,10 @@
+"""Módulo views/importacao_vagas."""
+
+from __future__ import annotations
+
 import logging
 from datetime import datetime
+from typing import Any
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -30,6 +35,8 @@ from ..utils import CustomPagination
 
 
 class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
+    """ViewSet para o recurso ImportacaoArquivoVagas."""
+
     queryset = ImportacaoArquivoVagas.objects.all()
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -44,23 +51,23 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
     ordering = ["-criado_em"]
     pagination_class = CustomPagination
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> Any:
+        """Retorna serializer class de acordo com a action."""
         if self.action in ("list", "retrieve"):
             return ImportacaoArquivoVagasListSerializer
         return ImportacaoArquivoVagasCreateSerializer
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
+        """Cria uma nova importação de vagas."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
-
         serializer.validated_data.get("processo_uuid") or request.data.get(
             "processo_uuid"
         )
         serializer.validated_data.get("processo_nome") or request.data.get(
             "processo_nome"
         )
-
         try:
             registros, estrutura = validar_csv_vagas(
                 instance.arquivo, importacao_obj=instance
@@ -70,7 +77,6 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
             LayoutNaoConfiguradoException,
             LeituraCSVException,
         ) as exc:
-            # Mas ainda retornamos resposta HTTP para o cliente
             mensagem = getattr(exc, "mensagem", "Erro ao validar CSV.")
             detalhes = getattr(exc, "detalhes", str(exc))
             logging.error(
@@ -88,11 +94,8 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
                 {"detail": "Erro ao validar CSV."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         try:
-            ApiEscolhasService(
-                base_url=settings.ESCOLHA_API_URL,
-            ).enviar_vagas(
+            ApiEscolhasService(base_url=settings.ESCOLHA_API_URL).enviar_vagas(
                 registros=registros,
                 estrutura=estrutura,
                 processo_uuid=str(instance.processo_uuid)
@@ -123,7 +126,6 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
                 {"detail": "Erro ao enviar vagas para API externa."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         instance.refresh_from_db()
         serializer = ImportacaoArquivoVagasListSerializer(instance)
         headers = self.get_success_headers(serializer.data)
@@ -132,7 +134,12 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=False, methods=["get"], url_path="erros/download")
-    def download_erros(self, request):
+    def download_erros(self, request: Any) -> Any:
+        """Download dos erros de importação de vagas em formato texto.
+
+        Returns:
+            Retorna o arquivo de erros em formato texto.
+        """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
         qs = queryset_erros_por_modelo(
             ImportacaoArquivoVagas, importacao_uuid=importacao_uuid
