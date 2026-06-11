@@ -17,7 +17,9 @@ from exporta_arquivo.models import (
     ExportacaoVagasProcesso,
     ExportacaoVagasSigpec,
 )
-from exporta_arquivo.serializers import ExportacaoCandidatosProcessoCreateSerializer
+from exporta_arquivo.serializers import (
+    ExportacaoCandidatosProcessoCreateSerializer,
+)
 from exporta_arquivo.views.exportacao_candidatos_processo import (
     ExportacaoCandidatosProcessoViewSet,
 )
