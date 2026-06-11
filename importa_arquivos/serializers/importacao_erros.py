@@ -25,7 +25,7 @@ class ImportacaoErrosListSerializer(serializers.Serializer):
     erros = serializers.CharField()
 
     def to_representation(self, instance: ImportacaoErro) -> Any:
-        """Monta a representação serializada do erro de acordo com o modelo da importação."""
+        """Monta a representação do erro conforme o modelo de importação."""
         data = {
             "mensagem": instance.mensagem,
             "erros": instance.erros,

@@ -16,7 +16,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from exporta_arquivo.serializers import ExportacaoCandidatosProcessoCreateSerializer
+from exporta_arquivo.serializers import (
+    ExportacaoCandidatosProcessoCreateSerializer,
+)
 from exporta_arquivo.views.exportacao_candidatos_processo import (
     ExportacaoCandidatosProcessoViewSet,
 )
