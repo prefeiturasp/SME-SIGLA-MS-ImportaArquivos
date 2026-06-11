@@ -18,6 +18,9 @@ class ImportacaoArquivoVagas(BaseModelArquivoImportacao):
     processo_uuid = models.UUIDField(
         verbose_name="UUID do processo de convocação", null=True, blank=True
     )
+    concurso_uuid = models.UUIDField(
+        verbose_name="UUID do concurso", null=True, blank=True
+    )
     processo_nome = models.CharField(
         max_length=255,
         verbose_name="Nome do processo de convocação",

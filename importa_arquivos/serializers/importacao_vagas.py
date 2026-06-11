@@ -17,7 +17,12 @@ class ImportacaoArquivoVagasCreateSerializer(serializers.ModelSerializer):
         """Representa Meta."""
 
         model = ImportacaoArquivoVagas
-        fields = ["arquivo", "processo_uuid", "processo_nome"]
+        fields = [
+            "arquivo",
+            "processo_uuid",
+            "processo_nome",
+            "concurso_uuid",
+        ]
 
     def create(self, validated_data: Any) -> Any:
         """Cria e persiste o registro a partir dos dados validados."""
@@ -46,6 +51,7 @@ class ImportacaoArquivoVagasListSerializer(serializers.ModelSerializer):
             "status",
             "processo_uuid",
             "processo_nome",
+            "concurso_uuid",
             "criado_em",
             "atualizado_em",
             "erros",

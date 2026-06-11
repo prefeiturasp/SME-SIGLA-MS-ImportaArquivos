@@ -82,6 +82,7 @@ class ApiEscolhasService:
         estrutura: list[dict[str, Any]],
         processo_uuid: str = "",
         processo_nome: str = "",
+        concurso_uuid: str = "",
         headers: dict[str, str] | None = None,
         importacao_obj: Any | None = None,
     ) -> dict:
@@ -111,6 +112,7 @@ class ApiEscolhasService:
             "vagas": dados,
             "processo_uuid": processo_uuid,
             "processo_nome": processo_nome,
+            "concurso_uuid": concurso_uuid,
         }
         try:
             response = http_client.post(
