@@ -1,5 +1,4 @@
-"""
-Serviço de API para exportação de lotes.
+"""Serviço de API para exportação de lotes.
 
 Contém dois clientes:
 - ApiLoteCandidatosService: busca candidatos de um lote específico via
@@ -8,6 +7,8 @@ MS-Candidatos.
 MS-Escolhas,
   filtrando por concurso_uuid.
 """
+
+from __future__ import annotations
 
 import logging
 from typing import Any
@@ -25,17 +26,21 @@ logger = logging.getLogger(__name__)
 
 
 class ApiLoteCandidatosService:
-    """
-    Busca todos os ConcursoCandidato de um lote específico (por lote UUID).
-    """
+    """Busca todos os ConcursoCandidato de um lote específico (por lote."""
 
     def __init__(
         self, base_url: str | None = None, timeout_seconds: int | None = None
-    ):
+    ) -> None:
+        """Inicializa a instância com os parâmetros informados.
+
+        Args:
+            base_url: URL base do serviço remoto.
+            timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
+        """
         self.base_url = (
             base_url
             or getattr(settings, "CANDIDATOS_API_URL", "http://localhost:8000")
-        ).rstrip("/")
+        ).rstrip("/")  # type: ignore[union-attr]
         self.timeout_seconds = timeout_seconds or getattr(
             settings, "CANDIDATOS_API_TIMEOUT", 30
         )
@@ -44,9 +49,20 @@ class ApiLoteCandidatosService:
     def _fazer_request_get(
         self, url: str, params: dict, descricao_contexto: str
     ) -> list[dict[str, Any]]:
-        """
-        Método comum para realizar requisições GET padronizadas na API de
-        candidatos.
+        """Realiza GET padronizado na API de lotes.
+
+        Args:
+            url: URL do endpoint remoto.
+            params: Parâmetros enviados na query string.
+            descricao_contexto: Descrição do contexto para logs de erro.
+
+        Returns:
+            Lista com os registros obtidos.
+
+        Raises:
+            ExportacaoNotFoundException: Quando os dados não são encontrados ou
+                a API está indisponível.
+            ExportacaoServiceUnavailableException: Serviço indisponível.
         """
         try:
             response = http_client.get(
@@ -65,13 +81,11 @@ class ApiLoteCandidatosService:
                 mensagem="Serviço de candidatos indisponível.",
                 detalhes=str(exc),
             ) from exc
-
         if response.status_code == 404:
             raise ExportacaoNotFoundException(
                 mensagem=f"Dados não encontrados ({descricao_contexto}).",
                 detalhes=f"Parâmetros: {params}",
             )
-
         if response.status_code >= 500:
             logger.error(
                 "API candidatos retornou status %s: %s",
@@ -82,13 +96,11 @@ class ApiLoteCandidatosService:
                 mensagem="Serviço de candidatos indisponível.",
                 detalhes=f"Status {response.status_code}",
             )
-
         if response.status_code != 200:
             raise ExportacaoServiceUnavailableException(
                 mensagem=f"Erro ao obter dados: {descricao_contexto}.",
                 detalhes=f"Status {response.status_code}",
             )
-
         try:
             data = response.json()
         except ValueError as exc:
@@ -99,7 +111,6 @@ class ApiLoteCandidatosService:
                 mensagem="Resposta inválida do serviço de candidatos.",
                 detalhes=str(exc),
             ) from exc
-
         if isinstance(data, list):
             return data
         if isinstance(data, dict) and "results" in data:
@@ -108,16 +119,13 @@ class ApiLoteCandidatosService:
         return []
 
     def get_candidatos_lote(self, lote_uuid: str) -> list[dict[str, Any]]:
-        """
-        GET {CANDIDATOS_API_URL}/api/v1/habilitados/?lote__uuid=<uuid>
+        """Retorna candidatos lote.
 
-        Retorna lista de ConcursoCandidato do lote com todos os campos,
-        incluindo numero_lote, codigo_sigpec e chave_inscrito.
+        Args:
+            lote_uuid: UUID de lote.
 
-        Raises:
-            ExportacaoNotFoundException: em 404.
-            ExportacaoServiceUnavailableException: em 5xx, timeout ou resposta
-            inválida.
+        Returns:
+            Lista com os registros obtidos.
         """
         url = f"{self.base_url}/api/v1/habilitados/"
         params = {"lote__uuid": str(lote_uuid)}
@@ -126,41 +134,39 @@ class ApiLoteCandidatosService:
     def get_candidatos_por_numero_lote(
         self, concurso_uuid: str, numero_lote: int
     ) -> list[dict[str, Any]]:
-        """
-        GET
-        {CANDIDATOS_API_URL}/api/v1/habilitados/?lote__concurso_uuid=<uuid>&numero_lote=<int>
+        """Retorna candidatos por numero lote.
 
-        Busca apenas os ConcursoCandidato com o numero_lote especificado dentro
-        do
-        último lote de importação do concurso, opcionalmente filtrado por
-        codigo_cargo.
+        Args:
+            concurso_uuid: UUID do concurso relacionado.
+            numero_lote: Número do lote de exportação.
 
-        Raises:
-            ExportacaoNotFoundException: em 404.
-            ExportacaoServiceUnavailableException: em 5xx, timeout ou resposta
-            inválida.
+        Returns:
+            Lista com os registros obtidos.
         """
         url = f"{self.base_url}/api/v1/habilitados/"
         params: dict[str, Any] = {
             "lote__concurso_uuid": str(concurso_uuid),
             "numero_lote": numero_lote,
         }
-
         return self._fazer_request_get(url, params, "numero_lote")
 
 
 class ApiLoteEscolhasService:
-    """
-    Busca escolhas para uma lista de candidatos filtradas por concurso_uuid.
-    """
+    """Busca escolhas para uma lista de candidatos filtradas por."""
 
     def __init__(
         self, base_url: str | None = None, timeout_seconds: int | None = None
-    ):
+    ) -> None:
+        """Inicializa a instância com os parâmetros informados.
+
+        Args:
+            base_url: URL base do serviço remoto.
+            timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
+        """
         self.base_url = (
             base_url
             or getattr(settings, "ESCOLHA_API_URL", "http://localhost:8004")
-        ).rstrip("/")
+        ).rstrip("/")  # type: ignore[union-attr]
         self.timeout_seconds = timeout_seconds or getattr(
             settings, "ESCOLHA_API_TIMEOUT", 30
         )
@@ -170,26 +176,25 @@ class ApiLoteEscolhasService:
         }
 
     def get_escolhas_lote(
-        self,
-        candidato_uuids: list[str],
-        concurso_uuid: str,
+        self, candidato_uuids: list[str], concurso_uuid: str
     ) -> list[dict[str, Any]]:
-        """
-        POST {ESCOLHA_API_URL}/api/v1/escolhas/busca/
-        Body: {"candidato_uuid": [...], "concurso_uuid": "..."}
+        """Retorna escolhas lote.
 
-        Retorna lista de Escolha com vaga_escola.escola.codigo_integracao.
+        Args:
+            candidato_uuids: UUIDs dos candidatos consultados.
+            concurso_uuid: UUID do concurso relacionado.
+
+        Returns:
+            Lista com os registros obtidos.
 
         Raises:
-            ExportacaoServiceUnavailableException: em 5xx, timeout ou resposta
-            inválida.
+            ExportacaoServiceUnavailableException: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/escolhas/busca/"
         payload = {
             "candidato_uuid": [str(u) for u in candidato_uuids],
             "concurso_uuid": str(concurso_uuid),
         }
-
         try:
             response = http_client.post(
                 url,
@@ -202,10 +207,8 @@ class ApiLoteEscolhasService:
                 "Erro ao chamar API de escolhas (busca lote): %s", exc
             )
             raise ExportacaoServiceUnavailableException(
-                mensagem="Serviço de escolhas indisponível.",
-                detalhes=str(exc),
+                mensagem="Serviço de escolhas indisponível.", detalhes=str(exc)
             ) from exc
-
         if response.status_code >= 500:
             logger.error(
                 "API escolhas retornou status %s: %s",
@@ -216,13 +219,11 @@ class ApiLoteEscolhasService:
                 mensagem="Serviço de escolhas indisponível.",
                 detalhes=f"Status {response.status_code}",
             )
-
         if response.status_code != 200:
             raise ExportacaoServiceUnavailableException(
                 mensagem="Erro ao obter escolhas do lote.",
                 detalhes=f"Status {response.status_code}",
             )
-
         try:
             data = response.json()
         except ValueError as exc:
@@ -231,7 +232,6 @@ class ApiLoteEscolhasService:
                 mensagem="Resposta inválida do serviço de escolhas.",
                 detalhes=str(exc),
             ) from exc
-
         if isinstance(data, list):
             return data
         if isinstance(data, dict) and "results" in data:

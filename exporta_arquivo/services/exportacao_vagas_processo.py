@@ -1,5 +1,4 @@
-"""
-Serviço de exportação de vagas por processo (formato vagas processo).
+"""Serviço de exportação de vagas por processo (formato vagas processo).
 
 Exige cargo_codigo no payload do create ou na query (download direto).
 Busca vagas na API de escolha e monta a lista de linhas para o arquivo.
@@ -18,13 +17,14 @@ def formatar_arquivo_vagas_processo(
     codigo_cargo: int,
     linhas: list[dict[str, Any]],
 ) -> str:
-    """
-    Recebe código do cargo (int) e lista de dicts com chaves 'setor' (codigo
-    EOL),
-    'vagas_definitivas', 'vagas_precarias'. Retorna a string do arquivo em
-    UTF-8,
-    sem cabeçalho, uma linha por registro:
-    codigo_cargo|codigo_EOL|vagas_definitivas|vagas_precarias.
+    """Recebe código do cargo (int) e lista de dicts com chaves 'setor'.
+
+    Args:
+        codigo_cargo: Código numérico do cargo.
+        linhas: Linhas de vagas agrupadas por escola.
+
+    Returns:
+        Conteúdo textual gerado.
     """
     partes: list[str] = []
     for item in linhas:
@@ -39,11 +39,14 @@ def buscar_vagas_escolas(
     processo_uuid: str,
     cargo_codigo: int,
 ) -> list[dict[str, Any]]:
-    """
-    Chama ApiEscolhasService (vagas-escolas) com processo_uuid e cargo_codigo.
-    Retorna a lista de linhas (setor, vagas_definitivas, vagas_precarias).
-    O serializer exige codigo_integracao preenchido em cada escola; payload
-    inválido resulta em ValidationError.
+    """Busca vagas escolas.
+
+    Args:
+        processo_uuid: UUID do processo de convocação.
+        cargo_codigo: Código numérico do cargo.
+
+    Returns:
+        Lista com os registros obtidos.
     """
     data = ApiEscolhasService().get_vagas_escolas(processo_uuid, cargo_codigo)
     serializer = VagasPayloadSerializer(data=data)

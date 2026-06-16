@@ -1,5 +1,4 @@
-"""
-Django management command para criar o cabeçalho padrão de exportação de lotes.
+"""Comando para criar o cabeçalho padrão de exportação de lote.
 
 Cria um registro de CabecalhoExportacaoLote com os valores padrão do formato
 ERGON/SIGPEC. Se já existir um registro ativo, não cria duplicata (use --force
@@ -9,6 +8,10 @@ Uso:
     python manage.py criar_cabecalho_exportacao_lote
     python manage.py criar_cabecalho_exportacao_lote --force
 """
+
+from __future__ import annotations
+
+from typing import Any
 
 from django.core.management.base import BaseCommand
 
@@ -23,21 +26,29 @@ COLUNAS_PADRAO = (
 
 
 class Command(BaseCommand):
-    help = "Cria o cabeçalho padrão para exportação de lotes (formato ERGON/SIGPEC)"  # noqa: E501
+    """Cria o cabeçalho padrão de exportação de lotes ERGON/SIGPEC."""
 
-    def add_arguments(self, parser):
+    help = (
+        "Cria o cabeçalho padrão para exportação de lotes "
+        "(formato ERGON/SIGPEC)"
+    )
+
+    def add_arguments(self, parser: Any) -> None:
+        """Registra os argumentos da linha de comando."""
         parser.add_argument(
             "--force",
             action="store_true",
-            help="Desativa registros existentes e cria um novo cabeçalho padrão",  # noqa: E501
+            help=(
+                "Desativa registros existentes e cria um novo "
+                "cabeçalho padrão"
+            ),
         )
 
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
+        """Cria ou recria o cabeçalho padrão de exportação."""
         force = options["force"]
-
         existente = CabecalhoExportacaoLote.objects.filter(ativo=True).first()
-
-        if existente and not force:
+        if existente and (not force):
             self.stdout.write(
                 self.style.WARNING(
                     f"Já existe um cabeçalho ativo (UUID={existente.uuid}). "
@@ -45,7 +56,6 @@ class Command(BaseCommand):
                 )
             )
             return
-
         if force and existente:
             CabecalhoExportacaoLote.objects.filter(ativo=True).update(
                 ativo=False
@@ -55,7 +65,6 @@ class Command(BaseCommand):
                     f"Cabeçalho anterior (UUID={existente.uuid}) desativado."
                 )
             )
-
         cabecalho = CabecalhoExportacaoLote.objects.create(
             tabela=TABELA_PADRAO,
             chave=CHAVE_PADRAO,
@@ -66,7 +75,6 @@ class Command(BaseCommand):
             colunas=COLUNAS_PADRAO,
             ativo=True,
         )
-
         self.stdout.write(
             self.style.SUCCESS(
                 f"Cabeçalho criado com sucesso! UUID={cabecalho.uuid}"

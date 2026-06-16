@@ -1,5 +1,4 @@
-"""
-ViewSet de exportação de candidatos por processo.
+"""ViewSet de exportação de candidatos por processo.
 
 - list: listagem (ou, se processo_uuid e cargo_uuid na query, retorna arquivo
 .txt; concurso_uuid opcional).
@@ -9,7 +8,9 @@ cargo_uuid, concurso_*).
 - download (detail): retorna arquivo .txt da exportação.
 """
 
-from django.http import HttpResponse
+from __future__ import annotations
+
+from typing import Any
 
 from ..models import ExportacaoCandidatosProcesso
 from ..serializers import (
@@ -23,49 +24,28 @@ from .base_exportacao import BaseExportacaoViewSet
 
 
 class ExportacaoCandidatosProcessoViewSet(BaseExportacaoViewSet):
-    """
-    ViewSet para exportação de candidatos por processo.
-
-    - list: lista registros (filtros, busca, ordenação, paginação).
-    - create: cria o registro, executa a exportação e retorna o arquivo .txt
-    para download.
-    - retrieve: detalhe de um registro.
-    - download (GET em /<uuid>/download/): retorna arquivo .txt para download.
-    - GET list com processo_uuid e cargo_uuid (e opcionalmente concurso_uuid)
-    na query: retorna arquivo .txt.
-    """
+    """ViewSet para exportação de candidatos por processo."""
 
     queryset = ExportacaoCandidatosProcesso.objects.all()
-    list_serializer_class = ExportacaoCandidatosProcessoListSerializer
-    create_serializer_class = ExportacaoCandidatosProcessoCreateSerializer
+    list_serializer_class = ExportacaoCandidatosProcessoListSerializer  # type: ignore[assignment]
+    create_serializer_class = ExportacaoCandidatosProcessoCreateSerializer  # type: ignore[assignment]
 
-    def gerar_arquivo(self, instance):
-        """
-        Gera resposta de arquivo .txt a partir do registro (conteudo_arquivo e
-        nome_arquivo).
-        """
-        response = HttpResponse(
-            instance.conteudo_arquivo.encode("utf-8"),
-            content_type="text/plain; charset=utf-8",
-        )
-        response["Content-Disposition"] = (
-            f'attachment; filename="{instance.nome_arquivo}"'
-        )
-        return response
+    def gerar_arquivo(self, instance: Any) -> None:
+        """Gera arquivo.
 
-    def executar_exportacao(self, instance):
-        """
-        Executa a exportação de candidatos processo, gera o arquivo e persiste
-        conteúdo e nome no registro.
-        """
+        Args:
+            instance: Instância do modelo em atualização.
 
+        Returns:
+            Nenhum valor; persiste alterações no banco.
+        """
         conteudo = exportar_candidatos_processo(instance)
-
         desc_safe = self.sanitizar_nome_arquivo(
             instance.cargo_nome, max_len=60
         )
         nome_arquivo = (
-            f"candidatos_processo_{desc_safe}_{instance.concurso_codigo}.txt"
+            f"candidatos_processo_{desc_safe}_"
+            f"{instance.concurso_codigo}.txt"
         )
         instance.conteudo_arquivo = conteudo
         instance.nome_arquivo = nome_arquivo

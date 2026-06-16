@@ -1,3 +1,9 @@
+"""Módulo models/importacao_lotes."""
+
+from __future__ import annotations
+
+from typing import Any
+
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import models
@@ -6,9 +12,7 @@ from .base import BaseModelArquivoImportacao
 
 
 class ImportacaoLotes(BaseModelArquivoImportacao):
-    """
-    Registro de importação de arquivo de lotes de classificação (SIGPEC).
-    """
+    """Registro de importação de arquivo de lotes de classificação (SIGPEC)."""
 
     history = AuditlogHistoryField()
     concurso_uuid = models.UUIDField(verbose_name="UUID do Concurso")
@@ -23,12 +27,15 @@ class ImportacaoLotes(BaseModelArquivoImportacao):
     )
 
     class Meta:
+        """Representa Meta."""
+
         db_table = "importacao_lotes"
         verbose_name = "Importação de Lotes"
         verbose_name_plural = "Importações de Lotes"
         ordering = ["-criado_em"]
 
-    def __str__(self):
+    def __str__(self) -> Any:
+        """Retorna o nome do arquivo de lotes."""
         return self.nome_arquivo
 
 

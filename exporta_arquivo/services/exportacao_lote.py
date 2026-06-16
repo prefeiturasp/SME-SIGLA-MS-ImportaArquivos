@@ -1,5 +1,4 @@
-"""
-Serviço de exportação de lotes (formato ERGON/SIGPEC).
+"""Serviço de exportação de lotes (formato ERGON/SIGPEC).
 
 Fluxo:
 1. Busca todos os ConcursoCandidato do lote via MS-Candidatos.
@@ -28,6 +27,14 @@ logger = logging.getLogger(__name__)
 
 
 def _data_para_ddmmyyyy(val: Any) -> str:
+    """Data para ddmmyyyy.
+
+    Args:
+        val: Valor bruto antes da formatação.
+
+    Returns:
+        Conteúdo textual gerado.
+    """
     try:
         data_obj = datetime.fromisoformat(val.replace("Z", "+00:00"))
     except ValueError:
@@ -39,13 +46,14 @@ def gerar_conteudo_lote(
     candidatos: list[dict[str, Any]],
     escolhas_por_candidato: dict[str, dict[str, Any]],
 ) -> str:
-    """
-    Gera o conteúdo completo do arquivo de exportação de lotes.
+    """Gera conteudo lote.
 
-    Cada linha segue o padrão:
-        {numero_lote};{codigo_sigpec};{chave_inscrito};{DDMMYYYY};{S|R};{codigo_integracao};
+    Args:
+        candidatos: Candidatos habilitados retornados pela API.
+        escolhas_por_candidato: Mapa de escolhas indexado por candidato.
 
-    Retorna string com cabeçalho + linhas de dados.
+    Returns:
+        Conteúdo textual gerado.
     """
     cabecalho = """@TABELA=[c_ERGON][PMSP_ESCOLHA_VAGA_SME][1.0]
         @CHAVE=[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER]
@@ -85,7 +93,7 @@ def gerar_conteudo_lote(
             "nao-escolha": "N",
             "reconvocacao": "R",
         }
-        escolheu = mapa_escolheu.get(situacao, "R")
+        escolheu = mapa_escolheu.get(situacao, "R")  # type: ignore[arg-type]
         codigo_integracao = ""
 
         if situacao == "escolha":
@@ -112,15 +120,18 @@ def gerar_conteudo_lote(
 
 
 def exportar_lote(instance: ExportacaoLote) -> str:
-    """
-    Orquestra a exportação de um lote:
-    1. Busca candidatos do lote.
-    2. Busca escolhas dos candidatos para o concurso.
-    3. Valida que todos têm escolha (levanta ExportacaoLoteIncompletaException
-    se não).
-    4. Gera e retorna o conteúdo do arquivo.
-    """
+    """Exporta lote.
 
+    Args:
+        instance: Instância do modelo em atualização.
+
+    Returns:
+        Conteúdo textual gerado.
+
+    Raises:
+        ExportacaoLoteIncompletaException: Quando faltam candidatos ou
+            escolhas para completar o lote.
+    """
     # 1. Buscar candidatos do lote
     # Usa numero_lote quando disponível (novos registros); fallback para lote_uuid (registros antigos)  # noqa: E501
 

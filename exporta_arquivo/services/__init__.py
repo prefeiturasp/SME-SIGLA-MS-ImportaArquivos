@@ -1,4 +1,6 @@
 # Services do app exporta_arquivo
+"""Módulo services/__init__."""
+
 from .api_candidatos import ApiCandidatosService
 from .api_concursos import ApiConcursosService
 from .api_lote import ApiLoteCandidatosService, ApiLoteEscolhasService

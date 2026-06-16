@@ -1,3 +1,9 @@
+"""Módulo models/importacao_escolhas."""
+
+from __future__ import annotations
+
+from typing import Any
+
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import models
@@ -6,9 +12,7 @@ from .base import CHOICES_STATUS_IMPORTACAO_ARQUIVO, BaseModel
 
 
 class ImportacaoEscolhas(BaseModel):
-    """
-    Model para importação de escolhas da API externa.
-    """
+    """Model para importação de escolhas da API externa."""
 
     history = AuditlogHistoryField()
     processo_uuid = models.UUIDField(
@@ -26,18 +30,21 @@ class ImportacaoEscolhas(BaseModel):
     status = models.CharField(
         max_length=20,
         choices=CHOICES_STATUS_IMPORTACAO_ARQUIVO,
-        default=CHOICES_STATUS_IMPORTACAO_ARQUIVO[2][0],  # CONCLUIDO
+        default=CHOICES_STATUS_IMPORTACAO_ARQUIVO[2][0],
         verbose_name="Status",
     )
 
     class Meta:
+        """Representa Meta."""
+
         db_table = "importacao_escolhas"
         verbose_name = "Importação de escolhas"
         verbose_name_plural = "Importações de escolhas"
         ordering = ["-criado_em"]
 
-    def __str__(self):
-        return f"Importação - {self.processo_uuid or 'N/A'}"
+    def __str__(self) -> Any:
+        """Retorna o UUID do processo da importação."""
+        return f'Importação - {self.processo_uuid or 'N/A'}'
 
 
 auditlog.register(ImportacaoEscolhas)

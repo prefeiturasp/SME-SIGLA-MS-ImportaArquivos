@@ -1,3 +1,9 @@
+"""Módulo models/layout."""
+
+from __future__ import annotations
+
+from typing import Any
+
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from django.db import models
@@ -6,9 +12,7 @@ from .base import CHOICES_TIPO_IMPORTACAO_ARQUIVO, BaseModel
 
 
 class LayoutArquivoImportacao(BaseModel):
-    """
-    Model para layout de importação de arquivos.
-    """
+    """Model para layout de importação de arquivos."""
 
     history = AuditlogHistoryField()
     tipo = models.CharField(
@@ -20,12 +24,15 @@ class LayoutArquivoImportacao(BaseModel):
     estrutura = models.JSONField(verbose_name="Estrutura do arquivo")
 
     class Meta:
+        """Representa Meta."""
+
         db_table = "layout_arquivo_importacao"
         verbose_name = "Layout de importação de arquivo"
         verbose_name_plural = "Layouts de importação de arquivos"
         ordering = ["-criado_em"]
 
-    def __str__(self):
+    def __str__(self) -> Any:
+        """Retorna o tipo do layout de importação."""
         return self.tipo
 
 

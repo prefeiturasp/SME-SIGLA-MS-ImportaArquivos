@@ -1,4 +1,9 @@
+"""Módulo tests/views/test_importacao_habilitados."""
+
+from __future__ import annotations
+
 import uuid
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -17,12 +22,14 @@ from importa_arquivos.services.exceptions import (
 pytestmark = pytest.mark.django_db
 
 
-def test_importacao_habilitados_create_success(api_client, settings):
+def test_importacao_habilitados_create_success(
+    api_client: Any, settings: Any
+) -> None:
+    """Verifica importacao habilitados create success."""
     settings.CANDIDATOS_API_URL = "https://api.exemplo"
     arquivo = SimpleUploadedFile(
         "h.csv", b"Inscricao,Nome\n123,Joao\n", content_type="text/csv"
     )
-
     with (
         patch(
             "importa_arquivos.views.importacao_habilitados.validar_csv_habilitados"
@@ -36,7 +43,6 @@ def test_importacao_habilitados_create_success(api_client, settings):
             [{"coluna": "Inscricao", "campo_payload": "codigo_inscricao"}],
         )
         mock_api.return_value.enviar_habilitados.return_value = Mock()
-
         url = reverse("importacao-arquivo-habilitados-list")
         resp = api_client.post(
             url,
@@ -48,21 +54,21 @@ def test_importacao_habilitados_create_success(api_client, settings):
             },
             format="multipart",
         )
-
         assert resp.status_code in (200, 201)
         assert resp.data["status"] == "CONCLUIDO"
         mock_validar.assert_called_once()
         mock_api.return_value.enviar_habilitados.assert_called_once()
 
 
-def test_importacao_habilitados_cria_arquivo_com_validation_error(api_client):
+def test_importacao_habilitados_cria_arquivo_com_validation_error(
+    api_client: Any,
+) -> None:
+    """Verifica importacao habilitados cria arquivo com validation error."""
     arquivo = SimpleUploadedFile("h.csv", b"invalid", content_type="text/csv")
-
     with patch(
         "importa_arquivos.views.importacao_habilitados.validar_csv_habilitados"
     ) as mock_validar:
         mock_validar.side_effect = ValueError("erro de layout")
-
         url = reverse("importacao-arquivo-habilitados-list")
         resp = api_client.post(
             url,
@@ -74,7 +80,6 @@ def test_importacao_habilitados_cria_arquivo_com_validation_error(api_client):
             },
             format="multipart",
         )
-
         assert resp.status_code == 400
 
 
@@ -95,24 +100,21 @@ def test_importacao_habilitados_cria_arquivo_com_validation_error(api_client):
     ],
 )
 def test_importacao_habilitados_create_retorna_400_com_mensagem_e_detalhes(
-    api_client, exception_cls, mensagem_esperada, detalhes_esperados
-):
-    """Testa exceções de importação retornando 400 com detail e detalhes.
-
-    Cobre ColunaCSVInvalidaException, LayoutNaoConfiguradoException
-    e LeituraCSVException.
-    """
+    api_client: Any,
+    exception_cls: Any,
+    mensagem_esperada: Any,
+    detalhes_esperados: Any,
+) -> None:
+    """Verifica importacao habilitados create retorna 400 com mensagem e detalhes."""
     arquivo = SimpleUploadedFile(
         "h.csv", b"Inscricao,Nome\n123,Joao\n", content_type="text/csv"
     )
-
     with patch(
         "importa_arquivos.views.importacao_habilitados.validar_csv_habilitados"
     ) as mock_validar:
         mock_validar.side_effect = exception_cls(
             mensagem=mensagem_esperada, detalhes=detalhes_esperados
         )
-
         url = reverse("importacao-arquivo-habilitados-list")
         resp = api_client.post(
             url,
@@ -124,13 +126,15 @@ def test_importacao_habilitados_create_retorna_400_com_mensagem_e_detalhes(
             },
             format="multipart",
         )
-
         assert resp.status_code == 400
         assert resp.data["detail"] == mensagem_esperada
         assert resp.data["detalhes"] == detalhes_esperados
 
 
-def test_importacao_habilitados_cria_arquivo_sem_arquivo(api_client):
+def test_importacao_habilitados_cria_arquivo_sem_arquivo(
+    api_client: Any,
+) -> None:
+    """Verifica importacao habilitados cria arquivo sem arquivo."""
     url = reverse("importacao-arquivo-habilitados-list")
     resp = api_client.post(
         url,
@@ -144,14 +148,15 @@ def test_importacao_habilitados_cria_arquivo_sem_arquivo(api_client):
     assert resp.status_code == 400
 
 
-def test_importacao_habilitados_cria_arquivo_com_exception(api_client):
+def test_importacao_habilitados_cria_arquivo_com_exception(
+    api_client: Any,
+) -> None:
+    """Verifica importacao habilitados cria arquivo com exception."""
     arquivo = SimpleUploadedFile("h.csv", b"invalid", content_type="text/csv")
-
     with patch(
         "importa_arquivos.views.importacao_habilitados.validar_csv_habilitados"
     ) as mock_validar:
         mock_validar.side_effect = Exception("boom")
-
         url = reverse("importacao-arquivo-habilitados-list")
         resp = api_client.post(
             url,
@@ -163,16 +168,17 @@ def test_importacao_habilitados_cria_arquivo_com_exception(api_client):
             },
             format="multipart",
         )
-
         assert resp.status_code == 400
 
 
-def test_importacao_habilitados_envio_api_exception(api_client, settings):
+def test_importacao_habilitados_envio_api_exception(
+    api_client: Any, settings: Any
+) -> None:
+    """Verifica importacao habilitados envio api exception."""
     settings.CANDIDATOS_API_URL = "https://api.exemplo"
     arquivo = SimpleUploadedFile(
         "h.csv", b"Inscricao,Nome\n123,Joao\n", content_type="text/csv"
     )
-
     with (
         patch(
             "importa_arquivos.views.importacao_habilitados.validar_csv_habilitados"
@@ -193,7 +199,6 @@ def test_importacao_habilitados_envio_api_exception(api_client, settings):
                 code="ERRO_EXTERNO",
             )
         )
-
         url = reverse("importacao-arquivo-habilitados-list")
         resp = api_client.post(
             url,
@@ -205,7 +210,6 @@ def test_importacao_habilitados_envio_api_exception(api_client, settings):
             },
             format="multipart",
         )
-
         assert resp.status_code == 400
         assert resp.data["detail"] == "Erro externo"
         assert resp.data["detalhes"] == "Detalhes do erro externo"
@@ -214,8 +218,10 @@ def test_importacao_habilitados_envio_api_exception(api_client, settings):
         mock_api.return_value.enviar_habilitados.assert_called_once()
 
 
-def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(api_client):
-    """Testa download_erros retorna arquivo vazio quando não há erros."""
+def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(
+    api_client: Any,
+) -> None:
+    """Verifica download erros retorna arquivo vazio quando sem erros."""
     url = reverse("importacao-arquivo-habilitados-download-erros")
     resp = api_client.get(url)
     assert resp.status_code == 200
@@ -225,8 +231,8 @@ def test_download_erros_retorna_arquivo_vazio_quando_sem_erros(api_client):
     assert resp.content == b""
 
 
-def test_download_erros_formata_conteudo_corretamente(api_client):
-    """Testa download_erros formata erros com titulo: conteudo."""
+def test_download_erros_formata_conteudo_corretamente(api_client: Any) -> None:
+    """Verifica download erros formata conteudo corretamente."""
     arquivo = SimpleUploadedFile(
         "h.csv", b"Inscricao,Nome\n123,Joao\n", content_type="text/csv"
     )
@@ -256,8 +262,10 @@ def test_download_erros_formata_conteudo_corretamente(api_client):
     assert "**Linha 2:** erro na linha 2" in conteudo
 
 
-def test_download_erros_parte_sem_dois_pontos_apenas_append(api_client):
-    """Testa download_erros: partes sem ':' são adicionadas como estão."""
+def test_download_erros_parte_sem_dois_pontos_apenas_append(
+    api_client: Any,
+) -> None:
+    """Verifica download erros parte sem dois pontos apenas append."""
     arquivo = SimpleUploadedFile(
         "h.csv", b"Inscricao,Nome\n123,Joao\n", content_type="text/csv"
     )
@@ -284,8 +292,8 @@ def test_download_erros_parte_sem_dois_pontos_apenas_append(api_client):
     assert "Mensagem simples sem dois pontos" in conteudo
 
 
-def test_download_erros_filtra_por_importacao_uuid(api_client):
-    """Testa download_erros filtra por importacao_uuid quando informado."""
+def test_download_erros_filtra_por_importacao_uuid(api_client: Any) -> None:
+    """Verifica download erros filtra por importacao uuid."""
     arquivo = SimpleUploadedFile(
         "h.csv", b"Inscricao,Nome\n123,Joao\n", content_type="text/csv"
     )

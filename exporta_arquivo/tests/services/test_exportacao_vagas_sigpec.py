@@ -1,8 +1,10 @@
-"""
-Testes de formatação e orquestração do serviço exportacao_vagas_sigpec.
+"""Testes de formatação e orquestração do serviço exportacao_vagas_sigpec.
+
 formatar_arquivo_sigpec + buscar_vagas_escolas (mock de ApiEscolhasService).
 Sem HTTP/DB.
 """
+
+from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
@@ -16,21 +18,24 @@ from exporta_arquivo.services.exportacao_vagas_sigpec import (
 
 
 class TestFormatarArquivoSigpec:
-    """Cabeçalho fixo + linhas codigo_integracao;v_def;v_prec;"""
+    """Cabeçalho fixo + linhas codigo_integracao;v_def;v_prec;."""
 
-    def test_cabecalho_fixo_presente(self):
+    def test_cabecalho_fixo_presente(self) -> None:
+        """Verifica cabecalho fixo presente."""
         out = formatar_arquivo_sigpec([])
         for line in SIGPEC_HEADER_LINES:
             assert line in out
         assert out.startswith("@TABELA=")
 
-    def test_lista_vazia_so_cabecalho(self):
+    def test_lista_vazia_so_cabecalho(self) -> None:
+        """Verifica lista vazia so cabecalho."""
         out = formatar_arquivo_sigpec([])
         linhas = out.strip().split("\n")
         assert len(linhas) == len(SIGPEC_HEADER_LINES)
         assert out.endswith("\n")
 
-    def test_uma_linha_formato_sigpec(self):
+    def test_uma_linha_formato_sigpec(self) -> None:
+        """Verifica uma linha formato sigpec."""
         vagas = [
             {
                 "codigo_integracao": "SETOR001",
@@ -43,7 +48,8 @@ class TestFormatarArquivoSigpec:
         linhas = out.strip().split("\n")
         assert len(linhas) == len(SIGPEC_HEADER_LINES) + 1
 
-    def test_varias_linhas(self):
+    def test_varias_linhas(self) -> None:
+        """Verifica varias linhas."""
         vagas = [
             {
                 "codigo_integracao": "A",
@@ -62,7 +68,8 @@ class TestFormatarArquivoSigpec:
         linhas = out.strip().split("\n")
         assert len(linhas) == len(SIGPEC_HEADER_LINES) + 2
 
-    def test_separador_ponto_virgula(self):
+    def test_separador_ponto_virgula(self) -> None:
+        """Verifica separador ponto virgula."""
         vagas = [
             {
                 "codigo_integracao": "X",
@@ -75,11 +82,12 @@ class TestFormatarArquivoSigpec:
 
 
 class TestBuscarVagasEscolasSigpec:
-    """
-    buscar_vagas_escolas com mock de ApiEscolhasService.get_vagas_escolas.
-    """
+    """buscar_vagas_escolas com mock de."""
 
-    def test_payload_valido_retorna_lista_com_codigo_integracao_e_vagas(self):
+    def test_payload_valido_retorna_lista_com_codigo_integracao_e_vagas(
+        self,
+    ) -> None:
+        """Verifica payload valido retorna lista com codigo integracao e vagas."""
         payload_valido = {
             "vagas": [
                 {
@@ -90,8 +98,8 @@ class TestBuscarVagasEscolasSigpec:
                         "codigo_eol": "123",
                     },
                     "cargo_codigo": 100,
-                },
-            ],
+                }
+            ]
         }
         mock_api = MagicMock()
         mock_api.get_vagas_escolas.return_value = payload_valido
@@ -108,13 +116,14 @@ class TestBuscarVagasEscolasSigpec:
             "processo-uuid", 100
         )
 
-    def test_payload_invalido_serializer_levanta_erro(self):
+    def test_payload_invalido_serializer_levanta_erro(self) -> None:
+        """Verifica payload invalido serializer levanta erro."""
         from rest_framework.exceptions import ValidationError
 
-        payload_invalido = {"vagas": []}
+        payload_invalido = {"vagas": []}  # type: ignore[var-annotated]
         mock_api = MagicMock()
         mock_api.get_vagas_escolas.return_value = payload_invalido
-        with patch(  # noqa: SIM117
+        with patch(
             "exporta_arquivo.services.exportacao_vagas_sigpec.ApiEscolhasService",
             return_value=mock_api,
         ):

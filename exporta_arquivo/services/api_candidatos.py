@@ -1,9 +1,10 @@
-"""
-Serviço de API para o módulo de candidatos (habilitados).
+"""Serviço de API para o módulo de candidatos (habilitados).
 
 Faz GET em habilitados com processo_uuid, codigo_cargo e opcionalmente
 lote__concurso_uuid.
 """
+
+from __future__ import annotations
 
 import logging
 from typing import Any
@@ -24,42 +25,38 @@ class ApiCandidatosService:
     """Cliente para a API de candidatos (GET habilitados)."""
 
     def __init__(
-        self,
-        base_url: str | None = None,
-        timeout_seconds: int | None = None,
-    ):
+        self, base_url: str | None = None, timeout_seconds: int | None = None
+    ) -> None:
+        """Inicializa a instância com os parâmetros informados.
+
+        Args:
+            base_url: URL base do serviço remoto.
+            timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
+        """
         self.base_url = (
             base_url
             or getattr(settings, "CANDIDATOS_API_URL", "http://localhost:8000")
-        ).rstrip("/")
+        ).rstrip("/")  # type: ignore[union-attr]
         self.timeout_seconds = timeout_seconds or getattr(
             settings, "CANDIDATOS_API_TIMEOUT", 30
         )
-        self._default_headers = {
-            "Accept": "application/json",
-        }
+        self._default_headers = {"Accept": "application/json"}
 
-    def get_habilitados(
-        self,
-        **kwargs: Any,
-    ) -> list[dict[str, Any]]:
-        """
-        GET {CANDIDATOS_API_URL}/api/v1/habilitados/ com query params dinâmicos
-        informados
-        via kwargs. Retorna a lista de habilitados.
+    def get_habilitados(self, **kwargs: Any) -> list[dict[str, Any]]:
+        """Retorna habilitados.
 
-        A API pode retornar lista direta ou objeto paginado com 'results'; este
-        método
-        normaliza para sempre retornar uma lista.
+        Args:
+            **kwargs: Argumentos nomeados variáveis.
+
+        Returns:
+            Lista com os registros obtidos.
 
         Raises:
-            CandidatosNotFoundException: Em 404.
-            CandidatosServiceUnavailableException: Em 5xx, timeout ou resposta
-            não-JSON.
+            CandidatosNotFoundException: Registros não encontrados.
+            CandidatosServiceUnavailableException: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/habilitados/"
         params = {k: str(v) for k, v in kwargs.items() if v is not None}
-
         try:
             response = http_client.get(
                 url,
@@ -73,13 +70,11 @@ class ApiCandidatosService:
                 mensagem="Serviço de candidatos (habilitados) indisponível.",
                 detalhes=str(exc),
             ) from exc
-
         if response.status_code == 404:
             raise CandidatosNotFoundException(
                 mensagem="Recurso de habilitados não encontrado.",
                 detalhes="Habilitados não encontrado.",
             )
-
         if response.status_code >= 500:
             logger.error(
                 "API candidatos (habilitados) retornou status %s: %s",
@@ -90,13 +85,11 @@ class ApiCandidatosService:
                 mensagem="Serviço de candidatos (habilitados) indisponível.",
                 detalhes=f"Status {response.status_code}",
             )
-
         if response.status_code != 200:
             raise CandidatosServiceUnavailableException(
                 mensagem="Erro ao obter habilitados.",
                 detalhes=f"Status {response.status_code}",
             )
-
         try:
             data = response.json()
         except ValueError as exc:
@@ -107,7 +100,6 @@ class ApiCandidatosService:
                 mensagem="Resposta inválida do serviço de candidatos.",
                 detalhes=str(exc),
             ) from exc
-
         if isinstance(data, list):
             return data
         if isinstance(data, dict) and "results" in data:

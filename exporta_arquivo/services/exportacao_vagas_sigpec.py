@@ -1,5 +1,4 @@
-"""
-Serviço de exportação de vagas por setor (escola) para formato SIGPEC.
+"""Serviço de exportação de vagas por setor (escola) para formato SIGPEC.
 
 Exige cargo_codigo no payload do create ou na query (download direto).
 Busca vagas na API de escolha e monta a lista de linhas para o arquivo.
@@ -25,11 +24,13 @@ SIGPEC_HEADER_LINES = [
 
 
 def formatar_arquivo_sigpec(vagas_listas: list[dict[str, Any]]) -> str:
-    """
-    Recebe lista de dicts com chaves 'codigo_integracao', 'vagas_definitivas',
-    'vagas_precarias'
-    e retorna a string completa do arquivo (cabeçalho + linhas no formato
-    SIGPEC).
+    """Formata lista de vagas no layout texto exigido pelo SIGPEC.
+
+    Args:
+        vagas_listas: Lista de vagas por escola para o arquivo SIGPEC.
+
+    Returns:
+        Conteúdo textual gerado.
     """
     partes = list(SIGPEC_HEADER_LINES)
     for item in vagas_listas:
@@ -45,11 +46,14 @@ def buscar_vagas_escolas(
     processo_uuid: str,
     cargo_codigo: int,
 ) -> list[dict[str, Any]]:
-    """
-    Chama ApiEscolhasService (vagas-escolas) com processo_uuid e cargo_codigo.
-    Retorna a lista de linhas (setor, vagas_definitivas, vagas_precarias).
-    O serializer exige codigo_integracao preenchido em cada escola; payload
-    inválido resulta em ValidationError.
+    """Busca vagas escolas.
+
+    Args:
+        processo_uuid: UUID do processo de convocação.
+        cargo_codigo: Código numérico do cargo.
+
+    Returns:
+        Lista com os registros obtidos.
     """
     data = ApiEscolhasService().get_vagas_escolas(processo_uuid, cargo_codigo)
     serializer = VagasPayloadSerializer(data=data)

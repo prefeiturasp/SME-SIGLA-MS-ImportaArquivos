@@ -1,4 +1,6 @@
 # Serializers do app exporta_arquivo
+"""Módulo serializers/__init__."""
+
 from .exportacao_candidatos_processo import (
     ExportacaoCandidatosProcessoCreateSerializer,
     ExportacaoCandidatosProcessoListSerializer,

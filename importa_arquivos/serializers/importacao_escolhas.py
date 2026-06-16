@@ -1,3 +1,9 @@
+"""Módulo serializers/importacao_escolhas."""
+
+from __future__ import annotations
+
+from typing import Any
+
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
@@ -17,10 +23,11 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
 
     erros = serializers.SerializerMethodField()
     processo_nome = serializers.SerializerMethodField()
-
     _content_type_cache = None
 
     class Meta:
+        """Representa Meta."""
+
         model = ImportacaoEscolhas
         fields = [
             "uuid",
@@ -42,21 +49,18 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
             "processo_nome",
         ]
 
-    def get_erros(self, obj):
-        """Retorna os erros associados à importação, se existirem."""
+    def get_erros(self, obj: Any) -> Any:
+        """Obtém erros vinculados à importação de escolhas."""
         if ImportacaoEscolhasListSerializer._content_type_cache is None:
             ImportacaoEscolhasListSerializer._content_type_cache = (
                 ContentType.objects.get_for_model(ImportacaoEscolhas)
             )
-
         erros_queryset = ImportacaoErro.objects.filter(
             content_type=ImportacaoEscolhasListSerializer._content_type_cache,
             object_id=obj.uuid,
         ).order_by("-criado_em")
-
         if not erros_queryset.exists():
             return None
-
         erros_list = []
         for erro in erros_queryset:
             erros_list.append(
@@ -66,15 +70,10 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
                     "criado_em": erro.criado_em,
                 }
             )
-
         return erros_list
 
-    def get_processo_nome(self, obj):
-        """
-        Retorna o nome do processo buscando via API externa se necessário.
-        """
-        # O frontend já busca o nome do processo quando necessário
-        # Este campo pode ser None e o frontend fará a busca
+    def get_processo_nome(self, obj: Any) -> Any:
+        """Obtém nome do processo associado à importação de escolhas."""
         return None
 
 
@@ -87,14 +86,13 @@ class ResponseSerializer(serializers.Serializer):
         child=serializers.DictField(), required=True, allow_empty=True
     )
 
-    def validate_lstDadosResultadoConvocacaoIngresso(self, value):
-        """Valida estrutura dos dados de resultado."""
+    def validate_lstDadosResultadoConvocacaoIngresso(self, value: Any) -> Any:
+        """Valida lstDadosResultadoConvocacaoIngresso."""
         for item in value:
             if not isinstance(item, dict):
                 raise serializers.ValidationError(
                     "Cada item deve ser um dicionário"
                 )
-
             required_fields = [
                 "codigoPessoaFisica",
                 "codigoCargo",
@@ -105,7 +103,6 @@ class ResponseSerializer(serializers.Serializer):
                     raise serializers.ValidationError(
                         f"Campo obrigatório ausente: {field}"
                     )
-
         return value
 
 
@@ -130,8 +127,8 @@ class EscolhasImportacaoSerializer(serializers.Serializer):
         child=serializers.DictField(), required=True
     )
 
-    def validate_escolhas(self, value):
-        """Valida estrutura das escolhas."""
+    def validate_escolhas(self, value: Any) -> Any:
+        """Valida escolhas."""
         for escolha in value:
             required_fields = ["cpf", "codigo_cargo", "situacao"]
             for field in required_fields:

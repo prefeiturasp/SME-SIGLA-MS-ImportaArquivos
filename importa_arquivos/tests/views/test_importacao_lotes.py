@@ -1,15 +1,18 @@
-"""
-Testes do ImportacaoLotesViewSet:
+"""Testes do ImportacaoLotesViewSet:.
+
 - create: sucesso (201), ErrosValidacaoLotesException (400),
 BaseImportacaoException (400),
           exceção genérica (400), falha na API de candidatos (400), serializer
           inválido (400)
 - list: 200 paginado, filtro por status
 - retrieve: 200 e 404
-- get_serializer_class: create usa Create, list/retrieve usa List
+- get_serializer_class: create usa Create, list/retrieve usa List.
 """
 
+from __future__ import annotations
+
 import uuid
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -23,23 +26,25 @@ from importa_arquivos.services.exceptions import (
 )
 
 pytestmark = pytest.mark.django_db
-
 LOTES_LIST_URL = "/api/v1/importacao/lotes/"
 HEADER = "LOTE;EMPRESA;VAGA;IDENTIFICACAO;CHAVE_INSCRITO;NUMFUNC;NUMVINC\n"
 
 
-def _txt_valido(lote=1):
+def _txt_valido(lote: Any = 1) -> Any:
+    """Txt valido."""
     linha = f"{lote};EMP01;VAGA01;100;CH01;999;1\n"
     return (HEADER + linha).encode("utf-8")
 
 
-def _arquivo(conteudo: bytes = None, nome="lotes.txt"):
+def _arquivo(conteudo: bytes = None, nome: Any = "lotes.txt") -> Any:  # type: ignore[assignment]
+    """Arquivo."""
     return SimpleUploadedFile(
         nome, conteudo or _txt_valido(), content_type="text/plain"
     )
 
 
-def _payload(arquivo=None, concurso_uuid=None):
+def _payload(arquivo: Any = None, concurso_uuid: Any = None) -> Any:
+    """Payload."""
     return {
         "arquivo": arquivo or _arquivo(),
         "concurso_uuid": str(concurso_uuid or uuid.uuid4()),
@@ -47,7 +52,8 @@ def _payload(arquivo=None, concurso_uuid=None):
     }
 
 
-def _registros_validos():
+def _registros_validos() -> Any:
+    """Registros validos."""
     return [
         {
             "lote": 1,
@@ -61,13 +67,13 @@ def _registros_validos():
     ]
 
 
-# ─── create ─────────────────────────────────────────────────────────────────
-
-
 class TestImportacaoLotesCreate:
-    """POST /api/v1/importacao/lotes/"""
+    """POST /api/v1/importacao/lotes/."""
 
-    def test_sucesso_retorna_201_e_status_concluido(self, api_client):
+    def test_sucesso_retorna_201_e_status_concluido(
+        self, api_client: Any
+    ) -> None:
+        """Verifica sucesso retorna 201 e status concluido."""
         with (
             patch(
                 "importa_arquivos.views.importacao_lotes.validar_txt_lotes",
@@ -78,17 +84,16 @@ class TestImportacaoLotesCreate:
             ) as MockApi,
         ):
             MockApi.return_value.salvar_lotes.return_value = 1
-
             resp = api_client.post(
                 LOTES_LIST_URL, _payload(), format="multipart"
             )
-
         assert resp.status_code == 201
         data = resp.json()
         assert data["status"] == "CONCLUIDO"
         assert data["total_atualizados"] == 1
 
-    def test_sucesso_persiste_detalhes_e_total(self, api_client):
+    def test_sucesso_persiste_detalhes_e_total(self, api_client: Any) -> None:
+        """Verifica sucesso persiste detalhes e total."""
         registros = _registros_validos()
         with (
             patch(
@@ -100,15 +105,14 @@ class TestImportacaoLotesCreate:
             ) as MockApi,
         ):
             MockApi.return_value.salvar_lotes.return_value = 3
-
             api_client.post(LOTES_LIST_URL, _payload(), format="multipart")
-
         registro = ImportacaoLotes.objects.order_by("-criado_em").first()
-        assert registro.status == "CONCLUIDO"
-        assert registro.total_atualizados == 3
-        assert registro.detalhes == registros
+        assert registro.status == "CONCLUIDO"  # type: ignore[union-attr]
+        assert registro.total_atualizados == 3  # type: ignore[union-attr]
+        assert registro.detalhes == registros  # type: ignore[union-attr]
 
-    def test_erros_validacao_retorna_400(self, api_client):
+    def test_erros_validacao_retorna_400(self, api_client: Any) -> None:
+        """Verifica erros validacao retorna 400."""
         exc = ErrosValidacaoLotesException(
             mensagem="Erro ao validar.", detalhes="Linha 2: lote inválido."
         )
@@ -119,13 +123,15 @@ class TestImportacaoLotesCreate:
             resp = api_client.post(
                 LOTES_LIST_URL, _payload(), format="multipart"
             )
-
         assert resp.status_code == 400
         data = resp.json()
         assert "mensagem" in data
         assert "Erro ao validar" in data["mensagem"]
 
-    def test_base_importacao_exception_retorna_400(self, api_client):
+    def test_base_importacao_exception_retorna_400(
+        self, api_client: Any
+    ) -> None:
+        """Verifica base importacao exception retorna 400."""
         exc = ArquivoLotesVazioException(mensagem="Arquivo vazio.")
         with patch(
             "importa_arquivos.views.importacao_lotes.validar_txt_lotes",
@@ -134,12 +140,14 @@ class TestImportacaoLotesCreate:
             resp = api_client.post(
                 LOTES_LIST_URL, _payload(), format="multipart"
             )
-
         assert resp.status_code == 400
         data = resp.json()
         assert "mensagem" in data
 
-    def test_excecao_generica_na_validacao_retorna_400(self, api_client):
+    def test_excecao_generica_na_validacao_retorna_400(
+        self, api_client: Any
+    ) -> None:
+        """Verifica excecao generica na validacao retorna 400."""
         with patch(
             "importa_arquivos.views.importacao_lotes.validar_txt_lotes",
             side_effect=RuntimeError("boom"),
@@ -147,12 +155,12 @@ class TestImportacaoLotesCreate:
             resp = api_client.post(
                 LOTES_LIST_URL, _payload(), format="multipart"
             )
-
         assert resp.status_code == 400
         data = resp.json()
         assert "mensagem" in data
 
-    def test_api_candidatos_falha_retorna_400(self, api_client):
+    def test_api_candidatos_falha_retorna_400(self, api_client: Any) -> None:
+        """Verifica api candidatos falha retorna 400."""
         with (
             patch(
                 "importa_arquivos.views.importacao_lotes.validar_txt_lotes",
@@ -167,24 +175,26 @@ class TestImportacaoLotesCreate:
                     mensagem="Serviço indisponível."
                 )
             )
-
             resp = api_client.post(
                 LOTES_LIST_URL, _payload(), format="multipart"
             )
-
         assert resp.status_code == 400
         data = resp.json()
         assert "mensagem" in data
 
     def test_serializer_invalido_sem_concurso_uuid_retorna_400(
-        self, api_client
-    ):
+        self, api_client: Any
+    ) -> None:
+        """Verifica serializer invalido sem concurso uuid retorna 400."""
         resp = api_client.post(
             LOTES_LIST_URL, {"arquivo": _arquivo()}, format="multipart"
         )
         assert resp.status_code == 400
 
-    def test_serializer_invalido_sem_arquivo_retorna_400(self, api_client):
+    def test_serializer_invalido_sem_arquivo_retorna_400(
+        self, api_client: Any
+    ) -> None:
+        """Verifica serializer invalido sem arquivo retorna 400."""
         resp = api_client.post(
             LOTES_LIST_URL,
             {"concurso_uuid": str(uuid.uuid4())},
@@ -193,8 +203,9 @@ class TestImportacaoLotesCreate:
         assert resp.status_code == 400
 
     def test_salvar_lotes_chamado_com_concurso_uuid_e_registros(
-        self, api_client
-    ):
+        self, api_client: Any
+    ) -> None:
+        """Verifica salvar lotes chamado com concurso uuid e registros."""
         concurso_uuid = uuid.uuid4()
         registros = _registros_validos()
         with (
@@ -207,33 +218,32 @@ class TestImportacaoLotesCreate:
             ) as MockApi,
         ):
             MockApi.return_value.salvar_lotes.return_value = 1
-
             api_client.post(
                 LOTES_LIST_URL,
                 _payload(concurso_uuid=concurso_uuid),
                 format="multipart",
             )
-
         MockApi.return_value.salvar_lotes.assert_called_once()
         call_kwargs = MockApi.return_value.salvar_lotes.call_args.kwargs
         assert call_kwargs["concurso_uuid"] == str(concurso_uuid)
         assert call_kwargs["lotes"] == registros
 
 
-# ─── list ────────────────────────────────────────────────────────────────────
-
-
 class TestImportacaoLotesList:
-    """GET /api/v1/importacao/lotes/"""
+    """GET /api/v1/importacao/lotes/."""
 
-    def test_lista_vazia_retorna_200_paginado(self, api_client):
+    def test_lista_vazia_retorna_200_paginado(self, api_client: Any) -> None:
+        """Verifica lista vazia retorna 200 paginado."""
         resp = api_client.get(LOTES_LIST_URL)
         assert resp.status_code == 200
         data = resp.json()
         assert "results" in data
         assert "count" in data
 
-    def test_lista_com_registros_retorna_campos_corretos(self, api_client):
+    def test_lista_com_registros_retorna_campos_corretos(
+        self, api_client: Any
+    ) -> None:
+        """Verifica lista com registros retorna campos corretos."""
         ImportacaoLotes.objects.create(
             nome_arquivo="lotes.txt",
             arquivo=SimpleUploadedFile("lotes.txt", b"x"),
@@ -253,7 +263,8 @@ class TestImportacaoLotesList:
         ):
             assert campo in item
 
-    def test_filtro_por_status(self, api_client):
+    def test_filtro_por_status(self, api_client: Any) -> None:
+        """Verifica filtro por status."""
         ImportacaoLotes.objects.create(
             nome_arquivo="a.txt",
             arquivo=SimpleUploadedFile("a.txt", b"x"),
@@ -274,13 +285,11 @@ class TestImportacaoLotesList:
         assert all(r["status"] == "ERRO" for r in results)
 
 
-# ─── retrieve ───────────────────────────────────────────────────────────────
-
-
 class TestImportacaoLotesRetrieve:
-    """GET /api/v1/importacao/lotes/<uuid>/"""
+    """GET /api/v1/importacao/lotes/<uuid>/."""
 
-    def test_retrieve_existente_retorna_200(self, api_client):
+    def test_retrieve_existente_retorna_200(self, api_client: Any) -> None:
+        """Verifica retrieve existente retorna 200."""
         reg = ImportacaoLotes.objects.create(
             nome_arquivo="x.txt",
             arquivo=SimpleUploadedFile("x.txt", b"x"),
@@ -292,30 +301,29 @@ class TestImportacaoLotesRetrieve:
         assert resp.status_code == 200
         assert str(resp.json()["uuid"]) == str(reg.uuid)
 
-    def test_retrieve_inexistente_retorna_404(self, api_client):
+    def test_retrieve_inexistente_retorna_404(self, api_client: Any) -> None:
+        """Verifica retrieve inexistente retorna 404."""
         resp = api_client.get(f"{LOTES_LIST_URL}{uuid.uuid4()}/")
         assert resp.status_code == 404
-
-
-# ─── get_serializer_class ───────────────────────────────────────────────────
 
 
 class TestImportacaoLotesGetSerializerClass:
     """get_serializer_class: POST usa Create, GET list/retrieve usa List."""
 
-    def test_get_list_usa_list_serializer(self, api_client):
+    def test_get_list_usa_list_serializer(self, api_client: Any) -> None:
+        """Verifica get list usa list serializer."""
         from importa_arquivos.serializers import ImportacaoLotesListSerializer
 
         resp = api_client.get(LOTES_LIST_URL)
         assert resp.status_code == 200
-        # List serializer inclui campos de leitura como uuid e status
         if resp.json()["results"]:
             resp.json()["results"][0]
             list_fields = set(ImportacaoLotesListSerializer.Meta.fields)
             for campo in ("uuid", "status", "nome_arquivo"):
                 assert campo in list_fields
 
-    def test_post_create_usa_create_serializer(self, api_client):
+    def test_post_create_usa_create_serializer(self, api_client: Any) -> None:
+        """Verifica post create usa create serializer."""
         with (
             patch(
                 "importa_arquivos.views.importacao_lotes.validar_txt_lotes",

@@ -1,5 +1,4 @@
-"""
-ViewSet de importação de arquivos de lotes de classificação (SIGPEC).
+"""ViewSet de importação de arquivos de lotes de classificação (SIGPEC).
 
 - create: recebe arquivo TXT + concurso_uuid, valida, chama API de candidatos e
 retorna resultado.
@@ -7,7 +6,10 @@ retorna resultado.
 - retrieve: detalhe de um registro.
 """
 
+from __future__ import annotations
+
 import logging
+from typing import Any
 
 from django.conf import settings
 from django_filters.rest_framework import DjangoFilterBackend
@@ -35,9 +37,7 @@ logger = logging.getLogger(__name__)
 
 
 class ImportacaoLotesViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet para importação de arquivos de lotes de classificação (SIGPEC).
-    """
+    """ViewSet para importação de arquivos de lotes de classificação."""
 
     queryset = ImportacaoLotes.objects.all()
     permission_classes = [AllowAny]
@@ -54,19 +54,17 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
     pagination_class = CustomPagination
     lookup_field = "uuid"
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> Any:
+        """Retorna serializer class de acordo com a action."""
         if self.action in ("list", "retrieve"):
             return ImportacaoLotesListSerializer
         return ImportacaoLotesCreateSerializer
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
+        """Cria uma nova importação de lotes."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
-
-        # 1. Validar e parsear o arquivo TXT
-        # Exceções estruturais são capturadas pelo decorator @captura_erros_importacao,  # noqa: E501
-        # que já persiste em ImportacaoErro e seta status=ERRO.
         try:
             registros = validar_txt_lotes(
                 instance.arquivo, importacao_obj=instance
@@ -92,15 +90,11 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        # Salvar registros parseados como detalhes da importação
         instance.detalhes = registros
-
-        # 2. Enviar para a API de candidatos
         concurso_uuid = str(instance.concurso_uuid)
         try:
             total = ApiCandidatosService(
-                base_url=settings.CANDIDATOS_API_URL,
+                base_url=settings.CANDIDATOS_API_URL
             ).salvar_lotes(
                 concurso_uuid=concurso_uuid,
                 lotes=registros,
@@ -122,7 +116,6 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         instance.status = "CONCLUIDO"
         instance.total_atualizados = total
         instance.save(
