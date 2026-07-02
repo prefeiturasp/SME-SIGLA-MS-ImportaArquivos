@@ -292,6 +292,79 @@ def test_download_erros_parte_sem_dois_pontos_apenas_append(
     assert "Mensagem simples sem dois pontos" in conteudo
 
 
+def test_importacao_habilitados_create_calcula_quantidade_e_salva_observacao(
+    api_client: Any, settings: Any
+) -> None:
+    """Verifica que create calcula quantidade e persiste observacao."""
+    settings.CANDIDATOS_API_URL = "https://api.exemplo"
+    arquivo = SimpleUploadedFile(
+        "h.csv",
+        b"Inscricao,Nome\n123,Joao\n456,Maria\n789,Ana\n",
+        content_type="text/csv",
+    )
+    with (
+        patch(
+            "importa_arquivos.views.importacao_habilitados.validar_csv_habilitados"
+        ) as mock_validar,
+        patch(
+            "importa_arquivos.views.importacao_habilitados.ApiCandidatosService"
+        ) as mock_api,
+    ):
+        mock_validar.return_value = (
+            [
+                {"Inscricao": "123", "Nome": "Joao"},
+                {"Inscricao": "456", "Nome": "Maria"},
+                {"Inscricao": "789", "Nome": "Ana"},
+            ],
+            [{"coluna": "Inscricao", "campo_payload": "codigo_inscricao"}],
+        )
+        mock_api.return_value.enviar_habilitados.return_value = Mock()
+        url = reverse("importacao-arquivo-habilitados-list")
+        resp = api_client.post(
+            url,
+            {
+                "arquivo": arquivo,
+                "concurso_uuid": "11111111-1111-1111-1111-111111111111",
+                "concurso_nome": "Concurso X",
+                "observacao": "Importação de teste",
+                "tipo": "HABILITADOS",
+            },
+            format="multipart",
+        )
+        assert resp.status_code in (200, 201)
+        assert resp.data["quantidade"] == 3
+        assert resp.data["observacao"] == "Importação de teste"
+        importacao = ImportacaoArquivoHabilitado.objects.get(
+            uuid=resp.data["uuid"]
+        )
+        assert importacao.quantidade == 3
+        assert importacao.observacao == "Importação de teste"
+
+
+def test_importacao_habilitados_list_retorna_observacao_e_quantidade(
+    api_client: Any,
+) -> None:
+    """Verifica que a listagem retorna observacao e quantidade."""
+    arquivo = SimpleUploadedFile(
+        "h.csv", b"Inscricao,Nome\n123,Joao\n", content_type="text/csv"
+    )
+    ImportacaoArquivoHabilitado.objects.create(
+        nome_arquivo="h.csv",
+        arquivo=arquivo,
+        tipo="HABILITADOS",
+        concurso_uuid=uuid.uuid4(),
+        concurso_nome="Concurso X",
+        observacao="Uma observação",
+        quantidade=42,
+    )
+    url = reverse("importacao-arquivo-habilitados-list")
+    resp = api_client.get(url)
+    assert resp.status_code == 200
+    registro = resp.data[0]
+    assert registro["observacao"] == "Uma observação"
+    assert registro["quantidade"] == 42
+
+
 def test_download_erros_filtra_por_importacao_uuid(api_client: Any) -> None:
     """Verifica download erros filtra por importacao uuid."""
     arquivo = SimpleUploadedFile(

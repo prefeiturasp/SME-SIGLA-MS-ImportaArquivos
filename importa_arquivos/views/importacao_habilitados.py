@@ -71,6 +71,8 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
             registros, estrutura = validar_csv_habilitados(
                 instance.arquivo, importacao_obj=instance
             )
+            instance.quantidade = len(registros)
+            instance.save(update_fields=["quantidade"])
         except (
             ColunaCSVInvalidaException,
             LayoutNaoConfiguradoException,
