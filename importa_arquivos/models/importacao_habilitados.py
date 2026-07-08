@@ -19,6 +19,12 @@ class ImportacaoArquivoHabilitado(BaseModelArquivoImportacao):
     concurso_nome = models.CharField(
         max_length=255, verbose_name="Nome do concurso", null=True, blank=True
     )
+    observacao = models.TextField(
+        verbose_name="Observação", null=True, blank=True
+    )
+    quantidade = models.IntegerField(
+        verbose_name="Quantidade de registros", null=True, blank=True
+    )
 
     class Meta:
         """Representa Meta."""

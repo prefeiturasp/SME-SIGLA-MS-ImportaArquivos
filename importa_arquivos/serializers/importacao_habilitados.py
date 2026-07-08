@@ -19,7 +19,7 @@ class ImportacaoArquivoHabilitadosCreateSerializer(
         """Representa Meta."""
 
         model = ImportacaoArquivoHabilitado
-        fields = ["arquivo", "concurso_uuid", "concurso_nome"]
+        fields = ["arquivo", "concurso_uuid", "concurso_nome", "observacao"]
 
     def create(self, validated_data: Any) -> Any:
         """Cria e persiste o registro a partir dos dados validados."""
@@ -50,11 +50,19 @@ class ImportacaoArquivoHabilitadosListSerializer(serializers.ModelSerializer):
             "status",
             "concurso_uuid",
             "concurso_nome",
+            "observacao",
+            "quantidade",
             "criado_em",
             "atualizado_em",
             "erros",
         ]
-        read_only_fields = ["uuid", "criado_em", "atualizado_em", "erros"]
+        read_only_fields = [
+            "uuid",
+            "quantidade",
+            "criado_em",
+            "atualizado_em",
+            "erros",
+        ]
 
     def get_erros(self, obj: Any) -> Any:
         """Obtém erros vinculados à importação de habilitados."""
