@@ -60,13 +60,10 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
         """Cria uma nova importação de habilitados."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        mandado_judicial = bool(
+            serializer.validated_data.get("mandado_judicial", False)
+        )
         instance = serializer.save()
-        serializer.validated_data.get("concurso_uuid") or request.data.get(
-            "concurso_uuid"
-        )
-        serializer.validated_data.get("concurso_nome") or request.data.get(
-            "concurso_nome"
-        )
         try:
             registros, estrutura = validar_csv_habilitados(
                 instance.arquivo, importacao_obj=instance
@@ -110,6 +107,7 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
                 concurso_nome=str(instance.concurso_nome)
                 if instance.concurso_nome
                 else "",
+                mandado_judicial=mandado_judicial,
                 importacao_obj=instance,
             )
         except ApiCandidatosException as exc:

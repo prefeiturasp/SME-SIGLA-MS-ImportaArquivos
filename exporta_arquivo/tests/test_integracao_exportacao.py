@@ -1,10 +1,10 @@
-"""Teste de integração opcional: gerar_arquivo de candidatos processo com mock.
+"""Teste de integração opcional: executar_exportacao de candidatos processo.
 
-apenas da API externa.
-Fluxo real: serializer → gerar_arquivo → exportar_candidatos_processo →
+Mock apenas da API externa.
+Fluxo real: serializer → executar_exportacao → exportar_candidatos_processo →
 formatar_arquivo.
-Só requests.get (API Candidatos) é mockado; service, formatter e view rodam de
-verdade.
+Só http_client.get (API Candidatos/Concursos) é mockado; service, formatter e
+view rodam de verdade.
 Garante que o pipeline não quebra.
 """
 
@@ -51,12 +51,12 @@ def _resposta_habilitados_api() -> Any:
 
 
 class TestIntegracaoCreateCandidatosProcesso:
-    """gerar_arquivo candidatos processo: mock só da API externa; resto real."""
+    """executar_exportacao candidatos processo: mock só da API externa; resto real."""
 
     def test_create_mockando_apenas_api_externa_retorna_200_e_arquivo_txt(
         self,
     ) -> Any:
-        """Verifica gerar_arquivo mockando apenas api externa persiste arquivo txt."""
+        """Verifica executar_exportacao mockando apenas api externa persiste arquivo txt."""
         concurso_uuid = _uuid()
         mock_concursos = MagicMock()
         mock_concursos.status_code = 200
@@ -89,7 +89,7 @@ class TestIntegracaoCreateCandidatosProcesso:
         with patch(
             "sigla_sdk.http.api_client.http_client.get", side_effect=fake_get
         ):
-            viewset.gerar_arquivo(registro)
+            viewset.executar_exportacao(registro)
         registro.refresh_from_db()
         assert registro.conteudo_arquivo
         assert registro.nome_arquivo.startswith("candidatos_processo_")  # type: ignore[union-attr]

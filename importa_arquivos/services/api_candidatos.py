@@ -77,6 +77,7 @@ class ApiCandidatosService:
         estrutura: list[dict[str, Any]],
         concurso_uuid: str,
         concurso_nome: str,
+        mandado_judicial: bool = False,
         headers: dict[str, str] | None = None,
         importacao_obj: Any | None = None,
     ) -> Response:
@@ -87,6 +88,7 @@ class ApiCandidatosService:
             estrutura: Definição de colunas do layout de importação.
             concurso_uuid: UUID do concurso relacionado.
             concurso_nome: Nome do concurso exibido na resposta.
+            mandado_judicial: Flag de mandado judicial enviada ao candidatos.
             headers: Cabeçalhos HTTP da requisição.
             importacao_obj: Registro de importação em andamento.
 
@@ -103,6 +105,7 @@ class ApiCandidatosService:
         payload = {
             "concurso_uuid": concurso_uuid,
             "concurso_nome": concurso_nome,
+            "mandado_judicial": bool(mandado_judicial),
             "candidatos": dados_transformados,
         }
         try:

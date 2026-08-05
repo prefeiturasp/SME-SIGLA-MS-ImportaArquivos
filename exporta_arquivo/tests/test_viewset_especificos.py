@@ -44,12 +44,12 @@ def api_client() -> Any:
 
 
 class TestExportacaoCandidatosProcessoViewSetEspecifico:
-    """gerar_arquivo: mock exportar_candidatos_processo e persiste conteúdo."""
+    """executar_exportacao: mock exportar_candidatos_processo e persiste conteúdo."""
 
     def test_create_com_mocks_persiste_conteudo_e_nome_arquivo_prefixo_candidatos_processo(  # noqa: E501
         self,
     ) -> None:
-        """Verifica gerar_arquivo persiste conteudo e nome com prefixo correto."""
+        """Verifica executar_exportacao persiste conteudo e nome com prefixo correto."""
         conteudo_esperado = "conteudo|pipe|formatado\n"
         payload = {
             "processo_uuid": _uuid(),
@@ -66,7 +66,7 @@ class TestExportacaoCandidatosProcessoViewSetEspecifico:
             "exporta_arquivo.views.exportacao_candidatos_processo.exportar_candidatos_processo",
             return_value=conteudo_esperado,
         ):
-            viewset.gerar_arquivo(registro)
+            viewset.executar_exportacao(registro)
         registro.refresh_from_db()
         assert registro.conteudo_arquivo == conteudo_esperado
         assert registro.nome_arquivo.startswith("candidatos_processo_")  # type: ignore[union-attr]
