@@ -4,7 +4,7 @@
 
 .PHONY: help pep257 pep484 pep-check makemigrations migrate runserver coverage test clean install format lint check
 
-PEP_APP_DIRS = importa_arquivos exporta_arquivo
+PEP_APP_DIRS = apps/importa_arquivos apps/exporta_arquivo
 
 # Comando padrão - mostra ajuda
 help:
