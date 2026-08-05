@@ -12,8 +12,8 @@ def healthcheck(_request):
 
 _core_urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/v1/", include("importa_arquivos.urls")),
-    path("api/v1/", include("exporta_arquivo.urls")),
+    path("api/v1/", include("importa_arquivos.api.urls")),
+    path("api/v1/", include("exporta_arquivo.api.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/",
