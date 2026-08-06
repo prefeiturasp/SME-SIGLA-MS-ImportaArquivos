@@ -56,6 +56,31 @@ def test_api_candidatos_enviar_habilitados_payload_ok(settings: Any) -> None:
         assert payload["concurso_nome"] == "Concurso X"
         assert payload["candidatos"][0]["codigo_inscricao"] == "123"
         assert payload["candidatos"][0]["nome"] == "Joao"
+        assert payload["mandado_judicial"] is False
+
+
+def test_api_candidatos_enviar_habilitados_com_mandado_judicial(
+    settings: Any,
+) -> None:
+    """Envia mandado_judicial=True no payload para a API de candidatos."""
+    settings.CANDIDATOS_API_URL = "https://api.exemplo"
+    svc = ApiCandidatosService(base_url=settings.CANDIDATOS_API_URL)
+    with patch("sigla_sdk.http.api_client.http_client.post") as mock_post:
+        mock_resp = Mock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {"ok": True}
+        mock_post.return_value = mock_resp
+        svc.enviar_habilitados(
+            registros=[{"Inscricao": "123"}],
+            estrutura=[
+                {"coluna": "Inscricao", "campo_payload": "codigo_inscricao"}
+            ],
+            concurso_uuid="11111111-1111-1111-1111-111111111111",
+            concurso_nome="Concurso X",
+            mandado_judicial=True,
+        )
+        payload = mock_post.call_args.kwargs["json"]
+        assert payload["mandado_judicial"] is True
 
 
 def test_api_candidatos_cria_erro_quando_request_falha() -> None:

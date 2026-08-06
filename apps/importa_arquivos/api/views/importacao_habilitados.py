@@ -1,4 +1,4 @@
-"""ViewSet de importação de arquivo de habilitados."""
+"""Módulo views/importacao_habilitados."""
 
 from __future__ import annotations
 
@@ -15,22 +15,22 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ...models import ImportacaoArquivoHabilitado
-from ...serializers import (
+from importa_arquivos.models import ImportacaoArquivoHabilitado
+from importa_arquivos.serializers import (
     ImportacaoArquivoHabilitadosCreateSerializer,
     ImportacaoArquivoHabilitadosListSerializer,
     ImportacaoErrosListSerializer,
     queryset_erros_por_modelo,
 )
-from ...services.api_candidatos import ApiCandidatosService
-from ...services.exceptions import (
+from importa_arquivos.services.api_candidatos import ApiCandidatosService
+from importa_arquivos.services.exceptions import (
     ApiCandidatosException,
     CargoConcursoInvalidoException,
     ColunaCSVInvalidaException,
     LayoutNaoConfiguradoException,
     LeituraCSVException,
 )
-from ...services.validacao_habilitados import validar_csv_habilitados
+from importa_arquivos.services.validacao_habilitados import validar_csv_habilitados
 
 
 class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
@@ -60,13 +60,10 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
         """Cria uma nova importação de habilitados."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        mandado_judicial = bool(
+            serializer.validated_data.get("mandado_judicial", False)
+        )
         instance = serializer.save()
-        serializer.validated_data.get("concurso_uuid") or request.data.get(
-            "concurso_uuid"
-        )
-        serializer.validated_data.get("concurso_nome") or request.data.get(
-            "concurso_nome"
-        )
         try:
             registros, estrutura = validar_csv_habilitados(
                 instance.arquivo, importacao_obj=instance
@@ -110,6 +107,7 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
                 concurso_nome=str(instance.concurso_nome)
                 if instance.concurso_nome
                 else "",
+                mandado_judicial=mandado_judicial,
                 importacao_obj=instance,
             )
         except ApiCandidatosException as exc:

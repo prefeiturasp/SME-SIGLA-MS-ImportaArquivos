@@ -14,15 +14,25 @@ class ImportacaoArquivoHabilitadosCreateSerializer(
     serializers.ModelSerializer
 ):
     """Serializer para criação de importações de arquivos habilitados."""
+    mandado_judicial = serializers.BooleanField(
+        required=False, default=False, write_only=True
+    )
 
     class Meta:
         """Representa Meta."""
 
         model = ImportacaoArquivoHabilitado
-        fields = ["arquivo", "concurso_uuid", "concurso_nome", "observacao"]
+        fields = [
+            "arquivo",
+            "concurso_uuid",
+            "concurso_nome",
+            "observacao",
+            "mandado_judicial",
+        ]
 
     def create(self, validated_data: Any) -> Any:
         """Cria e persiste o registro a partir dos dados validados."""
+        validated_data.pop("mandado_judicial", False)
         arquivo = validated_data.get("arquivo")
         nome_arquivo = (
             getattr(arquivo, "name", None) or "Importação de Habilitados"
