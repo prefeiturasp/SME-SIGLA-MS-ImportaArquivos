@@ -6,6 +6,7 @@ from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
+from django.test import override_settings
 from requests import RequestException
 
 from importa_arquivos.models import ImportacaoArquivoHabilitado, ImportacaoErro
@@ -139,3 +140,23 @@ def test_api_candidatos_levanta_excecao_especifica_quando_status_nao_for_200() -
     assert exc.status_code == 400
     assert exc.mensagem == "Falha ao enviar candidatos para API externa"
     assert "Erro externo" in (exc.detalhes or "")
+
+
+@override_settings(
+    CANDIDATOS_API_KEY="test-key-candidatos",
+    API_KEY_HEADER="X-API-Key",
+)
+def test_api_candidatos_envia_api_key() -> None:
+    """Verifica envio do header X-API-Key ao chamar MS-Candidatos."""
+    service = ApiCandidatosService(base_url="http://example.com")
+    mock_resp = Mock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {"total_atualizados": 0}
+    with patch(
+        "sigla_sdk.http.api_client.http_client.post", return_value=mock_resp
+    ) as mock_post:
+        service.salvar_lotes(concurso_uuid="uuid", lotes=[])
+    assert (
+        mock_post.call_args.kwargs["headers"]["X-API-Key"]
+        == "test-key-candidatos"
+    )

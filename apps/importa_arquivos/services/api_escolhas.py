@@ -7,6 +7,7 @@ import logging
 from datetime import datetime
 from typing import Any
 
+from django.conf import settings
 from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
@@ -24,7 +25,9 @@ class ApiEscolhasService:
     """Serviço para operações de apiescolhas."""
 
     def __init__(
-        self, base_url: str = "https://example.com", timeout_seconds: int = 30
+        self,
+        base_url: str | None = None,
+        timeout_seconds: int | None = None,
     ) -> None:
         """Inicializa a instância com os parâmetros informados.
 
@@ -32,11 +35,17 @@ class ApiEscolhasService:
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
-        self.base_url = base_url.rstrip("/")
-        self.timeout_seconds = timeout_seconds
+        self.base_url = (
+            base_url
+            or getattr(settings, "ESCOLHA_API_URL", "http://localhost:8004")
+        ).rstrip("/")
+        self.timeout_seconds = timeout_seconds or getattr(
+            settings, "ESCOLHA_API_TIMEOUT", 30
+        )
         self._default_headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
+            settings.API_KEY_HEADER: settings.ESCOLHA_API_KEY,
         }
 
     def _transformar_registros(

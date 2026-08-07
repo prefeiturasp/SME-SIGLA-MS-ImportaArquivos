@@ -15,6 +15,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.test import override_settings
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import Timeout
 
@@ -380,3 +381,41 @@ class TestApiLoteEscolhasServiceGetEscolhasLote:
         _, kwargs = mock_post.call_args
         payload = kwargs.get("json", {})
         assert all(isinstance(v, str) for v in payload["candidato_uuid"])
+
+
+class TestApiLoteApiKeyHeaders:
+    """Verifica o envio do header de API Key nas chamadas a outros MSs."""
+
+    @override_settings(
+        CANDIDATOS_API_KEY="test-key-candidatos",
+        API_KEY_HEADER="X-API-Key",
+    )
+    def test_get_candidatos_lote_envia_api_key(self) -> None:
+        """Verifica envio do header X-API-Key ao chamar MS-Candidatos."""
+        service = ApiLoteCandidatosService(base_url="http://test")
+        with patch(
+            "sigla_sdk.http.api_client.http_client.get",
+            return_value=_mock_response(status_code=200, json_data=[]),
+        ) as mock_get:
+            service.get_candidatos_lote("lote-uuid")
+        assert (
+            mock_get.call_args.kwargs["headers"]["X-API-Key"]
+            == "test-key-candidatos"
+        )
+
+    @override_settings(
+        ESCOLHA_API_KEY="test-key-escolha",
+        API_KEY_HEADER="X-API-Key",
+    )
+    def test_get_escolhas_lote_envia_api_key(self) -> None:
+        """Verifica envio do header X-API-Key ao chamar MS-Escolha."""
+        service = ApiLoteEscolhasService(base_url="http://test")
+        with patch(
+            "sigla_sdk.http.api_client.http_client.post",
+            return_value=_mock_response(status_code=200, json_data=[]),
+        ) as mock_post:
+            service.get_escolhas_lote(["uuid-1"], "concurso-uuid")
+        assert (
+            mock_post.call_args.kwargs["headers"]["X-API-Key"]
+            == "test-key-escolha"
+        )

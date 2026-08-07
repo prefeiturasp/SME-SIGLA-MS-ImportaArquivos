@@ -170,6 +170,7 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # "sigla_sdk.autenticacao.authentication.ApiKeyAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -243,6 +244,16 @@ PROCESSOS_CONVOCACAO_API_URL = os.environ.get(
 PROCESSOS_CONVOCACAO_API_TIMEOUT = int(
     os.environ.get("PROCESSOS_CONVOCACAO_API_TIMEOUT", 30)
 )
+
+# API Key (autenticação entre microsserviços)
+API_KEY = os.environ.get("API_KEY", "api-key-importa-arquivos")
+API_KEY_HEADER = os.environ.get("API_KEY_HEADER", "X-API-Key")
+
+CANDIDATOS_API_KEY = os.environ.get(
+    "CANDIDATOS_API_KEY", "api-key-candidatos"
+)
+CONCURSOS_API_KEY = os.environ.get("CONCURSOS_API_KEY", "api-key-concursos")
+ESCOLHA_API_KEY = os.environ.get("ESCOLHA_API_KEY", "api-key-escolha")
 
 from datetime import timedelta
 

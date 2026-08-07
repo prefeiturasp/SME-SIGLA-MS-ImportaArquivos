@@ -12,9 +12,11 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.test import override_settings
 from requests.exceptions import Timeout
 
 from exporta_arquivo.services.api_candidatos import ApiCandidatosService
+from exporta_arquivo.services.api_concursos import ApiConcursosService
 from exporta_arquivo.services.api_escolhas import ApiEscolhasService
 from exporta_arquivo.services.exceptions import (
     CandidatosNotFoundException,
@@ -198,3 +200,64 @@ class TestApiEscolhasService:
         ):
             out = service.get_vagas_escolas("proc-uuid", 100)
         assert out == {"vagas": []}
+
+
+class TestApiKeyHeaders:
+    """Verifica o envio do header de API Key nas chamadas a outros MSs."""
+
+    @override_settings(
+        CANDIDATOS_API_KEY="test-key-candidatos",
+        API_KEY_HEADER="X-API-Key",
+    )
+    def test_get_habilitados_envia_api_key(self) -> None:
+        """Verifica envio do header X-API-Key ao chamar MS-Candidatos."""
+        service = ApiCandidatosService(base_url="http://test")
+        resp = MagicMock()
+        resp.status_code = 200
+        resp.json.return_value = []
+        with patch(
+            "sigla_sdk.http.api_client.http_client.get", return_value=resp
+        ) as mock_get:
+            service.get_habilitados(processo_uuid="proc-uuid")
+        assert (
+            mock_get.call_args.kwargs["headers"]["X-API-Key"]
+            == "test-key-candidatos"
+        )
+
+    @override_settings(
+        ESCOLHA_API_KEY="test-key-escolha",
+        API_KEY_HEADER="X-API-Key",
+    )
+    def test_get_vagas_escolas_envia_api_key(self) -> None:
+        """Verifica envio do header X-API-Key ao chamar MS-Escolha."""
+        service = ApiEscolhasService(base_url="http://test")
+        resp = MagicMock()
+        resp.status_code = 200
+        resp.json.return_value = {"vagas": []}
+        with patch(
+            "sigla_sdk.http.api_client.http_client.get", return_value=resp
+        ) as mock_get:
+            service.get_vagas_escolas("proc-uuid", 100)
+        assert (
+            mock_get.call_args.kwargs["headers"]["X-API-Key"]
+            == "test-key-escolha"
+        )
+
+    @override_settings(
+        CONCURSOS_API_KEY="test-key-concursos",
+        API_KEY_HEADER="X-API-Key",
+    )
+    def test_get_concurso_envia_api_key(self) -> None:
+        """Verifica envio do header X-API-Key ao chamar MS-Concursos."""
+        service = ApiConcursosService(base_url="http://test")
+        resp = MagicMock()
+        resp.status_code = 200
+        resp.json.return_value = {"uuid": "abc"}
+        with patch(
+            "sigla_sdk.http.api_client.http_client.get", return_value=resp
+        ) as mock_get:
+            service.get_concurso("concurso-uuid")
+        assert (
+            mock_get.call_args.kwargs["headers"]["X-API-Key"]
+            == "test-key-concursos"
+        )
