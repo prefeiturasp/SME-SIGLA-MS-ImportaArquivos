@@ -8,11 +8,41 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any
 
-from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 
 from importa_arquivos.models import ImportacaoErro
 from importa_arquivos.services.exceptions import BaseImportacaoException
+
+
+def _repositorio_para_instancia(importacao_obj: Any) -> Any:
+    """Retorna a classe de repository responsável por atualizar o status.
+
+    Args:
+        importacao_obj: Registro de importação em andamento.
+
+    Returns:
+        Classe de repository correspondente ao tipo de importacao_obj.
+    """
+    from importa_arquivos.models import (
+        ImportacaoArquivoHabilitado,
+        ImportacaoArquivoVagas,
+        ImportacaoEscolhas,
+        ImportacaoLotes,
+    )
+    from importa_arquivos.repository import (
+        ImportacaoArquivoHabilitadoRepository,
+        ImportacaoArquivoVagasRepository,
+        ImportacaoEscolhasRepository,
+        ImportacaoLotesRepository,
+    )
+
+    repositorio_por_modelo = {
+        ImportacaoArquivoHabilitado: ImportacaoArquivoHabilitadoRepository,
+        ImportacaoArquivoVagas: ImportacaoArquivoVagasRepository,
+        ImportacaoLotes: ImportacaoLotesRepository,
+        ImportacaoEscolhas: ImportacaoEscolhasRepository,
+    }
+    return repositorio_por_modelo[type(importacao_obj)]
 
 
 def registrar_erro(
@@ -35,6 +65,8 @@ def registrar_erro(
     Raises:
         ValueError: Se os dados informados forem inválidos.
     """
+    from importa_arquivos.repository import ImportacaoErroRepository
+
     if importacao_obj is None:
         raise ValueError("importacao_obj é obrigatório para registrar erro")
     if exc is not None:
@@ -48,13 +80,12 @@ def registrar_erro(
         mensagem = "Erro durante importação"
     if detalhes is None:
         detalhes = ""
-    content_type = ContentType.objects.get_for_model(importacao_obj.__class__)
-    importacao_obj.status = "ERRO"
-    importacao_obj.save(update_fields=["status"])
+    _repositorio_para_instancia(importacao_obj).atualizar_status(
+        importacao_obj, "ERRO"
+    )
     with transaction.atomic():
-        return ImportacaoErro.objects.create(
-            content_type=content_type,
-            object_id=getattr(importacao_obj, "uuid", importacao_obj.id),
+        return ImportacaoErroRepository.criar(
+            importacao_obj=importacao_obj,
             mensagem=mensagem,
             erros=detalhes,
         )

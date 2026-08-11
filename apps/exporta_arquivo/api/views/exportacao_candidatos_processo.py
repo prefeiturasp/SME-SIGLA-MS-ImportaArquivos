@@ -7,6 +7,7 @@ from typing import Any
 from django.http import HttpResponse
 
 from ...models import ExportacaoCandidatosProcesso
+from ...repository import ExportacaoCandidatosProcessoRepository
 from ...serializers import (
     ExportacaoCandidatosProcessoCreateSerializer,
     ExportacaoCandidatosProcessoListSerializer,
@@ -67,6 +68,6 @@ class ExportacaoCandidatosProcessoViewSet(BaseExportacaoViewSet):
             f"candidatos_processo_{desc_safe}_"
             f"{instance.concurso_codigo}.txt"
         )
-        instance.conteudo_arquivo = conteudo
-        instance.nome_arquivo = nome_arquivo
-        instance.save(update_fields=["conteudo_arquivo", "nome_arquivo"])
+        ExportacaoCandidatosProcessoRepository.atualizar_arquivo(
+            instance, conteudo_arquivo=conteudo, nome_arquivo=nome_arquivo
+        )

@@ -15,11 +15,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from importa_arquivos.models import ImportacaoArquivoHabilitado
+from importa_arquivos.repository import (
+    ImportacaoArquivoHabilitadoRepository,
+    ImportacaoErroRepository,
+)
 from importa_arquivos.serializers import (
     ImportacaoArquivoHabilitadosCreateSerializer,
     ImportacaoArquivoHabilitadosListSerializer,
-    ImportacaoErrosListSerializer,
-    queryset_erros_por_modelo,
 )
 from importa_arquivos.services.api_candidatos import ApiCandidatosService
 from importa_arquivos.services.exceptions import (
@@ -29,7 +31,9 @@ from importa_arquivos.services.exceptions import (
     LayoutNaoConfiguradoException,
     LeituraCSVException,
 )
-from importa_arquivos.services.validacao_habilitados import validar_csv_habilitados
+from importa_arquivos.services.validacao_habilitados import (
+    validar_csv_habilitados,
+)
 
 
 class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
@@ -67,8 +71,9 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
             registros, estrutura = validar_csv_habilitados(
                 instance.arquivo, importacao_obj=instance
             )
-            instance.quantidade = len(registros)
-            instance.save(update_fields=["quantidade"])
+            ImportacaoArquivoHabilitadoRepository.atualizar_quantidade(
+                instance, len(registros)
+            )
         except (
             ColunaCSVInvalidaException,
             LayoutNaoConfiguradoException,
@@ -108,7 +113,7 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
                 importacao_obj=instance,
             )
         except ApiCandidatosException as exc:
-            instance.refresh_from_db()
+            ImportacaoArquivoHabilitadoRepository.recarregar(instance)
             payload = {
                 "detail": exc.mensagem,
                 "detalhes": exc.detalhes or str(exc),
@@ -122,9 +127,10 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         else:
-            instance.status = "CONCLUIDO"
-            instance.save(update_fields=["status"])
-        instance.refresh_from_db()
+            ImportacaoArquivoHabilitadoRepository.atualizar_status(
+                instance, "CONCLUIDO"
+            )
+        ImportacaoArquivoHabilitadoRepository.recarregar(instance)
         serializer = ImportacaoArquivoHabilitadosListSerializer(instance)
         headers = self.get_success_headers(serializer.data)
         return Response(
@@ -139,12 +145,11 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
             Retorna o arquivo de erros em formato texto.
         """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
-        qs = queryset_erros_por_modelo(
-            ImportacaoArquivoHabilitado, importacao_uuid=importacao_uuid
-        ).select_related("content_type")
-        serializer = ImportacaoErrosListSerializer(qs, many=True)
+        itens = ImportacaoErroRepository.listar_por_modelo_e_uuid(
+            ImportacaoArquivoHabilitado, importacao_uuid
+        )
         linhas = []
-        for item in serializer.data:
+        for item in itens:
             erros = item.get("erros") or ""
             if erros:
                 partes_erro = erros.split(" | ")

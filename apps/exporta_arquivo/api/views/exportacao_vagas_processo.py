@@ -7,6 +7,7 @@ from typing import Any
 from django.http import HttpResponse
 
 from ...models import ExportacaoVagasProcesso
+from ...repository import ExportacaoVagasProcessoRepository
 from ...serializers import (
     ExportacaoVagasProcessoCreateSerializer,
     ExportacaoVagasProcessoListSerializer,
@@ -75,6 +76,6 @@ class ExportacaoVagasProcessoViewSet(BaseExportacaoViewSet):
             instance.cargo_nome, max_len=60
         )
         nome_arquivo = f"exportacao-vagas-processo-{cargo_safe}.{instance.cargo_codigo}.{desc_safe}.txt"  # noqa: E501
-        instance.conteudo_arquivo = conteudo
-        instance.nome_arquivo = nome_arquivo
-        instance.save(update_fields=["conteudo_arquivo", "nome_arquivo"])
+        ExportacaoVagasProcessoRepository.atualizar_arquivo(
+            instance, conteudo_arquivo=conteudo, nome_arquivo=nome_arquivo
+        )

@@ -16,6 +16,7 @@ from rest_framework.response import Response
 from importa_arquivos.utils import CustomPagination
 
 from ...models import ExportacaoLote
+from ...repository import ExportacaoLoteRepository
 from ...serializers import (
     ExportacaoLoteCreateSerializer,
     ExportacaoLoteListSerializer,
@@ -81,11 +82,10 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
                 else str(instance.lote_uuid)
             )
             nome_arquivo_erro = f"candidatos_sem_escolha_lote_{_sanitizar_nome_arquivo(str(lote_id))}.txt"  # noqa: E501
-            instance.conteudo_arquivo = conteudo_erro
-            instance.nome_arquivo = nome_arquivo_erro
-            instance.status = "ATENCAO"
-            instance.save(
-                update_fields=["conteudo_arquivo", "nome_arquivo", "status"]
+            ExportacaoLoteRepository.marcar_atencao(
+                instance,
+                conteudo_arquivo=conteudo_erro,
+                nome_arquivo=nome_arquivo_erro,
             )
             response = HttpResponse(
                 conteudo_erro.encode("utf-8"),
@@ -100,8 +100,7 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
             logger.warning(
                 f"Exportação: {instance.uuid} | {exc.mensagem} | {exc.detalhes}"  # noqa: E501
             )  # type: ignore[attr-defined]
-            instance.status = "ERRO"
-            instance.save(update_fields=["status"])
+            ExportacaoLoteRepository.marcar_erro(instance)
             return Response(
                 {"mensagem": exc.mensagem, "detail": exc.detalhes},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -114,11 +113,8 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
         nome_arquivo = (
             f"exportacao_lote_{_sanitizar_nome_arquivo(str(lote_id))}.txt"
         )
-        instance.conteudo_arquivo = conteudo
-        instance.nome_arquivo = nome_arquivo
-        instance.status = "SUCESSO"
-        instance.save(
-            update_fields=["conteudo_arquivo", "nome_arquivo", "status"]
+        ExportacaoLoteRepository.marcar_sucesso(
+            instance, conteudo_arquivo=conteudo, nome_arquivo=nome_arquivo
         )
         response = HttpResponse(
             conteudo.encode("utf-8"), content_type="text/plain; charset=utf-8"

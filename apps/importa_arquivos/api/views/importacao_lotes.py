@@ -12,6 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from ...models import ImportacaoLotes
+from ...repository import ImportacaoLotesRepository
 from ...serializers import (
     ImportacaoLotesCreateSerializer,
     ImportacaoLotesListSerializer,
@@ -113,12 +114,10 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        instance.status = "CONCLUIDO"
-        instance.total_atualizados = total
-        instance.save(
-            update_fields=["status", "total_atualizados", "detalhes"]
+        ImportacaoLotesRepository.concluir(
+            instance, total_atualizados=total, detalhes=registros
         )
-        instance.refresh_from_db()
+        ImportacaoLotesRepository.recarregar(instance)
         response_serializer = ImportacaoLotesListSerializer(instance)
         headers = self.get_success_headers(response_serializer.data)
         return Response(

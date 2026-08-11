@@ -296,7 +296,7 @@ class TestApiProdamService:
             mock_resp.raise_for_status.return_value = None
             mock_post.return_value = mock_resp
             with patch(
-                "importa_arquivos.services.api_prodam.LogRequestHttp.objects.create",
+                "importa_arquivos.services.api_prodam.LogRequestHttpRepository.criar",
                 side_effect=Exception("Erro ao criar log"),
             ):
                 resultado = service.consultar_resultado_convocacao_ingresso(

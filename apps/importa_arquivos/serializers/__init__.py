@@ -1,9 +1,6 @@
 """Módulo serializers/__init__."""
 
-from .importacao_erros import (
-    ImportacaoErrosListSerializer,
-    queryset_erros_por_modelo,
-)
+from .importacao_erros import ImportacaoErrosListSerializer
 from .importacao_escolhas import (
     EscolhasImportacaoSerializer,
     ImportacaoEscolhasCreateSerializer,

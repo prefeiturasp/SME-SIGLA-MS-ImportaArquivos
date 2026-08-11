@@ -15,11 +15,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from ...models import ImportacaoArquivoVagas
+from ...repository import (
+    ImportacaoArquivoVagasRepository,
+    ImportacaoErroRepository,
+)
 from ...serializers import (
     ImportacaoArquivoVagasCreateSerializer,
     ImportacaoArquivoVagasListSerializer,
-    ImportacaoErrosListSerializer,
-    queryset_erros_por_modelo,
 )
 from ...services.api_escolhas import ApiEscolhasService
 from ...services.exceptions import (
@@ -115,7 +117,7 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except ApiEscolhasException as exc:
-            instance.refresh_from_db()
+            ImportacaoArquivoVagasRepository.recarregar(instance)
             payload = {
                 "detail": exc.mensagem,
                 "detalhes": exc.detalhes or str(exc),
@@ -128,7 +130,7 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
                 {"detail": "Erro ao enviar vagas para API externa."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        instance.refresh_from_db()
+        ImportacaoArquivoVagasRepository.recarregar(instance)
         serializer = ImportacaoArquivoVagasListSerializer(instance)
         headers = self.get_success_headers(serializer.data)
         return Response(
@@ -143,12 +145,11 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
             Retorna o arquivo de erros em formato texto.
         """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
-        qs = queryset_erros_por_modelo(
-            ImportacaoArquivoVagas, importacao_uuid=importacao_uuid
-        ).select_related("content_type")
-        serializer = ImportacaoErrosListSerializer(qs, many=True)
+        itens = ImportacaoErroRepository.listar_por_modelo_e_uuid(
+            ImportacaoArquivoVagas, importacao_uuid
+        )
         linhas = []
-        for item in serializer.data:
+        for item in itens:
             erros = item.get("erros") or ""
             if erros:
                 partes_erro = erros.split(" | ")
