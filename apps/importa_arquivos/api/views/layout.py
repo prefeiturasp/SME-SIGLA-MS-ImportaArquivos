@@ -15,9 +15,12 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ...models.base import CHOICES_TIPO_IMPORTACAO_ARQUIVO
-from ...models.layout import LayoutArquivoImportacao
-from ...serializers.layout import LayoutArquivoImportacaoSerializer
+from importa_arquivos.models.base import CHOICES_TIPO_IMPORTACAO_ARQUIVO
+from importa_arquivos.models.layout import LayoutArquivoImportacao
+from importa_arquivos.repository import LayoutArquivoImportacaoRepository
+from importa_arquivos.serializers.layout import (
+    LayoutArquivoImportacaoSerializer,
+)
 
 
 class LayoutArquivoImportacaoViewSet(viewsets.ModelViewSet):
@@ -54,13 +57,13 @@ class LayoutArquivoImportacaoViewSet(viewsets.ModelViewSet):
             return Response(
                 {"detail": "Parâmetro tipo é obrigatório."}, status=400
             )
-        layout = LayoutArquivoImportacao.objects.filter(tipo=tipo).first()
+        layout = LayoutArquivoImportacaoRepository.obter_por_tipo(tipo)
         if not layout:
             return Response(
                 {"detail": "Layout não encontrado para o tipo informado."},
                 status=404,
             )
-        estrutura = layout.estrutura or []
+        estrutura = layout["estrutura"] or []
         colunas = [
             str(item.get("coluna"))
             for item in estrutura

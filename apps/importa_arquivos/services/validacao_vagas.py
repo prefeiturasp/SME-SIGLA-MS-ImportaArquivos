@@ -7,14 +7,13 @@ import io
 import logging
 from typing import Any
 
-from importa_arquivos.models import LayoutArquivoImportacao
+from importa_arquivos.repository import LayoutArquivoImportacaoRepository
+from importa_arquivos.services.erros import captura_erros_importacao
 from importa_arquivos.services.exceptions import (
     ColunaCSVInvalidaException,
     LayoutNaoConfiguradoException,
     LeituraCSVException,
 )
-
-from .erros import captura_erros_importacao
 
 logger = logging.getLogger(__name__)
 
@@ -37,15 +36,12 @@ def validar_csv_vagas(
         LayoutNaoConfiguradoException: Se não tiver layout configurado.
         LeituraCSVException: Se não conseguir ler o arquivo CSV.
     """
-    try:
-        layout = LayoutArquivoImportacao.objects.filter(tipo="VAGAS").latest(
-            "criado_em"
-        )
-    except LayoutArquivoImportacao.DoesNotExist:
-        raise LayoutNaoConfiguradoException(
-            "Layout VAGAS não configurado."
-        ) from None
-    estrutura: list[dict] = layout.estrutura or []
+    layout = LayoutArquivoImportacaoRepository.obter_mais_recente_por_tipo(
+        "VAGAS"
+    )
+    if layout is None:
+        raise LayoutNaoConfiguradoException("Layout VAGAS não configurado.")
+    estrutura: list[dict] = layout["estrutura"] or []
     colunas_esperadas = {
         item.get("coluna") for item in estrutura if isinstance(item, dict)
     }

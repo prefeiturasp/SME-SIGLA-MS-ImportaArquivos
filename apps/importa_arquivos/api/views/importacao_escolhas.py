@@ -16,18 +16,20 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ...models import ImportacaoEscolhas
-from ...serializers import (
-    ImportacaoErrosListSerializer,
+from importa_arquivos.models import ImportacaoEscolhas
+from importa_arquivos.repository import (
+    ImportacaoErroRepository,
+    ImportacaoEscolhasRepository,
+)
+from importa_arquivos.serializers import (
     ImportacaoEscolhasCreateSerializer,
     ImportacaoEscolhasListSerializer,
-    queryset_erros_por_modelo,
 )
-from ...services.api_escolhas import ApiEscolhasService
-from ...services.api_prodam import ApiProdamService
-from ...services.erros import registrar_erro
-from ...services.exceptions import ApiEscolhasException
-from ...utils import CustomPagination
+from importa_arquivos.services.api_escolhas import ApiEscolhasService
+from importa_arquivos.services.api_prodam import ApiProdamService
+from importa_arquivos.services.erros import registrar_erro
+from importa_arquivos.services.exceptions import ApiEscolhasException
+from importa_arquivos.utils import CustomPagination
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +78,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             logger.info(
                 f"Usando processo_id fixo (819) para processo_uuid={processo_uuid}"  # noqa: E501
             )
-        instance = ImportacaoEscolhas.objects.create(
+        instance = ImportacaoEscolhasRepository.criar(
             processo_uuid=processo_uuid,
             processo_id=processo_id,
             concurso_uuid=concurso_uuid,
@@ -94,8 +96,9 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                     "mensagem", "Erro desconhecido na API PRODAM"
                 )
                 logger.error(f"API PRODAM retornou erro: {mensagem_erro}")
-                instance.status = "ERRO"
-                instance.save()
+                ImportacaoEscolhasRepository.atualizar(
+                    instance, status="ERRO"
+                )
                 registrar_erro(
                     instance,
                     mensagem="Erro na resposta da API PRODAM",
@@ -108,12 +111,14 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             dados_prodam = resposta_api.get(
                 "lstDadosResultadoConvocacaoIngresso", []
             )
-            instance.dados_prodam = dados_prodam
-            instance.save(update_fields=["dados_prodam"])
+            ImportacaoEscolhasRepository.atualizar(
+                instance, dados_prodam=dados_prodam
+            )
             if not dados_prodam:
                 logger.warning("API PRODAM retornou lista vazia")
-                instance.status = "CONCLUIDO"
-                instance.save()
+                ImportacaoEscolhasRepository.atualizar(
+                    instance, status="CONCLUIDO"
+                )
                 serializer_response = ImportacaoEscolhasListSerializer(
                     instance
                 )
@@ -130,8 +135,9 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                 dados_prodam=dados_prodam,
                 importacao_obj=instance,
             )
-            instance.status = "CONCLUIDO"
-            instance.save()
+            ImportacaoEscolhasRepository.atualizar(
+                instance, status="CONCLUIDO"
+            )
             logger.info(
                 f"Importação concluída com sucesso: {len(dados_prodam)} registros"  # noqa: E501
             )
@@ -140,8 +146,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                 f"Erro da API de escolhas durante importação: {exc}",
                 exc_info=True,
             )
-            instance.status = "ERRO"
-            instance.save()
+            ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
             with contextlib.suppress(Exception):
                 registrar_erro(
                     instance,
@@ -164,8 +169,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                 f"Erro de request durante importação de escolhas: {exc}",
                 exc_info=True,
             )
-            instance.status = "ERRO"
-            instance.save()
+            ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
             with contextlib.suppress(Exception):
                 registrar_erro(
                     instance,
@@ -181,8 +185,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             logger.error(
                 f"Erro durante importação de escolhas: {exc}", exc_info=True
             )
-            instance.status = "ERRO"
-            instance.save()
+            ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
             with contextlib.suppress(Exception):
                 registrar_erro(
                     instance,
@@ -194,7 +197,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                 {"detail": f"Erro ao processar importação: {str(exc)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        instance.refresh_from_db()
+        ImportacaoEscolhasRepository.recarregar(instance)
         serializer_response = ImportacaoEscolhasListSerializer(instance)
         headers = self.get_success_headers(serializer_response.data)
         return Response(
@@ -214,11 +217,10 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             Valor convertido ou validado.
         """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
-        qs = queryset_erros_por_modelo(
-            ImportacaoEscolhas, importacao_uuid=importacao_uuid
-        ).select_related("content_type")
-        serializer = ImportacaoErrosListSerializer(qs, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        itens = ImportacaoErroRepository.listar_por_modelo_e_uuid(
+            ImportacaoEscolhas, importacao_uuid
+        )
+        return Response(itens, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"], url_path="erros/download")
     def download_erros(self, request: Any) -> Any:
@@ -231,12 +233,11 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             Valor convertido ou validado.
         """
         importacao_uuid = request.query_params.get("importacao_uuid", None)
-        qs = queryset_erros_por_modelo(
-            ImportacaoEscolhas, importacao_uuid=importacao_uuid
-        ).select_related("content_type")
-        serializer = ImportacaoErrosListSerializer(qs, many=True)
+        itens = ImportacaoErroRepository.listar_por_modelo_e_uuid(
+            ImportacaoEscolhas, importacao_uuid
+        )
         linhas = []
-        for item in serializer.data:
+        for item in itens:
             erros = item.get("erros") or ""
             if erros:
                 partes_erro = erros.split(" | ")

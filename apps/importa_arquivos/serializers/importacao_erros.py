@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
-from ..models import (
+from importa_arquivos.models import (
     ImportacaoArquivoHabilitado,
     ImportacaoArquivoVagas,
     ImportacaoErro,
@@ -46,22 +45,3 @@ class ImportacaoErrosListSerializer(serializers.Serializer):
         except Exception:
             pass
         return data
-
-
-def queryset_erros_por_modelo(
-    model_cls: Any, importacao_uuid: Any = None
-) -> Any:
-    """Monta queryset de erros filtrado por modelo e UUID da importação.
-
-    Args:
-        model_cls: Classe do modelo de importação.
-        importacao_uuid: UUID da importação, se informado.
-
-    Returns:
-        QuerySet de ImportacaoErro filtrado por modelo e UUID da importação.
-    """
-    content_type = ContentType.objects.get_for_model(model_cls)
-    qs = ImportacaoErro.objects.filter(content_type=content_type)
-    if importacao_uuid:
-        qs = qs.filter(object_id=importacao_uuid)
-    return qs

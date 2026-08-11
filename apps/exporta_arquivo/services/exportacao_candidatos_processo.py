@@ -14,6 +14,7 @@ import re
 from typing import Any
 
 from exporta_arquivo.models import ExportacaoCandidatosProcesso
+from exporta_arquivo.repository import ExportacaoCandidatosProcessoRepository
 from exporta_arquivo.services import ApiCandidatosService, ApiConcursosService
 
 SEP = "|"
@@ -180,9 +181,11 @@ def exportar_candidatos_processo(
         Conteúdo textual gerado.
     """
     dados_concurso = ApiConcursosService().get_concurso(instance.concurso_uuid)  # type: ignore[arg-type]
-    instance.concurso_codigo = dados_concurso.get("codigo")
-    instance.concurso_data_criacao = dados_concurso.get("criado_em")
-    instance.save(update_fields=["concurso_codigo", "concurso_data_criacao"])
+    ExportacaoCandidatosProcessoRepository.atualizar(
+        instance,
+        concurso_codigo=dados_concurso.get("codigo"),
+        concurso_data_criacao=dados_concurso.get("criado_em"),
+    )
     lista_habilitados = ApiCandidatosService().get_habilitados(
         processo_uuid=instance.processo_uuid,
         codigo_cargo=instance.cargo_codigo,

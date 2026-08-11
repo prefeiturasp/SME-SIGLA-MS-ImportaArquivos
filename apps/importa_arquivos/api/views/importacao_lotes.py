@@ -11,20 +11,21 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ...models import ImportacaoLotes
-from ...serializers import (
+from importa_arquivos.models import ImportacaoLotes
+from importa_arquivos.repository import ImportacaoLotesRepository
+from importa_arquivos.serializers import (
     ImportacaoLotesCreateSerializer,
     ImportacaoLotesListSerializer,
 )
-from ...services.api_candidatos import ApiCandidatosService
-from ...services.exceptions import (
+from importa_arquivos.services.api_candidatos import ApiCandidatosService
+from importa_arquivos.services.exceptions import (
     BaseImportacaoException,
     ErrosValidacaoLotesException,
     ImportacaoBadRequestException,
     ImportacaoServiceUnavailableException,
 )
-from ...services.importacao_lotes import validar_txt_lotes
-from ...utils import CustomPagination
+from importa_arquivos.services.importacao_lotes import validar_txt_lotes
+from importa_arquivos.utils import CustomPagination
 
 logger = logging.getLogger(__name__)
 
@@ -113,12 +114,13 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        instance.status = "CONCLUIDO"
-        instance.total_atualizados = total
-        instance.save(
-            update_fields=["status", "total_atualizados", "detalhes"]
+        ImportacaoLotesRepository.atualizar(
+            instance,
+            status="CONCLUIDO",
+            total_atualizados=total,
+            detalhes=registros,
         )
-        instance.refresh_from_db()
+        ImportacaoLotesRepository.recarregar(instance)
         response_serializer = ImportacaoLotesListSerializer(instance)
         headers = self.get_success_headers(response_serializer.data)
         return Response(

@@ -15,7 +15,7 @@ from typing import Any
 
 from django.core.management.base import BaseCommand
 
-from exporta_arquivo.models import CabecalhoExportacaoLote
+from exporta_arquivo.repository import CabecalhoExportacaoLoteRepository
 
 TABELA_PADRAO = "[c_ERGON][PMSP_ESCOLHA_VAGA_SME][1.0]"
 CHAVE_PADRAO = "[ID_LOTE][NUMBER][EMP_CODIGO][NUMBER][CHAVE_INSCRITO][NUMBER]"
@@ -47,7 +47,7 @@ class Command(BaseCommand):
     def handle(self, *args: Any, **options: Any) -> None:
         """Cria ou recria o cabeçalho padrão de exportação."""
         force = options["force"]
-        existente = CabecalhoExportacaoLote.objects.filter(ativo=True).first()
+        existente = CabecalhoExportacaoLoteRepository.obter_ativo()
         if existente and (not force):
             self.stdout.write(
                 self.style.WARNING(
@@ -57,15 +57,13 @@ class Command(BaseCommand):
             )
             return
         if force and existente:
-            CabecalhoExportacaoLote.objects.filter(ativo=True).update(
-                ativo=False
-            )
+            CabecalhoExportacaoLoteRepository.desativar_todos_ativos()
             self.stdout.write(
                 self.style.WARNING(
                     f"Cabeçalho anterior (UUID={existente.uuid}) desativado."
                 )
             )
-        cabecalho = CabecalhoExportacaoLote.objects.create(
+        cabecalho = CabecalhoExportacaoLoteRepository.criar(
             tabela=TABELA_PADRAO,
             chave=CHAVE_PADRAO,
             tag_inicio="",

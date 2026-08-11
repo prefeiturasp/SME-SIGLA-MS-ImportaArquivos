@@ -10,8 +10,10 @@ import requests
 from django.conf import settings
 from requests.exceptions import RequestException
 
-from ..models.log_request_http import LogRequestHttp
-from ..serializers.importacao_escolhas import ResponseSerializer
+from importa_arquivos.repository import LogRequestHttpRepository
+from importa_arquivos.serializers.importacao_escolhas import (
+    ResponseSerializer,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +84,7 @@ class ApiProdamService:
             )  # type: ignore[arg-type]
             if response is not None:
                 try:
-                    LogRequestHttp.objects.create(
+                    LogRequestHttpRepository.criar(
                         url=url,
                         metodo_http="POST",
                         processo_id=processo_id,

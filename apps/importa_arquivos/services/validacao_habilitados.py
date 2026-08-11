@@ -10,15 +10,14 @@ from typing import Any
 
 from validate_docbr import CPF  # type: ignore[import-not-found]
 
-from importa_arquivos.models import LayoutArquivoImportacao
+from importa_arquivos.repository import LayoutArquivoImportacaoRepository
 from importa_arquivos.services.api_concursos import ApiConcursosService
+from importa_arquivos.services.erros import captura_erros_importacao
 from importa_arquivos.services.exceptions import (
     ColunaCSVInvalidaException,
     LayoutNaoConfiguradoException,
     LeituraCSVException,
 )
-
-from .erros import captura_erros_importacao
 
 logger = logging.getLogger(__name__)
 
@@ -263,15 +262,14 @@ def validar_csv_habilitados(
         LayoutNaoConfiguradoException: Se não tiver layout configurado.
         LeituraCSVException: Se não conseguir ler o arquivo CSV.
     """
-    try:
-        layout = LayoutArquivoImportacao.objects.filter(
-            tipo="HABILITADOS"
-        ).latest("criado_em")
-    except LayoutArquivoImportacao.DoesNotExist:
+    layout = LayoutArquivoImportacaoRepository.obter_mais_recente_por_tipo(
+        "HABILITADOS"
+    )
+    if layout is None:
         raise LayoutNaoConfiguradoException(
             "Layout HABILITADOS não configurado."
-        ) from None
-    estrutura: list[dict] = layout.estrutura or []
+        )
+    estrutura: list[dict] = layout["estrutura"] or []
     colunas_esperadas = {
         item.get("coluna") for item in estrutura if isinstance(item, dict)
     }

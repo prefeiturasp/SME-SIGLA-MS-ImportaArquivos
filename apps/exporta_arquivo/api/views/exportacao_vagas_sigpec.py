@@ -6,16 +6,19 @@ from typing import Any
 
 from django.http import HttpResponse
 
-from ...models import ExportacaoVagasSigpec
-from ...serializers import (
+from exporta_arquivo.api.views.base import BaseExportacaoViewSet
+from exporta_arquivo.models import ExportacaoVagasSigpec
+from exporta_arquivo.repository import ExportacaoVagasSigpecRepository
+from exporta_arquivo.serializers import (
     ExportacaoVagasSigpecCreateSerializer,
     ExportacaoVagasSigpecListSerializer,
 )
-from ...services.exportacao_vagas_sigpec import (
+from exporta_arquivo.services.exportacao_vagas_sigpec import (
     buscar_vagas_escolas as buscar_vagas_escolas_sigpec,
 )
-from ...services.exportacao_vagas_sigpec import formatar_arquivo_sigpec
-from .base import BaseExportacaoViewSet
+from exporta_arquivo.services.exportacao_vagas_sigpec import (
+    formatar_arquivo_sigpec,
+)
 
 
 class ExportacaoVagasSigpecViewSet(BaseExportacaoViewSet):
@@ -71,6 +74,6 @@ class ExportacaoVagasSigpecViewSet(BaseExportacaoViewSet):
             instance.cargo_nome, max_len=60
         )
         nome_arquivo = f"exportacao-vagas-sigpec-{cargo_safe}.{instance.cargo_codigo}.{desc_safe}.txt"  # noqa: E501
-        instance.conteudo_arquivo = conteudo
-        instance.nome_arquivo = nome_arquivo
-        instance.save(update_fields=["conteudo_arquivo", "nome_arquivo"])
+        ExportacaoVagasSigpecRepository.atualizar(
+            instance, conteudo_arquivo=conteudo, nome_arquivo=nome_arquivo
+        )
