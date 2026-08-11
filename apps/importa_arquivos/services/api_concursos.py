@@ -27,13 +27,8 @@ class ApiConcursosService:
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
-        self.base_url = (
-            base_url
-            or getattr(settings, "CONCURSOS_API_URL", "http://localhost:8001")
-        ).rstrip("/")
-        self.timeout_seconds = timeout_seconds or getattr(
-            settings, "CONCURSOS_API_TIMEOUT", 10
-        )
+        self.base_url = (base_url or settings.CONCURSOS_API_URL).rstrip("/")
+        self.timeout_seconds = timeout_seconds or 60
         self._default_headers = {
             "Accept": "application/json",
             settings.API_KEY_HEADER: settings.CONCURSOS_API_KEY,

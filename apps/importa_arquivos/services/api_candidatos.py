@@ -35,13 +35,8 @@ class ApiCandidatosService:
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
-        self.base_url = (
-            base_url
-            or getattr(settings, "CANDIDATOS_API_URL", "http://localhost:8000")
-        ).rstrip("/")
-        self.timeout_seconds = timeout_seconds or getattr(
-            settings, "CANDIDATOS_API_TIMEOUT", 30
-        )
+        self.base_url = (base_url or settings.CANDIDATOS_API_URL).rstrip("/")
+        self.timeout_seconds = timeout_seconds or 60
         self._default_headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",

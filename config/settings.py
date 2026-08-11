@@ -229,14 +229,19 @@ CANDIDATOS_API_URL = os.environ.get(
     "CANDIDATOS_API_URL", "http://localhost:8000"
 )
 CANDIDATOS_API_TIMEOUT = int(os.environ.get("CANDIDATOS_API_TIMEOUT", 30))
+CANDIDATOS_API_KEY = os.environ.get(
+    "CANDIDATOS_API_KEY", "api-key-candidatos"
+)
 
 CONCURSOS_API_URL = os.environ.get(
     "CONCURSOS_API_URL", "http://localhost:8001"
 )
 CONCURSOS_API_TIMEOUT = int(os.environ.get("CONCURSOS_API_TIMEOUT", 30))
+CONCURSOS_API_KEY = os.environ.get("CONCURSOS_API_KEY", "api-key-concursos")
 
 ESCOLHA_API_URL = os.environ.get("ESCOLHA_API_URL", "http://localhost:8004")
 ESCOLHA_API_TIMEOUT = int(os.environ.get("ESCOLHA_API_TIMEOUT", 30))
+ESCOLHA_API_KEY = os.environ.get("ESCOLHA_API_KEY", "api-key-escolha")
 
 PROCESSOS_CONVOCACAO_API_URL = os.environ.get(
     "PROCESSOS_CONVOCACAO_API_URL", "http://localhost:8000"
@@ -248,12 +253,6 @@ PROCESSOS_CONVOCACAO_API_TIMEOUT = int(
 # API Key (autenticação entre microsserviços)
 API_KEY = os.environ.get("API_KEY", "api-key-importa-arquivos")
 API_KEY_HEADER = os.environ.get("API_KEY_HEADER", "X-API-Key")
-
-CANDIDATOS_API_KEY = os.environ.get(
-    "CANDIDATOS_API_KEY", "api-key-candidatos"
-)
-CONCURSOS_API_KEY = os.environ.get("CONCURSOS_API_KEY", "api-key-concursos")
-ESCOLHA_API_KEY = os.environ.get("ESCOLHA_API_KEY", "api-key-escolha")
 
 from datetime import timedelta
 
