@@ -40,7 +40,10 @@ class ApiCandidatosService:
         self.timeout_seconds = timeout_seconds or getattr(
             settings, "CANDIDATOS_API_TIMEOUT", 30
         )
-        self._default_headers = {"Accept": "application/json"}
+        self._default_headers = {
+            "Accept": "application/json",
+            settings.API_KEY_HEADER: settings.CANDIDATOS_API_KEY,
+        }
 
     def get_habilitados(self, **kwargs: Any) -> list[dict[str, Any]]:
         """Retorna habilitados.

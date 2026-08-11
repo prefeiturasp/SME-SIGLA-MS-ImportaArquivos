@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import logging
 
-import requests
+from django.conf import settings
 from requests.exceptions import RequestException
+from sigla_sdk.http.api_client import http_client
 
 from importa_arquivos.services.exceptions import CargoConcursoInvalidoException
 
@@ -15,15 +16,23 @@ logger = logging.getLogger(__name__)
 class ApiConcursosService:
     """Serviço para operações de apiconcursos."""
 
-    def __init__(self, base_url: str, timeout_seconds: int = 10) -> None:
+    def __init__(
+        self,
+        base_url: str | None = None,
+        timeout_seconds: int | None = None,
+    ) -> None:
         """Inicializa a instância com os parâmetros informados.
 
         Args:
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
-        self.base_url = base_url.rstrip("/")
-        self.timeout_seconds = timeout_seconds
+        self.base_url = (base_url or settings.CONCURSOS_API_URL).rstrip("/")
+        self.timeout_seconds = timeout_seconds or 60
+        self._default_headers = {
+            "Accept": "application/json",
+            settings.API_KEY_HEADER: settings.CONCURSOS_API_KEY,
+        }
 
     def obter_codigos_cargo_do_concurso(self, concurso_uuid: str) -> set[int]:
         """Obtém codigos cargo do concurso.
@@ -40,7 +49,11 @@ class ApiConcursosService:
         """
         url = f"{self.base_url}/api/v1/concursos/{concurso_uuid}/"
         try:
-            response = requests.get(url, timeout=self.timeout_seconds)
+            response = http_client.get(
+                url,
+                headers=self._default_headers,
+                timeout=self.timeout_seconds,
+            )
         except RequestException as exc:
             logger.error("Erro ao consultar concursos API: %s", exc)
             raise CargoConcursoInvalidoException(

@@ -6,7 +6,6 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from django.conf import settings
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
@@ -95,7 +94,7 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            ApiEscolhasService(base_url=settings.ESCOLHA_API_URL).enviar_vagas(
+            ApiEscolhasService().enviar_vagas(
                 registros=registros,
                 estrutura=estrutura,
                 processo_uuid=str(instance.processo_uuid)

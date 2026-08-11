@@ -6,7 +6,6 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from django.conf import settings
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
@@ -96,9 +95,7 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            ApiCandidatosService(
-                base_url=settings.CANDIDATOS_API_URL
-            ).enviar_habilitados(
+            ApiCandidatosService().enviar_habilitados(
                 registros=registros,
                 estrutura=estrutura,
                 concurso_uuid=str(instance.concurso_uuid)

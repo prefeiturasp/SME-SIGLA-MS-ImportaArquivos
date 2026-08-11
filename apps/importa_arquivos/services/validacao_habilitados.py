@@ -8,7 +8,6 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from django.conf import settings
 from validate_docbr import CPF  # type: ignore[import-not-found]
 
 from importa_arquivos.models import LayoutArquivoImportacao
@@ -311,10 +310,7 @@ def validar_csv_habilitados(
     )
     codigos_cargo_concurso: set = set()
     if concurso_uuid:
-        service = ApiConcursosService(
-            base_url=settings.CONCURSOS_API_URL,
-            timeout_seconds=getattr(settings, "CONCURSOS_API_TIMEOUT", 10),
-        )
+        service = ApiConcursosService()
         codigos_cargo_concurso = service.obter_codigos_cargo_do_concurso(
             concurso_uuid
         )

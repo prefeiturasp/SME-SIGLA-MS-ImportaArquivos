@@ -44,7 +44,10 @@ class ApiLoteCandidatosService:
         self.timeout_seconds = timeout_seconds or getattr(
             settings, "CANDIDATOS_API_TIMEOUT", 30
         )
-        self._default_headers = {"Accept": "application/json"}
+        self._default_headers = {
+            "Accept": "application/json",
+            settings.API_KEY_HEADER: settings.CANDIDATOS_API_KEY,
+        }
 
     def _fazer_request_get(
         self, url: str, params: dict, descricao_contexto: str
@@ -173,6 +176,7 @@ class ApiLoteEscolhasService:
         self._default_headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
+            settings.API_KEY_HEADER: settings.ESCOLHA_API_KEY,
         }
 
     def get_escolhas_lote(

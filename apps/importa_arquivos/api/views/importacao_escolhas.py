@@ -7,7 +7,6 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from django.conf import settings
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from requests.exceptions import RequestException
@@ -124,10 +123,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             logger.info(
                 f"Enviando {len(dados_prodam)} registros para MS-Escolhas"
             )
-            api_escolhas_service = ApiEscolhasService(
-                base_url=settings.ESCOLHA_API_URL,
-                timeout_seconds=settings.ESCOLHA_API_TIMEOUT,
-            )
+            api_escolhas_service = ApiEscolhasService()
             api_escolhas_service.enviar_escolhas_prodam(
                 processo_uuid=processo_uuid,
                 concurso_uuid=concurso_uuid,

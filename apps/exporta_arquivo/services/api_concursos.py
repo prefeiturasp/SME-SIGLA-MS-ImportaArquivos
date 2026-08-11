@@ -43,6 +43,7 @@ class ApiConcursosService:
         )
         self._default_headers: dict[str, str] = {
             "Accept": "application/json",
+            settings.API_KEY_HEADER: settings.CONCURSOS_API_KEY,
         }
 
     def get_concurso(self, concurso_uuid: str) -> dict[str, Any]:

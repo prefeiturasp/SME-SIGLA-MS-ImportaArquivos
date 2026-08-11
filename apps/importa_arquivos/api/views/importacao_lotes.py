@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from django.conf import settings
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -93,9 +92,7 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
         instance.detalhes = registros
         concurso_uuid = str(instance.concurso_uuid)
         try:
-            total = ApiCandidatosService(
-                base_url=settings.CANDIDATOS_API_URL
-            ).salvar_lotes(
+            total = ApiCandidatosService().salvar_lotes(
                 concurso_uuid=concurso_uuid,
                 lotes=registros,
                 importacao_obj=instance,

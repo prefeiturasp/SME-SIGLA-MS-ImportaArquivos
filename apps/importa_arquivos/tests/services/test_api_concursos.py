@@ -6,6 +6,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.test import override_settings
 
 from importa_arquivos.services.api_concursos import ApiConcursosService
 from importa_arquivos.services.exceptions import CargoConcursoInvalidoException
@@ -31,7 +32,7 @@ def test_obter_codigos_cargo_sucesso() -> None:
         ],
     }
     with patch(
-        "importa_arquivos.services.api_concursos.requests.get",
+        "importa_arquivos.services.api_concursos.http_client.get",
         return_value=mock_resp,
     ):
         codigos = _make_service().obter_codigos_cargo_do_concurso(
@@ -46,7 +47,7 @@ def test_obter_codigos_cargo_sem_cargos() -> None:
     mock_resp.status_code = 200
     mock_resp.json.return_value = {"uuid": "abc", "cargos": []}
     with patch(
-        "importa_arquivos.services.api_concursos.requests.get",
+        "importa_arquivos.services.api_concursos.http_client.get",
         return_value=mock_resp,
     ):
         codigos = _make_service().obter_codigos_cargo_do_concurso(
@@ -61,7 +62,7 @@ def test_obter_codigos_cargo_404_lanca_excecao() -> None:
     mock_resp.status_code = 404
     with (
         patch(
-            "importa_arquivos.services.api_concursos.requests.get",
+            "importa_arquivos.services.api_concursos.http_client.get",
             return_value=mock_resp,
         ),
         pytest.raises(CargoConcursoInvalidoException) as exc,
@@ -76,7 +77,7 @@ def test_obter_codigos_cargo_erro_conexao_lanca_excecao() -> None:
 
     with (
         patch(
-            "importa_arquivos.services.api_concursos.requests.get",
+            "importa_arquivos.services.api_concursos.http_client.get",
             side_effect=RequestException("timeout"),
         ),
         pytest.raises(CargoConcursoInvalidoException) as exc,
@@ -91,9 +92,30 @@ def test_obter_codigos_cargo_5xx_lanca_excecao() -> None:
     mock_resp.status_code = 500
     with (
         patch(
-            "importa_arquivos.services.api_concursos.requests.get",
+            "importa_arquivos.services.api_concursos.http_client.get",
             return_value=mock_resp,
         ),
         pytest.raises(CargoConcursoInvalidoException),
     ):
         _make_service().obter_codigos_cargo_do_concurso("uuid-concurso")
+
+
+@override_settings(
+    CONCURSOS_API_KEY="test-key-concursos",
+    API_KEY_HEADER="X-API-Key",
+)
+def test_obter_codigos_cargo_envia_api_key() -> None:
+    """Verifica envio do header X-API-Key ao chamar MS-Concursos."""
+    service = ApiConcursosService(base_url="http://concursos-api")
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {"cargos": []}
+    with patch(
+        "importa_arquivos.services.api_concursos.http_client.get",
+        return_value=mock_resp,
+    ) as mock_get:
+        service.obter_codigos_cargo_do_concurso("uuid-concurso")
+    assert (
+        mock_get.call_args.kwargs["headers"]["X-API-Key"]
+        == "test-key-concursos"
+    )

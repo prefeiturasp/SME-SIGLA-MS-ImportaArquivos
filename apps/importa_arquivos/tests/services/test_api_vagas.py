@@ -6,6 +6,7 @@ from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
+from django.test import override_settings
 from requests import RequestException
 
 from importa_arquivos.models import ImportacaoArquivoVagas, ImportacaoErro
@@ -205,3 +206,22 @@ def test_enviar_vagas_erro_400_outro_codigo_gatilha_request_exception() -> (
         assert exc.status_code == 400
         assert exc.mensagem == "Falha ao enviar vagas para API externa"
         assert "erro genérico" in (exc.detalhes or "")
+
+
+@override_settings(
+    ESCOLHA_API_KEY="test-key-escolha",
+    API_KEY_HEADER="X-API-Key",
+)
+def test_api_escolhas_envia_api_key() -> None:
+    """Verifica envio do header X-API-Key ao chamar MS-Escolha."""
+    service = ApiEscolhasService(base_url="https://api.exemplo")
+    with patch("sigla_sdk.http.api_client.http_client.post") as mock_post:
+        mock_resp = Mock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {}
+        mock_post.return_value = mock_resp
+        service.enviar_vagas(registros=[], estrutura=[])
+    assert (
+        mock_post.call_args.kwargs["headers"]["X-API-Key"]
+        == "test-key-escolha"
+    )

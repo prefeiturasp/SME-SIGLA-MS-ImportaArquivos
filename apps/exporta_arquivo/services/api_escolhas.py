@@ -36,7 +36,10 @@ class ApiEscolhasService:
         self.timeout_seconds = timeout_seconds or getattr(
             settings, "ESCOLHA_API_TIMEOUT", 30
         )
-        self._default_headers = {"Accept": "application/json"}
+        self._default_headers = {
+            "Accept": "application/json",
+            settings.API_KEY_HEADER: settings.ESCOLHA_API_KEY,
+        }
 
     def get_vagas_escolas(
         self, processo_uuid: str, cargo_codigo: str | int
