@@ -6,16 +6,16 @@ from typing import Any
 
 from django.http import HttpResponse
 
-from ...models import ExportacaoCandidatosProcesso
-from ...repository import ExportacaoCandidatosProcessoRepository
-from ...serializers import (
+from exporta_arquivo.api.views.base import BaseExportacaoViewSet
+from exporta_arquivo.models import ExportacaoCandidatosProcesso
+from exporta_arquivo.repository import ExportacaoCandidatosProcessoRepository
+from exporta_arquivo.serializers import (
     ExportacaoCandidatosProcessoCreateSerializer,
     ExportacaoCandidatosProcessoListSerializer,
 )
-from ...services.exportacao_candidatos_processo import (
+from exporta_arquivo.services.exportacao_candidatos_processo import (
     exportar_candidatos_processo,
 )
-from .base import BaseExportacaoViewSet
 
 
 class ExportacaoCandidatosProcessoViewSet(BaseExportacaoViewSet):
@@ -68,6 +68,6 @@ class ExportacaoCandidatosProcessoViewSet(BaseExportacaoViewSet):
             f"candidatos_processo_{desc_safe}_"
             f"{instance.concurso_codigo}.txt"
         )
-        ExportacaoCandidatosProcessoRepository.atualizar_arquivo(
+        ExportacaoCandidatosProcessoRepository.atualizar(
             instance, conteudo_arquivo=conteudo, nome_arquivo=nome_arquivo
         )

@@ -16,20 +16,20 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ...models import ImportacaoEscolhas
-from ...repository import (
+from importa_arquivos.models import ImportacaoEscolhas
+from importa_arquivos.repository import (
     ImportacaoErroRepository,
     ImportacaoEscolhasRepository,
 )
-from ...serializers import (
+from importa_arquivos.serializers import (
     ImportacaoEscolhasCreateSerializer,
     ImportacaoEscolhasListSerializer,
 )
-from ...services.api_escolhas import ApiEscolhasService
-from ...services.api_prodam import ApiProdamService
-from ...services.erros import registrar_erro
-from ...services.exceptions import ApiEscolhasException
-from ...utils import CustomPagination
+from importa_arquivos.services.api_escolhas import ApiEscolhasService
+from importa_arquivos.services.api_prodam import ApiProdamService
+from importa_arquivos.services.erros import registrar_erro
+from importa_arquivos.services.exceptions import ApiEscolhasException
+from importa_arquivos.utils import CustomPagination
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,9 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                     "mensagem", "Erro desconhecido na API PRODAM"
                 )
                 logger.error(f"API PRODAM retornou erro: {mensagem_erro}")
-                ImportacaoEscolhasRepository.atualizar_status(instance, "ERRO")
+                ImportacaoEscolhasRepository.atualizar(
+                    instance, status="ERRO"
+                )
                 registrar_erro(
                     instance,
                     mensagem="Erro na resposta da API PRODAM",
@@ -109,13 +111,13 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             dados_prodam = resposta_api.get(
                 "lstDadosResultadoConvocacaoIngresso", []
             )
-            ImportacaoEscolhasRepository.atualizar_dados_prodam(
-                instance, dados_prodam
+            ImportacaoEscolhasRepository.atualizar(
+                instance, dados_prodam=dados_prodam
             )
             if not dados_prodam:
                 logger.warning("API PRODAM retornou lista vazia")
-                ImportacaoEscolhasRepository.atualizar_status(
-                    instance, "CONCLUIDO"
+                ImportacaoEscolhasRepository.atualizar(
+                    instance, status="CONCLUIDO"
                 )
                 serializer_response = ImportacaoEscolhasListSerializer(
                     instance
@@ -133,8 +135,8 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                 dados_prodam=dados_prodam,
                 importacao_obj=instance,
             )
-            ImportacaoEscolhasRepository.atualizar_status(
-                instance, "CONCLUIDO"
+            ImportacaoEscolhasRepository.atualizar(
+                instance, status="CONCLUIDO"
             )
             logger.info(
                 f"Importação concluída com sucesso: {len(dados_prodam)} registros"  # noqa: E501
@@ -144,7 +146,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                 f"Erro da API de escolhas durante importação: {exc}",
                 exc_info=True,
             )
-            ImportacaoEscolhasRepository.atualizar_status(instance, "ERRO")
+            ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
             with contextlib.suppress(Exception):
                 registrar_erro(
                     instance,
@@ -167,7 +169,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                 f"Erro de request durante importação de escolhas: {exc}",
                 exc_info=True,
             )
-            ImportacaoEscolhasRepository.atualizar_status(instance, "ERRO")
+            ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
             with contextlib.suppress(Exception):
                 registrar_erro(
                     instance,
@@ -183,7 +185,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             logger.error(
                 f"Erro durante importação de escolhas: {exc}", exc_info=True
             )
-            ImportacaoEscolhasRepository.atualizar_status(instance, "ERRO")
+            ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
             with contextlib.suppress(Exception):
                 registrar_erro(
                     instance,

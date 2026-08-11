@@ -27,33 +27,14 @@ from importa_arquivos.serializers.layout import (
 class ImportacaoArquivoHabilitadoRepository:
     """Consultas e persistência de importações de habilitados."""
 
-    @staticmethod
-    def salvar(
-        instancia: ImportacaoArquivoHabilitado,
-        *,
-        campos_atualizacao: list[str] | None = None,
-    ) -> None:
-        """Persiste a instância, usando update_fields quando informado."""
-        if campos_atualizacao:
-            instancia.save(update_fields=campos_atualizacao)
-        else:
-            instancia.save()
-
     @classmethod
-    def atualizar_quantidade(
-        cls, instancia: ImportacaoArquivoHabilitado, quantidade: int
+    def atualizar(
+        cls, instancia: ImportacaoArquivoHabilitado, **campos: Any
     ) -> None:
-        """Seta a quantidade de registros e salva."""
-        instancia.quantidade = quantidade
-        cls.salvar(instancia, campos_atualizacao=["quantidade"])
-
-    @classmethod
-    def atualizar_status(
-        cls, instancia: ImportacaoArquivoHabilitado, status: str
-    ) -> None:
-        """Seta o status e salva."""
-        instancia.status = status
-        cls.salvar(instancia, campos_atualizacao=["status"])
+        """Atualiza os campos informados na instância e persiste."""
+        for campo, valor in campos.items():
+            setattr(instancia, campo, valor)
+        instancia.save(update_fields=list(campos.keys()))
 
     @staticmethod
     def recarregar(
@@ -67,25 +48,14 @@ class ImportacaoArquivoHabilitadoRepository:
 class ImportacaoArquivoVagasRepository:
     """Consultas e persistência de importações de vagas."""
 
-    @staticmethod
-    def salvar(
-        instancia: ImportacaoArquivoVagas,
-        *,
-        campos_atualizacao: list[str] | None = None,
-    ) -> None:
-        """Persiste a instância, usando update_fields quando informado."""
-        if campos_atualizacao:
-            instancia.save(update_fields=campos_atualizacao)
-        else:
-            instancia.save()
-
     @classmethod
-    def atualizar_status(
-        cls, instancia: ImportacaoArquivoVagas, status: str
+    def atualizar(
+        cls, instancia: ImportacaoArquivoVagas, **campos: Any
     ) -> None:
-        """Seta o status e salva."""
-        instancia.status = status
-        cls.salvar(instancia, campos_atualizacao=["status"])
+        """Atualiza os campos informados na instância e persiste."""
+        for campo, valor in campos.items():
+            setattr(instancia, campo, valor)
+        instancia.save(update_fields=list(campos.keys()))
 
     @staticmethod
     def recarregar(
@@ -99,34 +69,12 @@ class ImportacaoArquivoVagasRepository:
 class ImportacaoLotesRepository:
     """Consultas e persistência de importações de lotes de classificação."""
 
-    @staticmethod
-    def salvar(
-        instancia: ImportacaoLotes,
-        *,
-        campos_atualizacao: list[str] | None = None,
-    ) -> None:
-        """Persiste a instância, usando update_fields quando informado."""
-        if campos_atualizacao:
-            instancia.save(update_fields=campos_atualizacao)
-        else:
-            instancia.save()
-
     @classmethod
-    def concluir(
-        cls,
-        instancia: ImportacaoLotes,
-        *,
-        total_atualizados: int,
-        detalhes: Any,
-    ) -> None:
-        """Marca status=CONCLUIDO e persiste total_atualizados/detalhes."""
-        instancia.status = "CONCLUIDO"
-        instancia.total_atualizados = total_atualizados
-        instancia.detalhes = detalhes
-        cls.salvar(
-            instancia,
-            campos_atualizacao=["status", "total_atualizados", "detalhes"],
-        )
+    def atualizar(cls, instancia: ImportacaoLotes, **campos: Any) -> None:
+        """Atualiza os campos informados na instância e persiste."""
+        for campo, valor in campos.items():
+            setattr(instancia, campo, valor)
+        instancia.save(update_fields=list(campos.keys()))
 
     @staticmethod
     def recarregar(instancia: ImportacaoLotes) -> ImportacaoLotes:
@@ -157,33 +105,12 @@ class ImportacaoEscolhasRepository:
         """Cria uma importação de escolhas."""
         return ImportacaoEscolhas.objects.create(**dados)
 
-    @staticmethod
-    def salvar(
-        instancia: ImportacaoEscolhas,
-        *,
-        campos_atualizacao: list[str] | None = None,
-    ) -> None:
-        """Persiste a instância, usando update_fields quando informado."""
-        if campos_atualizacao:
-            instancia.save(update_fields=campos_atualizacao)
-        else:
-            instancia.save()
-
     @classmethod
-    def atualizar_status(
-        cls, instancia: ImportacaoEscolhas, status: str
-    ) -> None:
-        """Seta o status e salva."""
-        instancia.status = status
-        cls.salvar(instancia)
-
-    @classmethod
-    def atualizar_dados_prodam(
-        cls, instancia: ImportacaoEscolhas, dados_prodam: Any
-    ) -> None:
-        """Seta dados_prodam e salva."""
-        instancia.dados_prodam = dados_prodam
-        cls.salvar(instancia, campos_atualizacao=["dados_prodam"])
+    def atualizar(cls, instancia: ImportacaoEscolhas, **campos: Any) -> None:
+        """Atualiza os campos informados na instância e persiste."""
+        for campo, valor in campos.items():
+            setattr(instancia, campo, valor)
+        instancia.save(update_fields=list(campos.keys()))
 
     @staticmethod
     def recarregar(instancia: ImportacaoEscolhas) -> ImportacaoEscolhas:

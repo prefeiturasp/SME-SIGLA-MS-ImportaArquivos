@@ -6,7 +6,7 @@ from typing import Any
 
 from rest_framework import serializers
 
-from ..models import (
+from importa_arquivos.models import (
     ImportacaoArquivoHabilitado,
     ImportacaoArquivoVagas,
     ImportacaoErro,

@@ -181,7 +181,7 @@ def exportar_candidatos_processo(
         Conteúdo textual gerado.
     """
     dados_concurso = ApiConcursosService().get_concurso(instance.concurso_uuid)  # type: ignore[arg-type]
-    ExportacaoCandidatosProcessoRepository.atualizar_dados_concurso(
+    ExportacaoCandidatosProcessoRepository.atualizar(
         instance,
         concurso_codigo=dados_concurso.get("codigo"),
         concurso_data_criacao=dados_concurso.get("criado_em"),

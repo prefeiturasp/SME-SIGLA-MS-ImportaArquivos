@@ -13,17 +13,19 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from importa_arquivos.utils import CustomPagination
-
-from ...models import ExportacaoLote
-from ...repository import ExportacaoLoteRepository
-from ...serializers import (
+from exporta_arquivo.api.views.base import _sanitizar_nome_arquivo
+from exporta_arquivo.models import ExportacaoLote
+from exporta_arquivo.models.exportacao_lote import StatusExportacao
+from exporta_arquivo.repository import ExportacaoLoteRepository
+from exporta_arquivo.serializers import (
     ExportacaoLoteCreateSerializer,
     ExportacaoLoteListSerializer,
 )
-from ...services.exceptions import ExportacaoLoteIncompletaException
-from ...services.exportacao_lote import exportar_lote
-from .base import _sanitizar_nome_arquivo
+from exporta_arquivo.services.exceptions import (
+    ExportacaoLoteIncompletaException,
+)
+from exporta_arquivo.services.exportacao_lote import exportar_lote
+from importa_arquivos.utils import CustomPagination
 
 logger = logging.getLogger(__name__)
 
@@ -82,10 +84,11 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
                 else str(instance.lote_uuid)
             )
             nome_arquivo_erro = f"candidatos_sem_escolha_lote_{_sanitizar_nome_arquivo(str(lote_id))}.txt"  # noqa: E501
-            ExportacaoLoteRepository.marcar_atencao(
+            ExportacaoLoteRepository.atualizar(
                 instance,
                 conteudo_arquivo=conteudo_erro,
                 nome_arquivo=nome_arquivo_erro,
+                status=StatusExportacao.ATENCAO,
             )
             response = HttpResponse(
                 conteudo_erro.encode("utf-8"),
@@ -100,7 +103,9 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
             logger.warning(
                 f"Exportação: {instance.uuid} | {exc.mensagem} | {exc.detalhes}"  # noqa: E501
             )  # type: ignore[attr-defined]
-            ExportacaoLoteRepository.marcar_erro(instance)
+            ExportacaoLoteRepository.atualizar(
+                instance, status=StatusExportacao.ERRO
+            )
             return Response(
                 {"mensagem": exc.mensagem, "detail": exc.detalhes},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -113,8 +118,11 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
         nome_arquivo = (
             f"exportacao_lote_{_sanitizar_nome_arquivo(str(lote_id))}.txt"
         )
-        ExportacaoLoteRepository.marcar_sucesso(
-            instance, conteudo_arquivo=conteudo, nome_arquivo=nome_arquivo
+        ExportacaoLoteRepository.atualizar(
+            instance,
+            conteudo_arquivo=conteudo,
+            nome_arquivo=nome_arquivo,
+            status=StatusExportacao.SUCESSO,
         )
         response = HttpResponse(
             conteudo.encode("utf-8"), content_type="text/plain; charset=utf-8"

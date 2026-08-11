@@ -12,13 +12,12 @@ from validate_docbr import CPF  # type: ignore[import-not-found]
 
 from importa_arquivos.repository import LayoutArquivoImportacaoRepository
 from importa_arquivos.services.api_concursos import ApiConcursosService
+from importa_arquivos.services.erros import captura_erros_importacao
 from importa_arquivos.services.exceptions import (
     ColunaCSVInvalidaException,
     LayoutNaoConfiguradoException,
     LeituraCSVException,
 )
-
-from .erros import captura_erros_importacao
 
 logger = logging.getLogger(__name__)
 

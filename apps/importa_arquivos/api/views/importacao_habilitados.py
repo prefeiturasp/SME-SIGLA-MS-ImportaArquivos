@@ -71,8 +71,8 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
             registros, estrutura = validar_csv_habilitados(
                 instance.arquivo, importacao_obj=instance
             )
-            ImportacaoArquivoHabilitadoRepository.atualizar_quantidade(
-                instance, len(registros)
+            ImportacaoArquivoHabilitadoRepository.atualizar(
+                instance, quantidade=len(registros)
             )
         except (
             ColunaCSVInvalidaException,
@@ -127,8 +127,8 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         else:
-            ImportacaoArquivoHabilitadoRepository.atualizar_status(
-                instance, "CONCLUIDO"
+            ImportacaoArquivoHabilitadoRepository.atualizar(
+                instance, status="CONCLUIDO"
             )
         ImportacaoArquivoHabilitadoRepository.recarregar(instance)
         serializer = ImportacaoArquivoHabilitadosListSerializer(instance)

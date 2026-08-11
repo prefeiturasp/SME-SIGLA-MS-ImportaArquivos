@@ -1,24 +1,26 @@
 """Módulo serializers/__init__."""
 
-from .importacao_erros import ImportacaoErrosListSerializer
-from .importacao_escolhas import (
+from importa_arquivos.serializers.importacao_erros import (
+    ImportacaoErrosListSerializer,
+)
+from importa_arquivos.serializers.importacao_escolhas import (
     EscolhasImportacaoSerializer,
     ImportacaoEscolhasCreateSerializer,
     ImportacaoEscolhasListSerializer,
     ResponseSerializer,
 )
-from .importacao_habilitados import (
+from importa_arquivos.serializers.importacao_habilitados import (
     ImportacaoArquivoHabilitadosCreateSerializer,
     ImportacaoArquivoHabilitadosListSerializer,
 )
-from .importacao_lotes import (
+from importa_arquivos.serializers.importacao_lotes import (
     ImportacaoLotesCreateSerializer,
     ImportacaoLotesListSerializer,
 )
-from .importacao_vagas import (
+from importa_arquivos.serializers.importacao_vagas import (
     ImportacaoArquivoVagasCreateSerializer,
     ImportacaoArquivoVagasListSerializer,
 )
-from .layout import (
+from importa_arquivos.serializers.layout import (
     LayoutArquivoImportacaoSerializer,
 )

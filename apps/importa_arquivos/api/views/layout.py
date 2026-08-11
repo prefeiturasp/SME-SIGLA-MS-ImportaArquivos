@@ -15,10 +15,12 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ...models.base import CHOICES_TIPO_IMPORTACAO_ARQUIVO
-from ...models.layout import LayoutArquivoImportacao
-from ...repository import LayoutArquivoImportacaoRepository
-from ...serializers.layout import LayoutArquivoImportacaoSerializer
+from importa_arquivos.models.base import CHOICES_TIPO_IMPORTACAO_ARQUIVO
+from importa_arquivos.models.layout import LayoutArquivoImportacao
+from importa_arquivos.repository import LayoutArquivoImportacaoRepository
+from importa_arquivos.serializers.layout import (
+    LayoutArquivoImportacaoSerializer,
+)
 
 
 class LayoutArquivoImportacaoViewSet(viewsets.ModelViewSet):

@@ -80,8 +80,8 @@ def registrar_erro(
         mensagem = "Erro durante importação"
     if detalhes is None:
         detalhes = ""
-    _repositorio_para_instancia(importacao_obj).atualizar_status(
-        importacao_obj, "ERRO"
+    _repositorio_para_instancia(importacao_obj).atualizar(
+        importacao_obj, status="ERRO"
     )
     with transaction.atomic():
         return ImportacaoErroRepository.criar(

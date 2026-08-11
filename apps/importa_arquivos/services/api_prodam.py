@@ -10,8 +10,10 @@ import requests
 from django.conf import settings
 from requests.exceptions import RequestException
 
-from ..repository import LogRequestHttpRepository
-from ..serializers.importacao_escolhas import ResponseSerializer
+from importa_arquivos.repository import LogRequestHttpRepository
+from importa_arquivos.serializers.importacao_escolhas import (
+    ResponseSerializer,
+)
 
 logger = logging.getLogger(__name__)
 

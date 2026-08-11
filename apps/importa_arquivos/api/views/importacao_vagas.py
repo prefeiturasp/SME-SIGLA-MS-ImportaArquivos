@@ -14,25 +14,25 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from ...models import ImportacaoArquivoVagas
-from ...repository import (
+from importa_arquivos.models import ImportacaoArquivoVagas
+from importa_arquivos.repository import (
     ImportacaoArquivoVagasRepository,
     ImportacaoErroRepository,
 )
-from ...serializers import (
+from importa_arquivos.serializers import (
     ImportacaoArquivoVagasCreateSerializer,
     ImportacaoArquivoVagasListSerializer,
 )
-from ...services.api_escolhas import ApiEscolhasService
-from ...services.exceptions import (
+from importa_arquivos.services.api_escolhas import ApiEscolhasService
+from importa_arquivos.services.exceptions import (
     ApiEscolhasException,
     ColunaCSVInvalidaException,
     LayoutNaoConfiguradoException,
     LeituraCSVException,
     TipoUEDesabilitadoException,
 )
-from ...services.validacao_vagas import validar_csv_vagas
-from ...utils import CustomPagination
+from importa_arquivos.services.validacao_vagas import validar_csv_vagas
+from importa_arquivos.utils import CustomPagination
 
 
 class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
