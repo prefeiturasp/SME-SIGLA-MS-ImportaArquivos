@@ -18,8 +18,8 @@ from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
 from .exceptions import (
-    ExportacaoNotFoundException,
-    ExportacaoServiceUnavailableException,
+    ExportacaoNotFoundError,
+    ExportacaoServiceUnavailableError,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,10 +37,10 @@ class ApiLoteCandidatosService:
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
-        self.base_url = (
+        self.base_url = str(
             base_url
             or getattr(settings, "CANDIDATOS_API_URL", "http://localhost:8000")
-        ).rstrip("/")  # type: ignore[union-attr]
+        ).rstrip("/")
         self.timeout_seconds = timeout_seconds or getattr(
             settings, "CANDIDATOS_API_TIMEOUT", 30
         )
@@ -63,9 +63,9 @@ class ApiLoteCandidatosService:
             Lista com os registros obtidos.
 
         Raises:
-            ExportacaoNotFoundException: Quando os dados não são encontrados ou
+            ExportacaoNotFoundError: Quando os dados não são encontrados ou
                 a API está indisponível.
-            ExportacaoServiceUnavailableException: Serviço indisponível.
+            ExportacaoServiceUnavailableError: Serviço indisponível.
         """
         try:
             response = http_client.get(
@@ -80,12 +80,12 @@ class ApiLoteCandidatosService:
                 descricao_contexto,
                 exc,
             )
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem="Serviço de candidatos indisponível.",
                 detalhes=str(exc),
             ) from exc
         if response.status_code == 404:
-            raise ExportacaoNotFoundException(
+            raise ExportacaoNotFoundError(
                 mensagem=f"Dados não encontrados ({descricao_contexto}).",
                 detalhes=f"Parâmetros: {params}",
             )
@@ -95,12 +95,12 @@ class ApiLoteCandidatosService:
                 response.status_code,
                 response.text[:500],
             )
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem="Serviço de candidatos indisponível.",
                 detalhes=f"Status {response.status_code}",
             )
         if response.status_code != 200:
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem=f"Erro ao obter dados: {descricao_contexto}.",
                 detalhes=f"Status {response.status_code}",
             )
@@ -110,7 +110,7 @@ class ApiLoteCandidatosService:
             logger.exception(
                 "Resposta da API de candidatos não é JSON válido."
             )
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem="Resposta inválida do serviço de candidatos.",
                 detalhes=str(exc),
             ) from exc
@@ -166,10 +166,10 @@ class ApiLoteEscolhasService:
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
-        self.base_url = (
+        self.base_url = str(
             base_url
             or getattr(settings, "ESCOLHA_API_URL", "http://localhost:8004")
-        ).rstrip("/")  # type: ignore[union-attr]
+        ).rstrip("/")
         self.timeout_seconds = timeout_seconds or getattr(
             settings, "ESCOLHA_API_TIMEOUT", 30
         )
@@ -192,7 +192,7 @@ class ApiLoteEscolhasService:
             Lista com os registros obtidos.
 
         Raises:
-            ExportacaoServiceUnavailableException: Serviço indisponível.
+            ExportacaoServiceUnavailableError: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/escolhas/busca/"
         payload = {
@@ -210,7 +210,7 @@ class ApiLoteEscolhasService:
             logger.exception(
                 "Erro ao chamar API de escolhas (busca lote): %s", exc
             )
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem="Serviço de escolhas indisponível.", detalhes=str(exc)
             ) from exc
         if response.status_code >= 500:
@@ -219,12 +219,12 @@ class ApiLoteEscolhasService:
                 response.status_code,
                 response.text[:500],
             )
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem="Serviço de escolhas indisponível.",
                 detalhes=f"Status {response.status_code}",
             )
         if response.status_code != 200:
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem="Erro ao obter escolhas do lote.",
                 detalhes=f"Status {response.status_code}",
             )
@@ -232,7 +232,7 @@ class ApiLoteEscolhasService:
             data = response.json()
         except ValueError as exc:
             logger.exception("Resposta da API de escolhas não é JSON válido.")
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem="Resposta inválida do serviço de escolhas.",
                 detalhes=str(exc),
             ) from exc

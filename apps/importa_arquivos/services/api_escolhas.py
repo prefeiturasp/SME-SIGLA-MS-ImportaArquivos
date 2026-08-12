@@ -12,8 +12,8 @@ from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
 from importa_arquivos.services.exceptions import (
-    ApiEscolhasException,
-    TipoUEDesabilitadoException,
+    ApiEscolhasError,
+    TipoUEDesabilitadoError,
 )
 
 from .erros import captura_erros_importacao
@@ -104,9 +104,9 @@ class ApiEscolhasService:
             Dicionário com os dados processados.
 
         Raises:
-            ApiEscolhasException: Quando a API de escolhas falha ou retorna
+            ApiEscolhasError: Quando a API de escolhas falha ou retorna
                 erro.
-            TipoUEDesabilitadoException: Quando o tipo de UE informado está
+            TipoUEDesabilitadoError: Quando o tipo de UE informado está
                 desabilitado para importação.
         """
         url = f"{self.base_url}/api/v1/vagas-escolas/"
@@ -134,14 +134,14 @@ class ApiEscolhasService:
                     isinstance(data, dict)
                     and data.get("code") == "TIPO_UE_DESABILITADO"
                 ):
-                    raise TipoUEDesabilitadoException(
+                    raise TipoUEDesabilitadoError(
                         mensagem=str(
                             data.get("detail") or "Tipo de UE desabilitado"
                         ),
                         detalhes="TIPO_UE_DESABILITADO",
                     )
             if response.status_code >= 400:
-                raise ApiEscolhasException(
+                raise ApiEscolhasError(
                     mensagem="Falha ao enviar vagas para API externa",
                     detalhes=response.text or f"Status {response.status_code}",
                     status_code=response.status_code,
@@ -155,7 +155,7 @@ class ApiEscolhasService:
     def _transformar_escolhas_prodam_para_escolhas(
         self, dados_prodam: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
-        """Converte payload Prodam para o formato do MS-Escolhas.
+        """Transforma payload Prodam para o formato do MS-Escolhas.
 
         Args:
             dados_prodam: Payload retornado pela API Prodam.
@@ -202,7 +202,7 @@ class ApiEscolhasService:
             Dicionário com os dados processados.
 
         Raises:
-            ApiEscolhasException: Quando a API de escolhas falha ou retorna
+            ApiEscolhasError: Quando a API de escolhas falha ou retorna
                 erro.
         """
         url = f"{self.base_url}/api/v1/escolhas/importacao-prodam/"
@@ -229,7 +229,7 @@ class ApiEscolhasService:
             logger.error(f"Erro ao enviar escolhas para MS-Escolhas: {exc}")
             raise
         if response.status_code >= 400:
-            raise ApiEscolhasException(
+            raise ApiEscolhasError(
                 mensagem="Falha ao enviar escolhas para API externa",
                 detalhes=response.text or f"Status {response.status_code}",
                 status_code=response.status_code,

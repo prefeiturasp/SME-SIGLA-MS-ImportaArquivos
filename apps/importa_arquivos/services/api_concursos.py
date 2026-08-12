@@ -8,7 +8,7 @@ from django.conf import settings
 from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
-from importa_arquivos.services.exceptions import CargoConcursoInvalidoException
+from importa_arquivos.services.exceptions import CargoConcursoInvalidoError
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class ApiConcursosService:
             Conjunto de códigos inteiros dos cargos vinculados ao concurso.
 
         Raises:
-            CargoConcursoInvalidoException: Quando o concurso é inválido ou
+            CargoConcursoInvalidoError: Quando o concurso é inválido ou
                 a API está indisponível.
         """
         url = f"{self.base_url}/api/v1/concursos/{concurso_uuid}/"
@@ -56,17 +56,17 @@ class ApiConcursosService:
             )
         except RequestException as exc:
             logger.error("Erro ao consultar concursos API: %s", exc)
-            raise CargoConcursoInvalidoException(
+            raise CargoConcursoInvalidoError(
                 mensagem="Serviço de concursos indisponível.",
                 detalhes=str(exc),
             ) from exc
         if response.status_code == 404:
-            raise CargoConcursoInvalidoException(
+            raise CargoConcursoInvalidoError(
                 mensagem="Concurso não encontrado.",
                 detalhes=f"Concurso UUID '{concurso_uuid}' não encontrado na API de concursos.",  # noqa: E501
             )
         if response.status_code >= 500:
-            raise CargoConcursoInvalidoException(
+            raise CargoConcursoInvalidoError(
                 mensagem="Serviço de concursos indisponível.",
                 detalhes=f"Status {response.status_code} ao consultar concurso '{concurso_uuid}'.",  # noqa: E501
             )

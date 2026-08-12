@@ -1,7 +1,7 @@
 """Testes do ImportacaoLotesViewSet:.
 
-- create: sucesso (201), ErrosValidacaoLotesException (400),
-BaseImportacaoException (400),
+- create: sucesso (201), ErrosValidacaoLotesError (400),
+BaseImportacaoError (400),
           exceção genérica (400), falha na API de candidatos (400), serializer
           inválido (400)
 - list: 200 paginado, filtro por status
@@ -20,9 +20,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from importa_arquivos.models import ImportacaoLotes
 from importa_arquivos.services.exceptions import (
-    ArquivoLotesVazioException,
-    ErrosValidacaoLotesException,
-    ImportacaoServiceUnavailableException,
+    ArquivoLotesVazioError,
+    ErrosValidacaoLotesError,
+    ImportacaoServiceUnavailableError,
 )
 
 pytestmark = pytest.mark.django_db
@@ -81,9 +81,9 @@ class TestImportacaoLotesCreate:
             ),
             patch(
                 "importa_arquivos.api.views.importacao_lotes.ApiCandidatosService"
-            ) as MockApi,
+            ) as mock_api,
         ):
-            MockApi.return_value.salvar_lotes.return_value = 1
+            mock_api.return_value.salvar_lotes.return_value = 1
             resp = api_client.post(
                 LOTES_LIST_URL, _payload(), format="multipart"
             )
@@ -102,9 +102,9 @@ class TestImportacaoLotesCreate:
             ),
             patch(
                 "importa_arquivos.api.views.importacao_lotes.ApiCandidatosService"
-            ) as MockApi,
+            ) as mock_api,
         ):
-            MockApi.return_value.salvar_lotes.return_value = 3
+            mock_api.return_value.salvar_lotes.return_value = 3
             api_client.post(LOTES_LIST_URL, _payload(), format="multipart")
         registro = ImportacaoLotes.objects.order_by("-criado_em").first()
         assert registro.status == "CONCLUIDO"  # type: ignore[union-attr]
@@ -113,7 +113,7 @@ class TestImportacaoLotesCreate:
 
     def test_erros_validacao_retorna_400(self, api_client: Any) -> None:
         """Verifica erros validacao retorna 400."""
-        exc = ErrosValidacaoLotesException(
+        exc = ErrosValidacaoLotesError(
             mensagem="Erro ao validar.", detalhes="Linha 2: lote inválido."
         )
         with patch(
@@ -132,7 +132,7 @@ class TestImportacaoLotesCreate:
         self, api_client: Any
     ) -> None:
         """Verifica base importacao exception retorna 400."""
-        exc = ArquivoLotesVazioException(mensagem="Arquivo vazio.")
+        exc = ArquivoLotesVazioError(mensagem="Arquivo vazio.")
         with patch(
             "importa_arquivos.api.views.importacao_lotes.validar_txt_lotes",
             side_effect=exc,
@@ -168,10 +168,10 @@ class TestImportacaoLotesCreate:
             ),
             patch(
                 "importa_arquivos.api.views.importacao_lotes.ApiCandidatosService"
-            ) as MockApi,
+            ) as mock_api,
         ):
-            MockApi.return_value.salvar_lotes.side_effect = (
-                ImportacaoServiceUnavailableException(
+            mock_api.return_value.salvar_lotes.side_effect = (
+                ImportacaoServiceUnavailableError(
                     mensagem="Serviço indisponível."
                 )
             )
@@ -215,16 +215,16 @@ class TestImportacaoLotesCreate:
             ),
             patch(
                 "importa_arquivos.api.views.importacao_lotes.ApiCandidatosService"
-            ) as MockApi,
+            ) as mock_api,
         ):
-            MockApi.return_value.salvar_lotes.return_value = 1
+            mock_api.return_value.salvar_lotes.return_value = 1
             api_client.post(
                 LOTES_LIST_URL,
                 _payload(concurso_uuid=concurso_uuid),
                 format="multipart",
             )
-        MockApi.return_value.salvar_lotes.assert_called_once()
-        call_kwargs = MockApi.return_value.salvar_lotes.call_args.kwargs
+        mock_api.return_value.salvar_lotes.assert_called_once()
+        call_kwargs = mock_api.return_value.salvar_lotes.call_args.kwargs
         assert call_kwargs["concurso_uuid"] == str(concurso_uuid)
         assert call_kwargs["lotes"] == registros
 
@@ -331,9 +331,9 @@ class TestImportacaoLotesGetSerializerClass:
             ),
             patch(
                 "importa_arquivos.api.views.importacao_lotes.ApiCandidatosService"
-            ) as MockApi,
+            ) as mock_api,
         ):
-            MockApi.return_value.salvar_lotes.return_value = 0
+            mock_api.return_value.salvar_lotes.return_value = 0
             resp = api_client.post(
                 LOTES_LIST_URL, _payload(), format="multipart"
             )

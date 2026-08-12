@@ -82,11 +82,15 @@ class ResponseSerializer(serializers.Serializer):
 
     retorno = serializers.CharField(required=True)
     mensagem = serializers.CharField(required=True)
-    lstDadosResultadoConvocacaoIngresso = serializers.ListField(
+    # Nome mantido em mixedCase: espelha a chave do payload da API Prodam;
+    # DRF lê o dado de entrada pelo nome do campo, não por `source=`.
+    lstDadosResultadoConvocacaoIngresso = serializers.ListField(  # noqa: N815
         child=serializers.DictField(), required=True, allow_empty=True
     )
 
-    def validate_lstDadosResultadoConvocacaoIngresso(self, value: Any) -> Any:
+    def validate_lstDadosResultadoConvocacaoIngresso(  # noqa: N802
+        self, value: Any
+    ) -> Any:
         """Valida lstDadosResultadoConvocacaoIngresso."""
         for item in value:
             if not isinstance(item, dict):
@@ -109,13 +113,17 @@ class ResponseSerializer(serializers.Serializer):
 class EscolhaItemSerializer(serializers.Serializer):
     """Serializer para item de escolha."""
 
-    codigoPessoaFisica = serializers.CharField()
-    codigoCargo = serializers.CharField()
-    codigoUnidadeAlocacao = serializers.CharField(
+    # Nomes mantidos em mixedCase: espelham as chaves do payload da API
+    # Prodam; DRF lê o dado de entrada pelo nome do campo, não por `source=`.
+    codigoPessoaFisica = serializers.CharField()  # noqa: N815
+    codigoCargo = serializers.CharField()  # noqa: N815
+    codigoUnidadeAlocacao = serializers.CharField(  # noqa: N815
         allow_null=True, required=False
     )
-    tipoVaga = serializers.CharField(allow_null=True, required=False)
-    descricaoStatus = serializers.CharField()
+    tipoVaga = serializers.CharField(  # noqa: N815
+        allow_null=True, required=False
+    )
+    descricaoStatus = serializers.CharField()  # noqa: N815
 
 
 class EscolhasImportacaoSerializer(serializers.Serializer):

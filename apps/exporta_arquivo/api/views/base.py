@@ -21,9 +21,9 @@ from rest_framework.response import Response
 from importa_arquivos.utils import CustomPagination
 
 from ...services.exceptions import (
-    ExportacaoBadRequestException,
-    ExportacaoNotFoundException,
-    ExportacaoServiceUnavailableException,
+    ExportacaoBadRequestError,
+    ExportacaoNotFoundError,
+    ExportacaoServiceUnavailableError,
 )
 
 logger = logging.getLogger(__name__)
@@ -166,7 +166,7 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
         instance = serializer.save()
         try:
             self.executar_exportacao(instance)
-        except ExportacaoBadRequestException as exc:
+        except ExportacaoBadRequestError as exc:
             logger.warning(
                 "Erro de validação (400) na exportação %s: %s",
                 instance.uuid,
@@ -176,7 +176,7 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
                 {"mensagem": exc.mensagem, "detail": exc.detalhes},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except ExportacaoNotFoundException as exc:
+        except ExportacaoNotFoundError as exc:
             logger.warning(
                 "Dados não encontrados (404) na exportação %s: %s",
                 instance.uuid,
@@ -186,7 +186,7 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
                 {"mensagem": exc.mensagem, "detail": exc.detalhes},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        except ExportacaoServiceUnavailableException as exc:
+        except ExportacaoServiceUnavailableError as exc:
             logger.error(
                 "Serviço indisponível (502) na exportação %s: %s",
                 instance.uuid,

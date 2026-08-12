@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 
-class BaseExportacaoException(Exception):
-    """Erro de negócio relacionado a BaseExportacaoException."""
+class BaseExportacaoError(Exception):
+    """Erro de negócio relacionado a BaseExportacaoError."""
 
     def __init__(self, mensagem: str, detalhes: str | None = None) -> None:
         """Inicializa a instância com os parâmetros informados.
@@ -22,53 +22,49 @@ class BaseExportacaoException(Exception):
         return self.mensagem
 
 
-class ExportacaoNotFoundException(BaseExportacaoException):
+class ExportacaoNotFoundError(BaseExportacaoError):
     """Processo ou cargo não encontrado (404)."""
 
     pass
 
 
-class ExportacaoServiceUnavailableException(BaseExportacaoException):
+class ExportacaoServiceUnavailableError(BaseExportacaoError):
     """API de convocação ou escolha indisponível ou retornando erro."""
 
     pass
 
 
-class CandidatosNotFoundException(ExportacaoNotFoundException):
+class CandidatosNotFoundError(ExportacaoNotFoundError):
     """Recurso de candidatos não encontrado (404)."""
 
     pass
 
 
-class CandidatosServiceUnavailableException(
-    ExportacaoServiceUnavailableException
-):
+class CandidatosServiceUnavailableError(ExportacaoServiceUnavailableError):
     """API de candidatos indisponível ou retornando erro (502/503)."""
 
     pass
 
 
-class EscolhasServiceUnavailableException(
-    ExportacaoServiceUnavailableException
-):
+class EscolhasServiceUnavailableError(ExportacaoServiceUnavailableError):
     """API de escolhas indisponível ou retornando erro (502/503)."""
 
     pass
 
 
-class ExportacaoBadRequestException(BaseExportacaoException):
+class ExportacaoBadRequestError(BaseExportacaoError):
     """Parâmetro obrigatório ausente ou inválido (400)."""
 
     pass
 
 
-class ExportacaoLoteVazioException(BaseExportacaoException):
+class ExportacaoLoteVazioError(BaseExportacaoError):
     """Lote sem candidatos cadastrados."""
 
     pass
 
 
-class ExportacaoLoteIncompletaException(BaseExportacaoException):
+class ExportacaoLoteIncompletaError(BaseExportacaoError):
     """Candidatos do lote sem escolha realizada."""
 
     def __init__(

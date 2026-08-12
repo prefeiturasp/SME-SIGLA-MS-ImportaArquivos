@@ -4,7 +4,7 @@
 from .api_candidatos import ApiCandidatosService
 from .api_concursos import ApiConcursosService
 from .api_lote import ApiLoteCandidatosService, ApiLoteEscolhasService
-from .exceptions import ExportacaoLoteIncompletaException
+from .exceptions import ExportacaoLoteIncompletaError
 from .exportacao_candidatos_processo import (
     exportar_candidatos_processo,
     formatar_arquivo_candidatos_processo,
@@ -19,5 +19,5 @@ __all__ = [
     "ApiLoteCandidatosService",
     "ApiLoteEscolhasService",
     "exportar_lote",
-    "ExportacaoLoteIncompletaException",
+    "ExportacaoLoteIncompletaError",
 ]

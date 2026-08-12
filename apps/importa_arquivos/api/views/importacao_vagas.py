@@ -25,11 +25,11 @@ from importa_arquivos.serializers import (
 )
 from importa_arquivos.services.api_escolhas import ApiEscolhasService
 from importa_arquivos.services.exceptions import (
-    ApiEscolhasException,
-    ColunaCSVInvalidaException,
-    LayoutNaoConfiguradoException,
-    LeituraCSVException,
-    TipoUEDesabilitadoException,
+    ApiEscolhasError,
+    ColunaCSVInvalidaError,
+    LayoutNaoConfiguradoError,
+    LeituraCSVError,
+    TipoUEDesabilitadoError,
 )
 from importa_arquivos.services.validacao_vagas import validar_csv_vagas
 from importa_arquivos.utils import CustomPagination
@@ -74,9 +74,9 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
                 instance.arquivo, importacao_obj=instance
             )
         except (
-            ColunaCSVInvalidaException,
-            LayoutNaoConfiguradoException,
-            LeituraCSVException,
+            ColunaCSVInvalidaError,
+            LayoutNaoConfiguradoError,
+            LeituraCSVError,
         ) as exc:
             mensagem = getattr(exc, "mensagem", "Erro ao validar CSV.")
             detalhes = getattr(exc, "detalhes", str(exc))
@@ -99,24 +99,30 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
             ApiEscolhasService().enviar_vagas(
                 registros=registros,
                 estrutura=estrutura,
-                processo_uuid=str(instance.processo_uuid)
-                if instance.processo_uuid
-                else "",
-                processo_nome=str(instance.processo_nome)
-                if instance.processo_nome
-                else "",
-                concurso_uuid=str(instance.concurso_uuid)
-                if instance.concurso_uuid
-                else "",
+                processo_uuid=(
+                    str(instance.processo_uuid)
+                    if instance.processo_uuid
+                    else ""
+                ),
+                processo_nome=(
+                    str(instance.processo_nome)
+                    if instance.processo_nome
+                    else ""
+                ),
+                concurso_uuid=(
+                    str(instance.concurso_uuid)
+                    if instance.concurso_uuid
+                    else ""
+                ),
                 importacao_obj=instance,
             )
-        except TipoUEDesabilitadoException as exc:
+        except TipoUEDesabilitadoError as exc:
             logging.error("Tipo UE desabilitado ao enviar dados: %s", exc)
             return Response(
                 {"detail": str(exc), "code": "TIPO_UE_DESABILITADO"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except ApiEscolhasException as exc:
+        except ApiEscolhasError as exc:
             ImportacaoArquivoVagasRepository.recarregar(instance)
             payload = {
                 "detail": exc.mensagem,

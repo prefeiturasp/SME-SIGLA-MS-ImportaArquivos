@@ -1,8 +1,7 @@
 """Módulo models/base."""
 
-from django.db import models
-
 from core.models import BaseModel as CoreBaseModel
+from django.db import models
 
 
 class BaseModel(CoreBaseModel):

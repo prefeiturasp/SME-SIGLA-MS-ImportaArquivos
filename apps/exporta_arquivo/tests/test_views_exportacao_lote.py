@@ -1,7 +1,7 @@
 """Testes de ExportacaoLoteViewSet e CabecalhoExportacaoLoteViewSet.
 
 Cobre:
-- create: sucesso (200 + arquivo), ExportacaoLoteIncompletaException (422),
+- create: sucesso (200 + arquivo), ExportacaoLoteIncompletaError (422),
 outras exceções (400)
 - download: com arquivo (200), sem arquivo (404)
 - list: 200 paginado, filtros básicos
@@ -22,8 +22,8 @@ from rest_framework.test import APIClient
 from exporta_arquivo.api.views import ExportacaoLoteViewSet
 from exporta_arquivo.models import CabecalhoExportacaoLote, ExportacaoLote
 from exporta_arquivo.services.exceptions import (
-    ExportacaoBadRequestException,
-    ExportacaoLoteIncompletaException,
+    ExportacaoBadRequestError,
+    ExportacaoLoteIncompletaError,
 )
 
 pytestmark = [
@@ -41,7 +41,7 @@ def _uuid() -> Any:
 
 @pytest.fixture
 def api_client() -> Any:
-    """Api client."""
+    """Cria client de API para testes."""
     return APIClient()
 
 
@@ -108,7 +108,7 @@ class TestExportacaoLoteCreate:
         self, api_client: Any, payload_valido: Any
     ) -> None:
         """Verifica incompleto retorna 422 e arquivo de erro."""
-        exc = ExportacaoLoteIncompletaException(
+        exc = ExportacaoLoteIncompletaError(
             candidatos_sem_escolha=["Pedro", "Ana"]
         )
         with patch(
@@ -126,9 +126,7 @@ class TestExportacaoLoteCreate:
         self, api_client: Any, payload_valido: Any
     ) -> None:
         """Verifica incompleto persiste status atencao."""
-        exc = ExportacaoLoteIncompletaException(
-            candidatos_sem_escolha=["Carlos"]
-        )
+        exc = ExportacaoLoteIncompletaError(candidatos_sem_escolha=["Carlos"])
         with patch(
             "exporta_arquivo.api.views.exportacao_lote.exportar_lote",
             side_effect=exc,
@@ -143,7 +141,7 @@ class TestExportacaoLoteCreate:
         self, api_client: Any, payload_valido: Any
     ) -> None:
         """Verifica excecao generica retorna 400 e persiste status erro."""
-        exc = ExportacaoBadRequestException(
+        exc = ExportacaoBadRequestError(
             mensagem="Parâmetro inválido.", detalhes="numero_lote"
         )
         with patch(

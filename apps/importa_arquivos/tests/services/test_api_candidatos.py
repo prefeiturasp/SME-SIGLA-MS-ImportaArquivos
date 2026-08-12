@@ -11,7 +11,7 @@ from requests import RequestException
 
 from importa_arquivos.models import ImportacaoArquivoHabilitado, ImportacaoErro
 from importa_arquivos.services.api_candidatos import ApiCandidatosService
-from importa_arquivos.services.exceptions import ApiCandidatosException
+from importa_arquivos.services.exceptions import ApiCandidatosError
 
 pytestmark = pytest.mark.django_db
 
@@ -128,7 +128,7 @@ def test_api_candidatos_levanta_excecao_especifica_quando_status_nao_for_200() -
             "sigla_sdk.http.api_client.http_client.post",
             return_value=mock_resp,
         ),
-        pytest.raises(ApiCandidatosException) as exc_info,
+        pytest.raises(ApiCandidatosError) as exc_info,
     ):
         service.enviar_habilitados(
             registros=[{"x": "y"}],

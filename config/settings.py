@@ -1,9 +1,8 @@
-"""
-Django settings for convocacao_processes project.
-"""
+"""Django settings for convocacao_processes project."""
 
 import os
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -109,16 +108,27 @@ else:
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "UserAttributeSimilarityValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation." "MinimumLengthValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "CommonPasswordValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "NumericPasswordValidator"
+        ),
     },
 ]
 
@@ -159,7 +169,9 @@ SPECTACULAR_SETTINGS = {
 
 # DRF settings
 REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": (
+        "rest_framework.pagination.PageNumberPagination"
+    ),
     "PAGE_SIZE": 10,
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
@@ -188,7 +200,10 @@ LOGGING = {
     "formatters": {
         "json": {
             "()": "sigla_sdk.logging.json_formatter.CustomJsonFormatter",
-            "format": "%(levelname)s %(asctime)s %(module)s %(filename)s %(lineno)d %(funcName)s %(message)s",
+            "format": (
+                "%(levelname)s %(asctime)s %(module)s %(filename)s "
+                "%(lineno)d %(funcName)s %(message)s"
+            ),
         },
     },
     "handlers": {
@@ -229,9 +244,7 @@ CANDIDATOS_API_URL = os.environ.get(
     "CANDIDATOS_API_URL", "http://localhost:8000"
 )
 CANDIDATOS_API_TIMEOUT = int(os.environ.get("CANDIDATOS_API_TIMEOUT", 30))
-CANDIDATOS_API_KEY = os.environ.get(
-    "CANDIDATOS_API_KEY", "api-key-candidatos"
-)
+CANDIDATOS_API_KEY = os.environ.get("CANDIDATOS_API_KEY", "api-key-candidatos")
 
 CONCURSOS_API_URL = os.environ.get(
     "CONCURSOS_API_URL", "http://localhost:8001"
@@ -253,8 +266,6 @@ PROCESSOS_CONVOCACAO_API_TIMEOUT = int(
 # API Key (autenticação entre microsserviços)
 API_KEY = os.environ.get("API_KEY", "api-key-importa-arquivos")
 API_KEY_HEADER = os.environ.get("API_KEY_HEADER", "X-API-Key")
-
-from datetime import timedelta
 
 JWT_SIGNING_KEY = os.environ.get(
     "JWT_SIGNING_KEY", os.environ.get("SECRET_KEY", "fallback-só-dev")

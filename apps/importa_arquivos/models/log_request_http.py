@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from django.db import models
-
 from core.models import BaseModel
+from django.db import models
 
 
 class LogRequestHttp(BaseModel):

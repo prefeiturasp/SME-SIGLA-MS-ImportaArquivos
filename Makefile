@@ -84,3 +84,13 @@ pep484:
 
 # PEP 257 + PEP 484
 pep-check: pep257 pep484
+
+# Configura hooks do pre-commit no repositório local
+pre-commit-install:
+	@echo "Instalando hooks do pre-commit..."
+	pre-commit install
+
+# Roda pre-commit em todos os arquivos
+pre-commit:
+	@echo "Executando pre-commit em todos os arquivos..."
+	pre-commit run --all-files

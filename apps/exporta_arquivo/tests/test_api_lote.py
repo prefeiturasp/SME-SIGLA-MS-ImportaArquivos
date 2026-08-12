@@ -24,8 +24,8 @@ from exporta_arquivo.services.api_lote import (
     ApiLoteEscolhasService,
 )
 from exporta_arquivo.services.exceptions import (
-    ExportacaoNotFoundException,
-    ExportacaoServiceUnavailableException,
+    ExportacaoNotFoundError,
+    ExportacaoServiceUnavailableError,
 )
 
 
@@ -63,7 +63,7 @@ class TestApiLoteCandidatosServiceFazerRequestGet:
                 "sigla_sdk.http.api_client.http_client.get",
                 side_effect=Timeout(),
             ),
-            pytest.raises(ExportacaoServiceUnavailableException) as exc_info,
+            pytest.raises(ExportacaoServiceUnavailableError) as exc_info,
         ):
             service._fazer_request_get(
                 "http://test/api/v1/habilitados/", {}, "lote"
@@ -79,7 +79,7 @@ class TestApiLoteCandidatosServiceFazerRequestGet:
                 "sigla_sdk.http.api_client.http_client.get",
                 side_effect=RequestsConnectionError(),
             ),
-            pytest.raises(ExportacaoServiceUnavailableException),
+            pytest.raises(ExportacaoServiceUnavailableError),
         ):
             service._fazer_request_get(
                 "http://test/api/v1/habilitados/", {}, "lote"
@@ -92,7 +92,7 @@ class TestApiLoteCandidatosServiceFazerRequestGet:
                 "sigla_sdk.http.api_client.http_client.get",
                 return_value=_mock_response(status_code=404),
             ),
-            pytest.raises(ExportacaoNotFoundException) as exc_info,
+            pytest.raises(ExportacaoNotFoundError) as exc_info,
         ):
             service._fazer_request_get(
                 "http://test/api/v1/habilitados/", {}, "lote"
@@ -108,7 +108,7 @@ class TestApiLoteCandidatosServiceFazerRequestGet:
                     status_code=500, text="Internal Server Error"
                 ),
             ),
-            pytest.raises(ExportacaoServiceUnavailableException) as exc_info,
+            pytest.raises(ExportacaoServiceUnavailableError) as exc_info,
         ):
             service._fazer_request_get(
                 "http://test/api/v1/habilitados/", {}, "lote"
@@ -124,7 +124,7 @@ class TestApiLoteCandidatosServiceFazerRequestGet:
                     status_code=503, text="Service Unavailable"
                 ),
             ),
-            pytest.raises(ExportacaoServiceUnavailableException),
+            pytest.raises(ExportacaoServiceUnavailableError),
         ):
             service._fazer_request_get(
                 "http://test/api/v1/habilitados/", {}, "lote"
@@ -139,7 +139,7 @@ class TestApiLoteCandidatosServiceFazerRequestGet:
                 "sigla_sdk.http.api_client.http_client.get",
                 return_value=_mock_response(status_code=422),
             ),
-            pytest.raises(ExportacaoServiceUnavailableException) as exc_info,
+            pytest.raises(ExportacaoServiceUnavailableError) as exc_info,
         ):
             service._fazer_request_get(
                 "http://test/api/v1/habilitados/", {}, "lote"
@@ -155,7 +155,7 @@ class TestApiLoteCandidatosServiceFazerRequestGet:
                 "sigla_sdk.http.api_client.http_client.get",
                 return_value=_mock_response(status_code=200, raise_json=True),
             ),
-            pytest.raises(ExportacaoServiceUnavailableException) as exc_info,
+            pytest.raises(ExportacaoServiceUnavailableError) as exc_info,
         ):
             service._fazer_request_get(
                 "http://test/api/v1/habilitados/", {}, "lote"
@@ -287,7 +287,7 @@ class TestApiLoteEscolhasServiceGetEscolhasLote:
                 "sigla_sdk.http.api_client.http_client.post",
                 side_effect=Timeout(),
             ),
-            pytest.raises(ExportacaoServiceUnavailableException) as exc_info,
+            pytest.raises(ExportacaoServiceUnavailableError) as exc_info,
         ):
             service.get_escolhas_lote(["uuid1"], "concurso-uuid")
         assert "indisponível" in exc_info.value.mensagem.lower()
@@ -299,7 +299,7 @@ class TestApiLoteEscolhasServiceGetEscolhasLote:
                 "sigla_sdk.http.api_client.http_client.post",
                 return_value=_mock_response(status_code=500, text="err"),
             ),
-            pytest.raises(ExportacaoServiceUnavailableException) as exc_info,
+            pytest.raises(ExportacaoServiceUnavailableError) as exc_info,
         ):
             service.get_escolhas_lote(["uuid1"], "concurso-uuid")
         assert "500" in exc_info.value.detalhes
@@ -311,7 +311,7 @@ class TestApiLoteEscolhasServiceGetEscolhasLote:
                 "sigla_sdk.http.api_client.http_client.post",
                 return_value=_mock_response(status_code=400),
             ),
-            pytest.raises(ExportacaoServiceUnavailableException) as exc_info,
+            pytest.raises(ExportacaoServiceUnavailableError) as exc_info,
         ):
             service.get_escolhas_lote(["uuid1"], "concurso-uuid")
         assert "400" in exc_info.value.detalhes
@@ -325,7 +325,7 @@ class TestApiLoteEscolhasServiceGetEscolhasLote:
                 "sigla_sdk.http.api_client.http_client.post",
                 return_value=_mock_response(status_code=200, raise_json=True),
             ),
-            pytest.raises(ExportacaoServiceUnavailableException) as exc_info,
+            pytest.raises(ExportacaoServiceUnavailableError) as exc_info,
         ):
             service.get_escolhas_lote(["uuid1"], "concurso-uuid")
         assert "inválid" in exc_info.value.mensagem.lower()

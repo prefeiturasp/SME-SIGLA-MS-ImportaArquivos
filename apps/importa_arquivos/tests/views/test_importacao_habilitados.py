@@ -12,10 +12,10 @@ from django.urls import reverse
 
 from importa_arquivos.models import ImportacaoArquivoHabilitado, ImportacaoErro
 from importa_arquivos.services.exceptions import (
-    ApiCandidatosException,
-    ColunaCSVInvalidaException,
-    LayoutNaoConfiguradoException,
-    LeituraCSVException,
+    ApiCandidatosError,
+    ColunaCSVInvalidaError,
+    LayoutNaoConfiguradoError,
+    LeituraCSVError,
 )
 
 pytestmark = pytest.mark.django_db
@@ -31,7 +31,9 @@ def test_importacao_habilitados_create_success(api_client, settings):
         patch(
             "importa_arquivos.api.views.importacao_habilitados.validar_csv_habilitados"
         ) as mock_validar,
-        patch("importa_arquivos.api.views.importacao_habilitados.ApiCandidatosService") as mock_api,
+        patch(
+            "importa_arquivos.api.views.importacao_habilitados.ApiCandidatosService"
+        ) as mock_api,
     ):
         mock_validar.return_value = (
             [{"Inscricao": "123", "Nome": "Joao"}],
@@ -120,16 +122,16 @@ def test_importacao_habilitados_repassa_mandado_judicial_true(
     "exception_cls,mensagem_esperada,detalhes_esperados",
     [
         (
-            ColunaCSVInvalidaException,
+            ColunaCSVInvalidaError,
             "Coluna inválida no CSV",
             "Coluna X não encontrada",
         ),
         (
-            LayoutNaoConfiguradoException,
+            LayoutNaoConfiguradoError,
             "Layout não configurado",
             "Layout para HABILITADOS inexistente",
         ),
-        (LeituraCSVException, "Erro ao ler CSV", "Arquivo corrompido"),
+        (LeituraCSVError, "Erro ao ler CSV", "Arquivo corrompido"),
     ],
 )
 def test_importacao_habilitados_create_retorna_400_com_mensagem_e_detalhes(
@@ -138,7 +140,7 @@ def test_importacao_habilitados_create_retorna_400_com_mensagem_e_detalhes(
     mensagem_esperada,
     detalhes_esperados,
 ):
-    """Verifica importacao habilitados create retorna 400 com mensagem e detalhes."""
+    """Verifica importacao habilitados create -> 400 com mensagem/detalhes."""
     arquivo = SimpleUploadedFile(
         "h.csv", b"Inscricao,Nome\n123,Joao\n", content_type="text/csv"
     )
@@ -214,14 +216,16 @@ def test_importacao_habilitados_envio_api_exception(api_client, settings):
         patch(
             "importa_arquivos.api.views.importacao_habilitados.validar_csv_habilitados"
         ) as mock_validar,
-        patch("importa_arquivos.api.views.importacao_habilitados.ApiCandidatosService") as mock_api,
+        patch(
+            "importa_arquivos.api.views.importacao_habilitados.ApiCandidatosService"
+        ) as mock_api,
     ):
         mock_validar.return_value = (
             [{"Inscricao": "123", "Nome": "Joao"}],
             [{"coluna": "Inscricao", "campo_payload": "codigo_inscricao"}],
         )
         mock_api.return_value.enviar_habilitados.side_effect = (
-            ApiCandidatosException(
+            ApiCandidatosError(
                 mensagem="Erro externo",
                 detalhes="Detalhes do erro externo",
                 status_code=400,
@@ -335,7 +339,9 @@ def test_importacao_habilitados_create_calcula_quantidade_e_salva_observacao(
         patch(
             "importa_arquivos.api.views.importacao_habilitados.validar_csv_habilitados"
         ) as mock_validar,
-        patch("importa_arquivos.api.views.importacao_habilitados.ApiCandidatosService") as mock_api,
+        patch(
+            "importa_arquivos.api.views.importacao_habilitados.ApiCandidatosService"
+        ) as mock_api,
     ):
         mock_validar.return_value = (
             [

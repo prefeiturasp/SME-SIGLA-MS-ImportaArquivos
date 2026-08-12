@@ -12,8 +12,8 @@ from requests import RequestException
 from importa_arquivos.models import ImportacaoArquivoVagas, ImportacaoErro
 from importa_arquivos.services.api_escolhas import ApiEscolhasService
 from importa_arquivos.services.exceptions import (
-    ApiEscolhasException,
-    TipoUEDesabilitadoException,
+    ApiEscolhasError,
+    TipoUEDesabilitadoError,
 )
 
 pytestmark = pytest.mark.django_db
@@ -175,14 +175,14 @@ def test_enviar_vagas_erro_tipo_ue_desabilitado() -> None:
         }
         mock_resp.raise_for_status.return_value = None
         mock_post.return_value = mock_resp
-        with pytest.raises(TipoUEDesabilitadoException):
+        with pytest.raises(TipoUEDesabilitadoError):
             service.enviar_vagas(registros=registros, estrutura=estrutura)
 
 
 def test_enviar_vagas_erro_400_outro_codigo_gatilha_request_exception() -> (
     None
 ):
-    """Verifica enviar vagas erro 400 outro codigo gatilha request exception."""
+    """Verifica enviar vagas erro 400 outro codigo gatilha request exc."""
     service = ApiEscolhasService(base_url="https://api.exemplo")
     registros = [{"DataFechamentoModulo": "05/09/2025"}]
     estrutura = [
@@ -200,7 +200,7 @@ def test_enviar_vagas_erro_400_outro_codigo_gatilha_request_exception() -> (
         }
         mock_resp.text = '{"code":"OUTRO","detail":"erro genérico"}'
         mock_post.return_value = mock_resp
-        with pytest.raises(ApiEscolhasException) as exc_info:
+        with pytest.raises(ApiEscolhasError) as exc_info:
             service.enviar_vagas(registros=registros, estrutura=estrutura)
         exc = exc_info.value
         assert exc.status_code == 400

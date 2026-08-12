@@ -19,10 +19,10 @@ from importa_arquivos.serializers import (
 )
 from importa_arquivos.services.api_candidatos import ApiCandidatosService
 from importa_arquivos.services.exceptions import (
-    BaseImportacaoException,
-    ErrosValidacaoLotesException,
-    ImportacaoBadRequestException,
-    ImportacaoServiceUnavailableException,
+    BaseImportacaoError,
+    ErrosValidacaoLotesError,
+    ImportacaoBadRequestError,
+    ImportacaoServiceUnavailableError,
 )
 from importa_arquivos.services.importacao_lotes import validar_txt_lotes
 from importa_arquivos.utils import CustomPagination
@@ -69,12 +69,12 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
             registros = validar_txt_lotes(
                 instance.arquivo, importacao_obj=instance
             )
-        except ErrosValidacaoLotesException as exc:
+        except ErrosValidacaoLotesError as exc:
             return Response(
                 {"mensagem": exc.mensagem, "detail": exc.detalhes},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except BaseImportacaoException as exc:
+        except BaseImportacaoError as exc:
             return Response(
                 {"mensagem": exc.mensagem, "detail": exc.detalhes},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -99,8 +99,8 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
                 importacao_obj=instance,
             )
         except (
-            ImportacaoServiceUnavailableException,
-            ImportacaoBadRequestException,
+            ImportacaoServiceUnavailableError,
+            ImportacaoBadRequestError,
             Exception,
         ) as exc:
             logger.error(

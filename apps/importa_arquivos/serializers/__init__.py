@@ -24,3 +24,18 @@ from importa_arquivos.serializers.importacao_vagas import (
 from importa_arquivos.serializers.layout import (
     LayoutArquivoImportacaoSerializer,
 )
+
+__all__ = [
+    "EscolhasImportacaoSerializer",
+    "ImportacaoArquivoHabilitadosCreateSerializer",
+    "ImportacaoArquivoHabilitadosListSerializer",
+    "ImportacaoArquivoVagasCreateSerializer",
+    "ImportacaoArquivoVagasListSerializer",
+    "ImportacaoErrosListSerializer",
+    "ImportacaoEscolhasCreateSerializer",
+    "ImportacaoEscolhasListSerializer",
+    "ImportacaoLotesCreateSerializer",
+    "ImportacaoLotesListSerializer",
+    "LayoutArquivoImportacaoSerializer",
+    "ResponseSerializer",
+]

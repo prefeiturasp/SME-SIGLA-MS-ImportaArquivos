@@ -8,6 +8,8 @@ factory-boy==3.3.0
 django-extensions==3.2.3 
 django-debug-toolbar==4.3.0
 ruff==0.6.9
+black>=24.8,<25
+pre-commit>=3.8,<4
 
 mypy==1.14.1
 django-stubs==5.1.1

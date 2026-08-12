@@ -6,9 +6,8 @@ from typing import Any
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
-from django.db import models
-
 from core.models import BaseModel
+from django.db import models
 
 from .base import CHOICES_TIPO_IMPORTACAO_ARQUIVO
 

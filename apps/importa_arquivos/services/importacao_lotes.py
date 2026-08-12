@@ -18,10 +18,10 @@ from pydantic import ValidationError
 
 from importa_arquivos.services.erros import captura_erros_importacao
 from importa_arquivos.services.exceptions import (
-    ArquivoLotesVazioException,
-    ColunaCSVInvalidaException,
-    ErrosValidacaoLotesException,
-    LeituraCSVException,
+    ArquivoLotesVazioError,
+    ColunaCSVInvalidaError,
+    ErrosValidacaoLotesError,
+    LeituraCSVError,
 )
 from importa_arquivos.services.schema import COLUNAS_ESPERADAS, LinhaLoteSIGPEC
 
@@ -85,22 +85,22 @@ def validar_txt_lotes(
         Lista com os registros obtidos.
 
     Raises:
-        ArquivoLotesVazioException: Se não tiver texto.
-        ColunaCSVInvalidaException: Se tiver colunas inválidas.
-        ErrosValidacaoLotesException: Se tiver erros de validação.
-        LeituraCSVException: Se não conseguir ler o arquivo CSV.
+        ArquivoLotesVazioError: Se não tiver texto.
+        ColunaCSVInvalidaError: Se tiver colunas inválidas.
+        ErrosValidacaoLotesError: Se tiver erros de validação.
+        LeituraCSVError: Se não conseguir ler o arquivo CSV.
     """
     try:
         file_bytes = arquivo.read()
         arquivo.seek(0)
         text = file_bytes.decode("utf-8-sig")
     except Exception as exc:
-        raise LeituraCSVException(
+        raise LeituraCSVError(
             mensagem="Nao foi possivel ler o arquivo de lotes.",
             detalhes=f"Detalhes tecnicos: {exc}",
         ) from exc
     if not text or not text.strip():
-        raise ArquivoLotesVazioException(
+        raise ArquivoLotesVazioError(
             mensagem="O arquivo de lotes esta vazio.",
             detalhes="Arquivo sem conteudo util para processamento.",
         )
@@ -108,7 +108,7 @@ def validar_txt_lotes(
     headers_csv = {h for h in reader.fieldnames or [] if h}
     colunas_faltando = COLUNAS_ESPERADAS - headers_csv
     if colunas_faltando:
-        raise ColunaCSVInvalidaException(
+        raise ColunaCSVInvalidaError(
             mensagem="Cabecalho invalido para importacao de lotes.",
             detalhes=(
                 f"Colunas ausentes: {sorted(colunas_faltando)}. "
@@ -132,12 +132,12 @@ def validar_txt_lotes(
         else:
             registros.append(obj.model_dump())  # type: ignore[union-attr]
     if not registros:
-        raise ArquivoLotesVazioException(
+        raise ArquivoLotesVazioError(
             mensagem="O arquivo nao contem registros validos.",
             detalhes="Apenas cabecalho ou linhas vazias foram encontradas.",
         )
     if erros:
-        raise ErrosValidacaoLotesException(
+        raise ErrosValidacaoLotesError(
             mensagem="Erro ao validar os dados do arquivo.",
             detalhes="\n".join(erros),
         )

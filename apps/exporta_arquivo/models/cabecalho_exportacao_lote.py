@@ -6,9 +6,8 @@ from typing import Any
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
-from django.db import models
-
 from core.models import BaseModel
+from django.db import models
 
 
 class CabecalhoExportacaoLote(BaseModel):
@@ -58,11 +57,11 @@ class CabecalhoExportacaoLote(BaseModel):
     def __str__(self) -> Any:
         """Retorna UUID e situação do cabeçalho."""
         return (
-            f'Cabeçalho {self.uuid} ({('ativo' if self.ativo else 'inativo')})'
+            f"Cabeçalho {self.uuid} ({('ativo' if self.ativo else 'inativo')})"
         )
 
     def render(self) -> str:
-        """Gera o bloco de cabeçalho completo para o arquivo exportado SIGPEC."""
+        """Gera o bloco de cabeçalho para o arquivo exportado SIGPEC."""
         sep = self.separador
         return (
             f"@TABELA={self.tabela}\n"

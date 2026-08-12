@@ -12,7 +12,7 @@ from django.conf import settings
 from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
-from .exceptions import EscolhasServiceUnavailableException
+from .exceptions import EscolhasServiceUnavailableError
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +29,10 @@ class ApiEscolhasService:
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
-        self.base_url = (
+        self.base_url = str(
             base_url
             or getattr(settings, "ESCOLHA_API_URL", "http://localhost:8004")
-        ).rstrip("/")  # type: ignore[union-attr]
+        ).rstrip("/")
         self.timeout_seconds = timeout_seconds or getattr(
             settings, "ESCOLHA_API_TIMEOUT", 30
         )
@@ -54,7 +54,7 @@ class ApiEscolhasService:
             Dicionário com os dados processados.
 
         Raises:
-            EscolhasServiceUnavailableException: Serviço indisponível.
+            EscolhasServiceUnavailableError: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/vagas-escolas/"
         params = {
@@ -72,7 +72,7 @@ class ApiEscolhasService:
             logger.exception(
                 "Erro ao chamar API de escolha (vagas-escolas): %s", exc
             )
-            raise EscolhasServiceUnavailableException(
+            raise EscolhasServiceUnavailableError(
                 mensagem="Serviço de vagas por escola indisponível.",
                 detalhes=str(exc),
             ) from exc
@@ -82,12 +82,12 @@ class ApiEscolhasService:
                 response.status_code,
                 response.text[:500],
             )
-            raise EscolhasServiceUnavailableException(
+            raise EscolhasServiceUnavailableError(
                 mensagem="Serviço de vagas por escola indisponível.",
                 detalhes=f"Status {response.status_code}",
             )
         if response.status_code != 200:
-            raise EscolhasServiceUnavailableException(
+            raise EscolhasServiceUnavailableError(
                 mensagem="Erro ao obter vagas por escola.",
                 detalhes=f"Status {response.status_code}",
             )
@@ -95,12 +95,12 @@ class ApiEscolhasService:
             data = response.json()
         except ValueError as exc:
             logger.exception("Resposta da API de escolha não é JSON válido.")
-            raise EscolhasServiceUnavailableException(
+            raise EscolhasServiceUnavailableError(
                 mensagem="Resposta inválida do serviço de vagas.",
                 detalhes=str(exc),
             ) from exc
         if not isinstance(data, dict):
-            raise EscolhasServiceUnavailableException(
+            raise EscolhasServiceUnavailableError(
                 mensagem="Resposta inválida do serviço de vagas.",
                 detalhes="Esperado objeto JSON.",
             )
@@ -119,7 +119,7 @@ class ApiEscolhasService:
             Lista com os registros obtidos.
 
         Raises:
-            EscolhasServiceUnavailableException: Serviço indisponível.
+            EscolhasServiceUnavailableError: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/escolhas/busca/"
         payload = {
@@ -137,7 +137,7 @@ class ApiEscolhasService:
             logger.exception(
                 "Erro ao chamar API de escolhas (busca lote): %s", exc
             )
-            raise EscolhasServiceUnavailableException(
+            raise EscolhasServiceUnavailableError(
                 mensagem="Serviço de escolhas indisponível.", detalhes=str(exc)
             ) from exc
         if response.status_code >= 500:
@@ -146,12 +146,12 @@ class ApiEscolhasService:
                 response.status_code,
                 response.text[:500],
             )
-            raise EscolhasServiceUnavailableException(
+            raise EscolhasServiceUnavailableError(
                 mensagem="Serviço de escolhas indisponível.",
                 detalhes=f"Status {response.status_code}",
             )
         if response.status_code != 200:
-            raise EscolhasServiceUnavailableException(
+            raise EscolhasServiceUnavailableError(
                 mensagem="Erro ao obter escolhas do lote.",
                 detalhes=f"Status {response.status_code}",
             )

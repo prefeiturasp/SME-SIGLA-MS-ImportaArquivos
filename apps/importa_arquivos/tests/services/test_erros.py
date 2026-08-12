@@ -11,7 +11,7 @@ from importa_arquivos.services.erros import (
     captura_erros_importacao,
     registrar_erro,
 )
-from importa_arquivos.services.exceptions import BaseImportacaoException
+from importa_arquivos.services.exceptions import BaseImportacaoError
 
 pytestmark = pytest.mark.django_db
 
@@ -36,8 +36,8 @@ def test_captura_erros_importacao_decorador_cria_registro() -> None:
     @captura_erros_importacao("importacao_obj")
     def func_que_falha(importacao_obj: Any = None) -> None:
         """Func que falha."""
-        raise BaseImportacaoException("msg curta", detalhes="grande")
+        raise BaseImportacaoError("msg curta", detalhes="grande")
 
-    with pytest.raises(BaseImportacaoException):
+    with pytest.raises(BaseImportacaoError):
         func_que_falha(importacao_obj=obj)
     assert ImportacaoErro.objects.filter(object_id=obj.uuid).exists()

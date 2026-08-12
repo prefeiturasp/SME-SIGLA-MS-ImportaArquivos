@@ -14,9 +14,9 @@ from importa_arquivos.repository import LayoutArquivoImportacaoRepository
 from importa_arquivos.services.api_concursos import ApiConcursosService
 from importa_arquivos.services.erros import captura_erros_importacao
 from importa_arquivos.services.exceptions import (
-    ColunaCSVInvalidaException,
-    LayoutNaoConfiguradoException,
-    LeituraCSVException,
+    ColunaCSVInvalidaError,
+    LayoutNaoConfiguradoError,
+    LeituraCSVError,
 )
 
 logger = logging.getLogger(__name__)
@@ -258,17 +258,15 @@ def validar_csv_habilitados(
         Tupla com os objetos criados ou atualizados.
 
     Raises:
-        ColunaCSVInvalidaException: Se tiver colunas inválidas.
-        LayoutNaoConfiguradoException: Se não tiver layout configurado.
-        LeituraCSVException: Se não conseguir ler o arquivo CSV.
+        ColunaCSVInvalidaError: Se tiver colunas inválidas.
+        LayoutNaoConfiguradoError: Se não tiver layout configurado.
+        LeituraCSVError: Se não conseguir ler o arquivo CSV.
     """
     layout = LayoutArquivoImportacaoRepository.obter_mais_recente_por_tipo(
         "HABILITADOS"
     )
     if layout is None:
-        raise LayoutNaoConfiguradoException(
-            "Layout HABILITADOS não configurado."
-        )
+        raise LayoutNaoConfiguradoError("Layout HABILITADOS não configurado.")
     estrutura: list[dict] = layout["estrutura"] or []
     colunas_esperadas = {
         item.get("coluna") for item in estrutura if isinstance(item, dict)
@@ -279,7 +277,7 @@ def validar_csv_habilitados(
         text = file_bytes.decode("utf-8-sig")
         reader = csv.DictReader(io.StringIO(text))
     except Exception as exc:
-        raise LeituraCSVException(
+        raise LeituraCSVError(
             "Erro ao ler arquivo de Habilitados",
             detalhes=(
                 "Não foi possível ler o arquivo CSV. " f"Detalhes: {exc!s}."
@@ -289,7 +287,7 @@ def validar_csv_habilitados(
     if headers_csv != colunas_esperadas:
         logger.warning(f"Colunas inválidas no CSV: {headers_csv}")
         detalhes = f"Encontradas: {sorted(headers_csv)} | Esperadas: {sorted(colunas_esperadas)}"  # type: ignore[type-var]  # noqa: E501
-        raise ColunaCSVInvalidaException(
+        raise ColunaCSVInvalidaError(
             "Arquivo de Habilitados inválido", detalhes=detalhes
         )
     registros: list[dict] = []
@@ -321,12 +319,12 @@ def validar_csv_habilitados(
             erros_agrupados.setdefault(linha, []).extend(msgs)
     if erros_agrupados:
         mensagens = [
-            f'Linha {linha}: {'; '.join(msgs)}'
+            f"Linha {linha}: {'; '.join(msgs)}"
             for linha, msgs in sorted(erros_agrupados.items())
         ]
         detalhes = " | ".join(mensagens)
         logger.error("Erros de validação no CSV de Habilitados: %s", detalhes)
-        raise ColunaCSVInvalidaException(
+        raise ColunaCSVInvalidaError(
             "Erros de validação encontrados", detalhes=detalhes
         )
     return (registros, estrutura)

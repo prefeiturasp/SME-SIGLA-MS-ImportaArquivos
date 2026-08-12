@@ -46,7 +46,7 @@ COLUNAS_LINHA = [
 
 
 def _data_para_dd_mm_yyyy(val: Any) -> str:
-    """Converte data (ISO ou string) para DD/MM/YYYY.
+    """Formata data (ISO ou string) para DD/MM/YYYY.
 
     Args:
         val: Valor bruto antes da formatação.
@@ -131,12 +131,11 @@ def _mapear_habilitado_para_exportacao(
     Returns:
         Dicionário com os dados processados.
     """
-    candidato = (
-        item.get("candidato")
-        if isinstance(item.get("candidato"), dict)
-        else {}
+    candidato_raw = item.get("candidato")
+    candidato: dict[str, Any] = (
+        candidato_raw if isinstance(candidato_raw, dict) else {}
     )
-    dt_nasc = candidato.get("data_nascimento")  # type: ignore[union-attr]
+    dt_nasc = candidato.get("data_nascimento")
     dt_nasc = (
         (str(dt_nasc).split("T")[0] if dt_nasc else "")
         if dt_nasc is not None
@@ -166,7 +165,7 @@ def _mapear_habilitado_para_exportacao(
         "nr_classificação": item.get("ranking_escolha"),
         "nr_desempate": "",
         "nr_classificação_concurso": item.get("classificacao"),
-    }  # type: ignore[union-attr]
+    }
 
 
 def exportar_candidatos_processo(

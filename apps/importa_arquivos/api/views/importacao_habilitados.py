@@ -25,11 +25,11 @@ from importa_arquivos.serializers import (
 )
 from importa_arquivos.services.api_candidatos import ApiCandidatosService
 from importa_arquivos.services.exceptions import (
-    ApiCandidatosException,
-    CargoConcursoInvalidoException,
-    ColunaCSVInvalidaException,
-    LayoutNaoConfiguradoException,
-    LeituraCSVException,
+    ApiCandidatosError,
+    CargoConcursoInvalidoError,
+    ColunaCSVInvalidaError,
+    LayoutNaoConfiguradoError,
+    LeituraCSVError,
 )
 from importa_arquivos.services.validacao_habilitados import (
     validar_csv_habilitados,
@@ -75,10 +75,10 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
                 instance, quantidade=len(registros)
             )
         except (
-            ColunaCSVInvalidaException,
-            LayoutNaoConfiguradoException,
-            LeituraCSVException,
-            CargoConcursoInvalidoException,
+            ColunaCSVInvalidaError,
+            LayoutNaoConfiguradoError,
+            LeituraCSVError,
+            CargoConcursoInvalidoError,
         ) as exc:
             mensagem = getattr(
                 exc, "mensagem", "Erro ao validar arquivo de Habilitados"
@@ -103,16 +103,20 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
             ApiCandidatosService().enviar_habilitados(
                 registros=registros,
                 estrutura=estrutura,
-                concurso_uuid=str(instance.concurso_uuid)
-                if instance.concurso_uuid
-                else "",
-                concurso_nome=str(instance.concurso_nome)
-                if instance.concurso_nome
-                else "",
+                concurso_uuid=(
+                    str(instance.concurso_uuid)
+                    if instance.concurso_uuid
+                    else ""
+                ),
+                concurso_nome=(
+                    str(instance.concurso_nome)
+                    if instance.concurso_nome
+                    else ""
+                ),
                 mandado_judicial=mandado_judicial,
                 importacao_obj=instance,
             )
-        except ApiCandidatosException as exc:
+        except ApiCandidatosError as exc:
             ImportacaoArquivoHabilitadoRepository.recarregar(instance)
             payload = {
                 "detail": exc.mensagem,

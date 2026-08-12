@@ -5,7 +5,7 @@ Fluxo:
 2. Busca as Escolhas dos candidatos via MS-Escolhas, filtrando por
 concurso_uuid.
 3. Valida que todos os candidatos têm escolha. Se não →
-ExportacaoLoteIncompletaException.
+ExportacaoLoteIncompletaError.
 4. Gera o arquivo: cabeçalho configurável + linhas de dados.
 
 Formato de cada linha:
@@ -20,14 +20,14 @@ from exporta_arquivo.models import ExportacaoLote
 from exporta_arquivo.services.api_candidatos import ApiCandidatosService
 from exporta_arquivo.services.api_escolhas import ApiEscolhasService
 from exporta_arquivo.services.exceptions import (
-    ExportacaoLoteIncompletaException,
+    ExportacaoLoteIncompletaError,
 )
 
 logger = logging.getLogger(__name__)
 
 
 def _data_para_ddmmyyyy(val: Any) -> str:
-    """Data para ddmmyyyy.
+    """Formata data para ddmmyyyy.
 
     Args:
         val: Valor bruto antes da formatação.
@@ -129,7 +129,7 @@ def exportar_lote(instance: ExportacaoLote) -> str:
         Conteúdo textual gerado.
 
     Raises:
-        ExportacaoLoteIncompletaException: Quando faltam candidatos ou
+        ExportacaoLoteIncompletaError: Quando faltam candidatos ou
             escolhas para completar o lote.
     """
     # 1. Buscar candidatos do lote
@@ -176,9 +176,7 @@ def exportar_lote(instance: ExportacaoLote) -> str:
             sem_escolha.append(nome)
 
     if sem_escolha:
-        raise ExportacaoLoteIncompletaException(
-            candidatos_sem_escolha=sem_escolha
-        )
+        raise ExportacaoLoteIncompletaError(candidatos_sem_escolha=sem_escolha)
 
     # 6. Gerar arquivo
     return gerar_conteudo_lote(candidatos, escolhas_por_candidato)
