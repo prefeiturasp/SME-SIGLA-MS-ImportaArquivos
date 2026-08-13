@@ -1,6 +1,4 @@
-"""
-WSGI config for convocacao_processes project.
-"""
+"""WSGI config for convocacao_processes project."""
 
 import os
 

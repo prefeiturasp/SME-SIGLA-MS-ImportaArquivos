@@ -1,8 +1,8 @@
-"""
-Django settings for convocacao_processes project.
-"""
+"""Django settings for convocacao_processes project."""
 
 import os
+import sys
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -13,6 +13,9 @@ DJANGO_ENVIRONMENT = os.environ.get("DJANGO_ENVIRONMENT", "local")
 MS_PATH = os.environ.get("MS_PATH", "/ms-importa-arquivos")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Adiciona a pasta 'apps' ao sys.path do Python
+sys.path.insert(0, os.path.join(BASE_DIR, "apps"))
+
 SECRET_KEY = os.environ.get(
     "SECRET_KEY", "django-insecure-your-secret-key-here"
 )
@@ -42,6 +45,7 @@ INSTALLED_APPS = [
     "django_filters",
     "auditlog",
     "drf_spectacular",
+    "core",
     "importa_arquivos",
     "exporta_arquivo",
 ]
@@ -104,16 +108,24 @@ else:
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation.MinimumLengthValidator"  # noqa: E501
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation.CommonPasswordValidator"  # noqa: E501
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation.NumericPasswordValidator"  # noqa: E501
+        ),
     },
 ]
 
@@ -154,7 +166,9 @@ SPECTACULAR_SETTINGS = {
 
 # DRF settings
 REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": (
+        "rest_framework.pagination.PageNumberPagination"
+    ),
     "PAGE_SIZE": 10,
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
@@ -165,6 +179,7 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # "sigla_sdk.autenticacao.authentication.ApiKeyAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -182,7 +197,9 @@ LOGGING = {
     "formatters": {
         "json": {
             "()": "sigla_sdk.logging.json_formatter.CustomJsonFormatter",
-            "format": "%(levelname)s %(asctime)s %(module)s %(filename)s %(lineno)d %(funcName)s %(message)s",
+            "format": (
+                "%(levelname)s %(asctime)s %(module)s %(filename)s %(lineno)d %(funcName)s %(message)s"  # noqa: E501
+            ),
         },
     },
     "handlers": {
@@ -223,14 +240,17 @@ CANDIDATOS_API_URL = os.environ.get(
     "CANDIDATOS_API_URL", "http://localhost:8000"
 )
 CANDIDATOS_API_TIMEOUT = int(os.environ.get("CANDIDATOS_API_TIMEOUT", 30))
+CANDIDATOS_API_KEY = os.environ.get("CANDIDATOS_API_KEY", "api-key-candidatos")
 
 CONCURSOS_API_URL = os.environ.get(
     "CONCURSOS_API_URL", "http://localhost:8001"
 )
 CONCURSOS_API_TIMEOUT = int(os.environ.get("CONCURSOS_API_TIMEOUT", 30))
+CONCURSOS_API_KEY = os.environ.get("CONCURSOS_API_KEY", "api-key-concursos")
 
 ESCOLHA_API_URL = os.environ.get("ESCOLHA_API_URL", "http://localhost:8004")
 ESCOLHA_API_TIMEOUT = int(os.environ.get("ESCOLHA_API_TIMEOUT", 30))
+ESCOLHA_API_KEY = os.environ.get("ESCOLHA_API_KEY", "api-key-escolha")
 
 PROCESSOS_CONVOCACAO_API_URL = os.environ.get(
     "PROCESSOS_CONVOCACAO_API_URL", "http://localhost:8000"
@@ -239,7 +259,9 @@ PROCESSOS_CONVOCACAO_API_TIMEOUT = int(
     os.environ.get("PROCESSOS_CONVOCACAO_API_TIMEOUT", 30)
 )
 
-from datetime import timedelta
+# API Key (autenticação entre microsserviços)
+API_KEY = os.environ.get("API_KEY", "api-key-importa-arquivos")
+API_KEY_HEADER = os.environ.get("API_KEY_HEADER", "X-API-Key")
 
 JWT_SIGNING_KEY = os.environ.get(
     "JWT_SIGNING_KEY", os.environ.get("SECRET_KEY", "fallback-só-dev")

@@ -1,0 +1,130 @@
+"""ViewSet de importação de arquivo de lotes de classificação."""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, viewsets
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+
+from importa_arquivos.models import ImportacaoLotes
+from importa_arquivos.repository import ImportacaoLotesRepository
+from importa_arquivos.serializers import (
+    ImportacaoLotesCreateSerializer,
+    ImportacaoLotesListSerializer,
+)
+from importa_arquivos.services.api_candidatos import ApiCandidatosService
+from importa_arquivos.services.exceptions import (
+    BaseImportacaoError,
+    ErrosValidacaoLotesError,
+    ImportacaoBadRequestError,
+    ImportacaoServiceUnavailableError,
+)
+from importa_arquivos.services.importacao_lotes import validar_txt_lotes
+from importa_arquivos.utils import CustomPagination
+
+logger = logging.getLogger(__name__)
+
+
+class ImportacaoLotesViewSet(viewsets.ModelViewSet):
+    """ViewSet para importação de arquivos de lotes de classificação.
+
+    - create: recebe arquivo TXT + concurso_uuid, valida, chama API de
+      candidatos e retorna resultado.
+    - list: listagem paginada com filtros.
+    - retrieve: detalhe de um registro.
+    """
+
+    queryset = ImportacaoLotes.objects.all()
+    permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = [
+        "nome_arquivo",
+        "status",
+        "concurso_uuid",
+        "concurso_nome",
+    ]
+    search_fields = ["concurso_uuid", "concurso_nome"]
+    ordering_fields = ["nome_arquivo", "status", "criado_em"]
+    ordering = ["-criado_em"]
+    pagination_class = CustomPagination
+    lookup_field = "uuid"
+
+    def get_serializer_class(self) -> Any:
+        """Retorna serializer class de acordo com a action."""
+        if self.action in ("list", "retrieve"):
+            return ImportacaoLotesListSerializer
+        return ImportacaoLotesCreateSerializer
+
+    def create(self, request: Any, *args: Any, **kwargs: Any) -> Any:
+        """Cria uma nova importação de lotes."""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        try:
+            registros = validar_txt_lotes(
+                instance.arquivo, importacao_obj=instance
+            )
+        except ErrosValidacaoLotesError as exc:
+            return Response(
+                {"mensagem": exc.mensagem, "detail": exc.detalhes},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except BaseImportacaoError as exc:
+            return Response(
+                {"mensagem": exc.mensagem, "detail": exc.detalhes},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as exc:
+            logger.error(
+                "Erro inesperado ao validar arquivo de lotes: %s", exc
+            )
+            return Response(
+                {
+                    "mensagem": "Erro ao validar arquivo de lotes.",
+                    "detail": str(exc),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        instance.detalhes = registros
+        concurso_uuid = str(instance.concurso_uuid)
+        try:
+            total = ApiCandidatosService().salvar_lotes(
+                concurso_uuid=concurso_uuid,
+                lotes=registros,
+                importacao_obj=instance,
+            )
+        except (
+            ImportacaoServiceUnavailableError,
+            ImportacaoBadRequestError,
+            Exception,
+        ) as exc:
+            logger.error(
+                "Erro ao fazer request para salvar os lotes no serviço de candidatos: %s",  # noqa: E501
+                exc,
+            )
+            return Response(
+                {
+                    "mensagem": "Erro ao fazer request para salvar os lotes no serviço de candidatos.",  # noqa: E501
+                    "detail": str(exc),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        ImportacaoLotesRepository.atualizar(
+            instance,
+            status="CONCLUIDO",
+            total_atualizados=total,
+            detalhes=registros,
+        )
+        ImportacaoLotesRepository.recarregar(instance)
+        response_serializer = ImportacaoLotesListSerializer(instance)
+        headers = self.get_success_headers(response_serializer.data)
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
