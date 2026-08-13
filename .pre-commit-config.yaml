@@ -15,6 +15,7 @@ repos:
     rev: v1.10.0
     hooks:
       - id: mypy
+        exclude: ^docs/
         additional_dependencies:
           - django-stubs==5.1.1
           - djangorestframework-stubs==3.15.1
