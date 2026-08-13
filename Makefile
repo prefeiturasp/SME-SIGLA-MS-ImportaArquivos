@@ -2,7 +2,7 @@
 # Makefile para o projeto SME-SIGLA-MS-Escolha
 # Comandos úteis para desenvolvimento Django
 
-.PHONY: help pep257 pep484 pep-check makemigrations migrate runserver coverage test clean install format lint check
+.PHONY: help pep257 pep484 pep-check makemigrations migrate runserver coverage test clean install format lint check docs
 
 PEP_APP_DIRS = apps/importa_arquivos apps/exporta_arquivo
 
@@ -16,6 +16,7 @@ help:
 	@echo "  make test            - Executa todos os testes"
 	@echo "  make clean           - Remove arquivos temporários"
 	@echo "  make install         - Instala dependências"
+	@echo "  make docs            - Gera documentação HTML (Sphinx)"
 
 # Cria migrações do Django
 makemigrations:
@@ -94,3 +95,8 @@ pre-commit-install:
 pre-commit:
 	@echo "Executando pre-commit em todos os arquivos..."
 	pre-commit run --all-files
+
+# Gera documentação HTML com Sphinx
+docs:
+	@echo "Gerando documentação Sphinx..."
+	sphinx-build -b html docs/ docs/_build/html
