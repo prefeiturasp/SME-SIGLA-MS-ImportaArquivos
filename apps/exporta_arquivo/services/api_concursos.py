@@ -13,8 +13,8 @@ from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
 from .exceptions import (
-    ExportacaoNotFoundException,
-    ExportacaoServiceUnavailableException,
+    ExportacaoNotFoundError,
+    ExportacaoServiceUnavailableError,
 )
 
 logger = logging.getLogger(__name__)
@@ -56,9 +56,9 @@ class ApiConcursosService:
             Dicionário com os dados processados.
 
         Raises:
-            ExportacaoNotFoundException: Quando o concurso não é encontrado
+            ExportacaoNotFoundError: Quando o concurso não é encontrado
                 ou a API está indisponível.
-            ExportacaoServiceUnavailableException: Serviço indisponível.
+            ExportacaoServiceUnavailableError: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/concursos/{concurso_uuid}/"
 
@@ -72,14 +72,14 @@ class ApiConcursosService:
             )
         except RequestException as exc:
             logger.exception("Erro ao chamar API de concursos: %s", exc)
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem="Serviço de concursos indisponível.",
                 detalhes=str(exc),
             ) from exc
 
         if response.status_code == 404:
             logger.error(f"Concurso não encontrado: {url}")
-            raise ExportacaoNotFoundException(
+            raise ExportacaoNotFoundError(
                 mensagem="Concurso não encontrado.",
                 detalhes=f"concurso_uuid={concurso_uuid}",
             )
@@ -90,14 +90,14 @@ class ApiConcursosService:
                 response.status_code,
                 response.text[:500],
             )
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem="Serviço de concursos indisponível.",
                 detalhes=f"Status {response.status_code}",
             )
 
         if response.status_code != 200:
             logger.error(f"Erro ao obter dados do concurso: {url}")
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem="Erro ao obter dados do concurso.",
                 detalhes=f"Status {response.status_code}",
             )
@@ -106,13 +106,13 @@ class ApiConcursosService:
             data = response.json()
         except ValueError as exc:
             logger.exception("Resposta da API de concursos não é JSON válido.")
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem="Resposta inválida do serviço de concursos.",
                 detalhes=str(exc),
             ) from exc
 
         if not isinstance(data, dict):
-            raise ExportacaoServiceUnavailableException(
+            raise ExportacaoServiceUnavailableError(
                 mensagem="Resposta inválida do serviço de concursos.",
                 detalhes="Esperado objeto JSON.",
             )

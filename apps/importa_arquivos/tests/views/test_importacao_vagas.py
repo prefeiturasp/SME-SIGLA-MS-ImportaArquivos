@@ -13,8 +13,8 @@ from django.urls import reverse
 
 from importa_arquivos.models import ImportacaoArquivoVagas, ImportacaoErro
 from importa_arquivos.services.exceptions import (
-    ApiEscolhasException,
-    TipoUEDesabilitadoException,
+    ApiEscolhasError,
+    TipoUEDesabilitadoError,
 )
 
 pytestmark = pytest.mark.django_db
@@ -29,8 +29,12 @@ def test_importacao_vagas_create_success(
         "v.csv", b"DataFechamentoModulo\n05/09/2025\n", content_type="text/csv"
     )
     with (
-        patch("importa_arquivos.api.views.importacao_vagas.validar_csv_vagas") as mock_validar,
-        patch("importa_arquivos.api.views.importacao_vagas.ApiEscolhasService") as mock_api,
+        patch(
+            "importa_arquivos.api.views.importacao_vagas.validar_csv_vagas"
+        ) as mock_validar,
+        patch(
+            "importa_arquivos.api.views.importacao_vagas.ApiEscolhasService"
+        ) as mock_api,
     ):
         mock_validar.return_value = (
             [{"DataFechamentoModulo": "05/09/2025"}],
@@ -54,7 +58,9 @@ def test_importacao_vagas_create_success(
 def test_importacao_vagas_create_validation_error(api_client: Any) -> None:
     """Verifica importacao vagas create validation error."""
     arquivo = SimpleUploadedFile("v.csv", b"invalid", content_type="text/csv")
-    with patch("importa_arquivos.api.views.importacao_vagas.validar_csv_vagas") as mock_validar:
+    with patch(
+        "importa_arquivos.api.views.importacao_vagas.validar_csv_vagas"
+    ) as mock_validar:
         mock_validar.side_effect = ValueError("erro de layout")
         url = reverse("importacao-arquivo-vagas-list")
         resp = api_client.post(
@@ -66,7 +72,9 @@ def test_importacao_vagas_create_validation_error(api_client: Any) -> None:
 def test_importacao_vagas_create_unexpected_exception(api_client: Any) -> None:
     """Verifica importacao vagas create unexpected exception."""
     arquivo = SimpleUploadedFile("v.csv", b"invalid", content_type="text/csv")
-    with patch("importa_arquivos.api.views.importacao_vagas.validar_csv_vagas") as mock_validar:
+    with patch(
+        "importa_arquivos.api.views.importacao_vagas.validar_csv_vagas"
+    ) as mock_validar:
         mock_validar.side_effect = Exception("boom")
         url = reverse("importacao-arquivo-vagas-list")
         resp = api_client.post(
@@ -85,8 +93,12 @@ def test_importacao_vagas_envio_api_exception(
         "v.csv", b"DataFechamentoModulo\n05/09/2025\n", content_type="text/csv"
     )
     with (
-        patch("importa_arquivos.api.views.importacao_vagas.validar_csv_vagas") as mock_validar,
-        patch("importa_arquivos.api.views.importacao_vagas.ApiEscolhasService") as mock_api,
+        patch(
+            "importa_arquivos.api.views.importacao_vagas.validar_csv_vagas"
+        ) as mock_validar,
+        patch(
+            "importa_arquivos.api.views.importacao_vagas.ApiEscolhasService"
+        ) as mock_api,
     ):
         mock_validar.return_value = (
             [{"DataFechamentoModulo": "05/09/2025"}],
@@ -97,7 +109,7 @@ def test_importacao_vagas_envio_api_exception(
                 }
             ],
         )
-        mock_api.return_value.enviar_vagas.side_effect = ApiEscolhasException(
+        mock_api.return_value.enviar_vagas.side_effect = ApiEscolhasError(
             mensagem="Erro externo",
             detalhes="Detalhes do erro externo",
             status_code=400,
@@ -124,8 +136,12 @@ def test_importacao_vagas_tipo_ue_desabilitado(
         "v.csv", b"DataFechamentoModulo\n05/09/2025\n", content_type="text/csv"
     )
     with (
-        patch("importa_arquivos.api.views.importacao_vagas.validar_csv_vagas") as mock_validar,
-        patch("importa_arquivos.api.views.importacao_vagas.ApiEscolhasService") as mock_api,
+        patch(
+            "importa_arquivos.api.views.importacao_vagas.validar_csv_vagas"
+        ) as mock_validar,
+        patch(
+            "importa_arquivos.api.views.importacao_vagas.ApiEscolhasService"
+        ) as mock_api,
     ):
         mock_validar.return_value = (
             [{"DataFechamentoModulo": "05/09/2025", "codigo_eol": "123456"}],
@@ -137,7 +153,7 @@ def test_importacao_vagas_tipo_ue_desabilitado(
             ],
         )
         mock_api.return_value.enviar_vagas.side_effect = (
-            TipoUEDesabilitadoException(
+            TipoUEDesabilitadoError(
                 "Tipo de UE desabilitado", "TIPO_UE_DESABILITADO"
             )
         )
@@ -330,7 +346,9 @@ class TestImportacaoVagasConcursoFields:
             patch(
                 "importa_arquivos.api.views.importacao_vagas.validar_csv_vagas"
             ) as mock_validar,
-            patch("importa_arquivos.api.views.importacao_vagas.ApiEscolhasService") as mock_api,
+            patch(
+                "importa_arquivos.api.views.importacao_vagas.ApiEscolhasService"
+            ) as mock_api,
         ):
             mock_validar.return_value = (
                 [{"DataFechamentoModulo": "05/09/2025"}],
@@ -373,7 +391,9 @@ class TestImportacaoVagasConcursoFields:
             patch(
                 "importa_arquivos.api.views.importacao_vagas.validar_csv_vagas"
             ) as mock_validar,
-            patch("importa_arquivos.api.views.importacao_vagas.ApiEscolhasService") as mock_api,
+            patch(
+                "importa_arquivos.api.views.importacao_vagas.ApiEscolhasService"
+            ) as mock_api,
         ):
             mock_validar.return_value = (
                 [{"DataFechamentoModulo": "05/09/2025"}],
@@ -415,7 +435,9 @@ class TestImportacaoVagasConcursoFields:
             patch(
                 "importa_arquivos.api.views.importacao_vagas.validar_csv_vagas"
             ) as mock_validar,
-            patch("importa_arquivos.api.views.importacao_vagas.ApiEscolhasService") as mock_api,
+            patch(
+                "importa_arquivos.api.views.importacao_vagas.ApiEscolhasService"
+            ) as mock_api,
         ):
             mock_validar.return_value = (
                 [{"DataFechamentoModulo": "05/09/2025"}],
@@ -450,7 +472,9 @@ class TestImportacaoVagasErrorHandling:
             patch(
                 "importa_arquivos.api.views.importacao_vagas.validar_csv_vagas"
             ) as mock_validar,
-            patch("importa_arquivos.api.views.importacao_vagas.logging") as mock_logging,
+            patch(
+                "importa_arquivos.api.views.importacao_vagas.logging"
+            ) as mock_logging,
         ):
             mock_validar.side_effect = Exception("erro inesperado")
             url = reverse("importacao-arquivo-vagas-list")
@@ -479,7 +503,9 @@ class TestImportacaoVagasErrorHandling:
             patch(
                 "importa_arquivos.api.views.importacao_vagas.validar_csv_vagas"
             ) as mock_validar,
-            patch("importa_arquivos.api.views.importacao_vagas.ApiEscolhasService") as mock_api,
+            patch(
+                "importa_arquivos.api.views.importacao_vagas.ApiEscolhasService"
+            ) as mock_api,
             patch("importa_arquivos.api.views.importacao_vagas.logging"),
         ):
             mock_validar.return_value = (
@@ -491,13 +517,11 @@ class TestImportacaoVagasErrorHandling:
                     }
                 ],
             )
-            mock_api.return_value.enviar_vagas.side_effect = (
-                ApiEscolhasException(
-                    mensagem="Erro externo",
-                    detalhes="Detalhes do erro externo",
-                    status_code=400,
-                    code="ERRO_EXTERNO",
-                )
+            mock_api.return_value.enviar_vagas.side_effect = ApiEscolhasError(
+                mensagem="Erro externo",
+                detalhes="Detalhes do erro externo",
+                status_code=400,
+                code="ERRO_EXTERNO",
             )
             url = reverse("importacao-arquivo-vagas-list")
             resp = api_client.post(

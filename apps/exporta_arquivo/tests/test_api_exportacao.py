@@ -1,7 +1,7 @@
 """Testes dos clientes de API externa (ApiCandidatosService,.
 
 Mock de requests: timeout, 5xx, JSON inválido → exceções do domínio
-(CandidatosServiceUnavailableException, EscolhasServiceUnavailableException,
+(CandidatosServiceUnavailableError, EscolhasServiceUnavailableError,
 etc.).
 Usados apenas pelo exporta_arquivo; sem duplicar testes de outros apps.
 """
@@ -19,9 +19,9 @@ from exporta_arquivo.services.api_candidatos import ApiCandidatosService
 from exporta_arquivo.services.api_concursos import ApiConcursosService
 from exporta_arquivo.services.api_escolhas import ApiEscolhasService
 from exporta_arquivo.services.exceptions import (
-    CandidatosNotFoundException,
-    CandidatosServiceUnavailableException,
-    EscolhasServiceUnavailableException,
+    CandidatosNotFoundError,
+    CandidatosServiceUnavailableError,
+    EscolhasServiceUnavailableError,
 )
 
 
@@ -38,9 +38,7 @@ class TestApiCandidatosService:
         with patch(
             "sigla_sdk.http.api_client.http_client.get", side_effect=Timeout()
         ):
-            with pytest.raises(
-                CandidatosServiceUnavailableException
-            ) as exc_info:
+            with pytest.raises(CandidatosServiceUnavailableError) as exc_info:
                 service.get_habilitados(
                     processo_uuid="proc-uuid", cargo_codigo=100
                 )
@@ -57,9 +55,7 @@ class TestApiCandidatosService:
         with patch(
             "sigla_sdk.http.api_client.http_client.get", return_value=resp
         ):
-            with pytest.raises(
-                CandidatosServiceUnavailableException
-            ) as exc_info:
+            with pytest.raises(CandidatosServiceUnavailableError) as exc_info:
                 service.get_habilitados(
                     processo_uuid="proc-uuid", cargo_codigo=100
                 )
@@ -78,9 +74,7 @@ class TestApiCandidatosService:
         with patch(
             "sigla_sdk.http.api_client.http_client.get", return_value=resp
         ):
-            with pytest.raises(
-                CandidatosServiceUnavailableException
-            ) as exc_info:
+            with pytest.raises(CandidatosServiceUnavailableError) as exc_info:
                 service.get_habilitados(
                     processo_uuid="proc-uuid", cargo_codigo=100
                 )
@@ -96,7 +90,7 @@ class TestApiCandidatosService:
         with patch(
             "sigla_sdk.http.api_client.http_client.get", return_value=resp
         ):
-            with pytest.raises(CandidatosNotFoundException) as exc_info:
+            with pytest.raises(CandidatosNotFoundError) as exc_info:
                 service.get_habilitados(
                     processo_uuid="proc-uuid", cargo_codigo=100
                 )
@@ -145,9 +139,7 @@ class TestApiEscolhasService:
         with patch(
             "sigla_sdk.http.api_client.http_client.get", side_effect=Timeout()
         ):
-            with pytest.raises(
-                EscolhasServiceUnavailableException
-            ) as exc_info:
+            with pytest.raises(EscolhasServiceUnavailableError) as exc_info:
                 service.get_vagas_escolas("proc-uuid", 100)
             assert (
                 "indisponível" in exc_info.value.mensagem.lower()
@@ -162,9 +154,7 @@ class TestApiEscolhasService:
         with patch(
             "sigla_sdk.http.api_client.http_client.get", return_value=resp
         ):
-            with pytest.raises(
-                EscolhasServiceUnavailableException
-            ) as exc_info:
+            with pytest.raises(EscolhasServiceUnavailableError) as exc_info:
                 service.get_vagas_escolas("proc-uuid", 100)
             assert (
                 "502" in exc_info.value.detalhes
@@ -181,9 +171,7 @@ class TestApiEscolhasService:
         with patch(
             "sigla_sdk.http.api_client.http_client.get", return_value=resp
         ):
-            with pytest.raises(
-                EscolhasServiceUnavailableException
-            ) as exc_info:
+            with pytest.raises(EscolhasServiceUnavailableError) as exc_info:
                 service.get_vagas_escolas("proc-uuid", 100)
             assert (
                 "inválida" in exc_info.value.mensagem.lower()

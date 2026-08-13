@@ -93,7 +93,7 @@ class ImportacaoEscolhasRepository:
 
     @staticmethod
     def serializar(instancia: ImportacaoEscolhas) -> dict[str, Any]:
-        """Converte uma importação de escolhas em dicionário."""
+        """Serializa uma importação de escolhas em dicionário."""
         from importa_arquivos.serializers import (
             ImportacaoEscolhasListSerializer,
         )
@@ -148,15 +148,16 @@ class ImportacaoErroRepository:
 
     @staticmethod
     def serializar_lista(erros: Any) -> list[dict[str, Any]]:
-        """Converte uma lista/queryset de erros em dicionários."""
+        """Serializa uma lista/queryset de erros em dicionários."""
         return ImportacaoErrosListSerializer(erros, many=True).data
 
     @classmethod
     def listar_por_modelo_e_uuid(
         cls, model_cls: type, importacao_uuid: str | UUID | None = None
     ) -> list[dict[str, Any]]:
-        """Lista erros filtrados por modelo de importação e UUID, já
-        serializados.
+        """Lista erros filtrados por modelo de importação e UUID.
+
+        Já serializados.
         """
         content_type = ContentType.objects.get_for_model(model_cls)
         queryset = ImportacaoErro.objects.filter(

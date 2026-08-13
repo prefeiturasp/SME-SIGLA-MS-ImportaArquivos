@@ -8,14 +8,13 @@ from typing import Any
 
 from django.conf import settings
 from requests import RequestException, Response
-from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
 from importa_arquivos.services.erros import captura_erros_importacao
 from importa_arquivos.services.exceptions import (
-    ApiCandidatosException,
-    ImportacaoBadRequestException,
-    ImportacaoServiceUnavailableException,
+    ApiCandidatosError,
+    ImportacaoBadRequestError,
+    ImportacaoServiceUnavailableError,
 )
 
 logger = logging.getLogger(__name__)
@@ -92,7 +91,8 @@ class ApiCandidatosService:
             estrutura: Definição de colunas do layout de importação.
             concurso_uuid: UUID do concurso relacionado.
             concurso_nome: Nome do concurso exibido na resposta.
-            mandado_judicial: Flag indicando se o candidato tem mandado judicial.
+            mandado_judicial: Flag indicando se o candidato tem mandado
+                judicial.
             headers: Cabeçalhos HTTP da requisição.
             importacao_obj: Registro de importação em andamento.
 
@@ -100,7 +100,7 @@ class ApiCandidatosService:
             Resposta HTTP com o arquivo para download.
 
         Raises:
-            ApiCandidatosException: Quando a API de candidatos falha ou
+            ApiCandidatosError: Quando a API de candidatos falha ou
                 retorna erro.
         """
         url = f"{self.base_url}/api/v1/candidatos/"
@@ -123,7 +123,7 @@ class ApiCandidatosService:
             logger.error("Erro ao enviar candidatos: %s", exc)
             raise
         if response.status_code >= 400:
-            raise ApiCandidatosException(
+            raise ApiCandidatosError(
                 mensagem="Falha ao enviar candidatos para API externa",
                 detalhes=response.text or f"Status {response.status_code}",
                 status_code=response.status_code,
@@ -150,8 +150,8 @@ class ApiCandidatosService:
             Quantidade de registros processados.
 
         Raises:
-            ImportacaoBadRequestException: Requisição inválida.
-            ImportacaoServiceUnavailableException: Serviço indisponível.
+            ImportacaoBadRequestError: Requisição inválida.
+            ImportacaoServiceUnavailableError: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/habilitados/salvar-lotes/"
         payload = {"concurso_uuid": concurso_uuid, "lotes": lotes}
@@ -164,7 +164,7 @@ class ApiCandidatosService:
             )
         except RequestException as exc:
             logger.exception("Erro ao chamar API salvar-lotes: %s", exc)
-            raise ImportacaoServiceUnavailableException(
+            raise ImportacaoServiceUnavailableError(
                 mensagem="Serviço de candidatos (salvar-lotes) indisponível.",
                 detalhes=str(exc),
             ) from exc
@@ -182,16 +182,14 @@ class ApiCandidatosService:
                 detail = payload_erro.get("detail", mensagem)
             except (ValueError, json.JSONDecodeError):
                 detail = "Erro JSONDecodeError"
-            raise ImportacaoBadRequestException(
-                mensagem=mensagem, detalhes=detail
-            )
+            raise ImportacaoBadRequestError(mensagem=mensagem, detalhes=detail)
         if response.status_code >= 500:
             logger.error(
                 "API salvar-lotes retornou status %s: %s",
                 response.status_code,
                 response.text,
             )
-            raise ImportacaoServiceUnavailableException(
+            raise ImportacaoServiceUnavailableError(
                 mensagem="Serviço de candidatos (salvar-lotes) indisponível.",
                 detalhes=f"Status {response.status_code}: {response.text}",
             )
@@ -201,7 +199,7 @@ class ApiCandidatosService:
                 response.status_code,
                 response.text,
             )
-            raise ImportacaoServiceUnavailableException(
+            raise ImportacaoServiceUnavailableError(
                 mensagem="Erro ao salvar lotes.",
                 detalhes=f"Status {response.status_code}: {response.text}",
             )

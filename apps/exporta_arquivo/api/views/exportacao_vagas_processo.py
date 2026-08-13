@@ -55,7 +55,9 @@ class ExportacaoVagasProcessoViewSet(BaseExportacaoViewSet):
         return response
 
     def executar_exportacao(self, instance: Any) -> None:
-        """A exportação vagas processo, gera o arquivo e persiste.
+        """Executa a exportação de vagas do processo.
+
+        Gera o arquivo e persiste.
 
         Args:
             instance: Instância do modelo em atualização.

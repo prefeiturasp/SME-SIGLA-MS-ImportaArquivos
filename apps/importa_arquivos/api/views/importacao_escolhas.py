@@ -28,7 +28,7 @@ from importa_arquivos.serializers import (
 from importa_arquivos.services.api_escolhas import ApiEscolhasService
 from importa_arquivos.services.api_prodam import ApiProdamService
 from importa_arquivos.services.erros import registrar_erro
-from importa_arquivos.services.exceptions import ApiEscolhasException
+from importa_arquivos.services.exceptions import ApiEscolhasError
 from importa_arquivos.utils import CustomPagination
 
 logger = logging.getLogger(__name__)
@@ -96,9 +96,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                     "mensagem", "Erro desconhecido na API PRODAM"
                 )
                 logger.error(f"API PRODAM retornou erro: {mensagem_erro}")
-                ImportacaoEscolhasRepository.atualizar(
-                    instance, status="ERRO"
-                )
+                ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
                 registrar_erro(
                     instance,
                     mensagem="Erro na resposta da API PRODAM",
@@ -141,7 +139,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             logger.info(
                 f"Importação concluída com sucesso: {len(dados_prodam)} registros"  # noqa: E501
             )
-        except ApiEscolhasException as exc:
+        except ApiEscolhasError as exc:
             logger.error(
                 f"Erro da API de escolhas durante importação: {exc}",
                 exc_info=True,

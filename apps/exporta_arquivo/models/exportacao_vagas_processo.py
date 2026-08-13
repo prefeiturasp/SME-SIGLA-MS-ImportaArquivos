@@ -11,7 +11,7 @@ from .base import BaseModel
 
 
 class ExportacaoVagasProcesso(BaseModel):
-    """Registro de exportação de vagas por processo (formato vagas processo)."""
+    """Registro de exportação de vagas por processo."""
 
     history = AuditlogHistoryField()
 

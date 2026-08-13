@@ -32,7 +32,7 @@ def _uuid() -> Any:
 
 @pytest.fixture
 def api_client() -> Any:
-    """Api client."""
+    """Cria client de API para testes."""
     from rest_framework.test import APIClient
 
     return APIClient()
@@ -86,7 +86,7 @@ class TestExportacaoVagasProcessoViewSetEspecifico:
     def test_create_com_mocks_persiste_conteudo_e_nome_exportacao_vagas_processo(  # noqa: E501
         self, api_client: Any
     ) -> None:
-        """Verifica create com mocks persiste conteudo e nome exportacao vagas."""
+        """Verifica create com mocks persiste conteudo e nome do arquivo."""
         vagas_escolas = [
             {
                 "codigo_eol": "EOL1",

@@ -9,7 +9,7 @@ import pytest
 from django.test import override_settings
 
 from importa_arquivos.services.api_concursos import ApiConcursosService
-from importa_arquivos.services.exceptions import CargoConcursoInvalidoException
+from importa_arquivos.services.exceptions import CargoConcursoInvalidoError
 
 
 def _make_service() -> Any:
@@ -65,7 +65,7 @@ def test_obter_codigos_cargo_404_lanca_excecao() -> None:
             "importa_arquivos.services.api_concursos.http_client.get",
             return_value=mock_resp,
         ),
-        pytest.raises(CargoConcursoInvalidoException) as exc,
+        pytest.raises(CargoConcursoInvalidoError) as exc,
     ):
         _make_service().obter_codigos_cargo_do_concurso("uuid-invalido")
     assert "concurso" in exc.value.mensagem.lower()
@@ -80,7 +80,7 @@ def test_obter_codigos_cargo_erro_conexao_lanca_excecao() -> None:
             "importa_arquivos.services.api_concursos.http_client.get",
             side_effect=RequestException("timeout"),
         ),
-        pytest.raises(CargoConcursoInvalidoException) as exc,
+        pytest.raises(CargoConcursoInvalidoError) as exc,
     ):
         _make_service().obter_codigos_cargo_do_concurso("uuid-concurso")
     assert "indisponível" in exc.value.mensagem.lower()
@@ -95,7 +95,7 @@ def test_obter_codigos_cargo_5xx_lanca_excecao() -> None:
             "importa_arquivos.services.api_concursos.http_client.get",
             return_value=mock_resp,
         ),
-        pytest.raises(CargoConcursoInvalidoException),
+        pytest.raises(CargoConcursoInvalidoError),
     ):
         _make_service().obter_codigos_cargo_do_concurso("uuid-concurso")
 

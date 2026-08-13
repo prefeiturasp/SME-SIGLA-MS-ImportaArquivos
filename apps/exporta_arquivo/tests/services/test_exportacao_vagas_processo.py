@@ -108,9 +108,11 @@ class TestBuscarVagasEscolasVagasProcesso:
         payload_invalido = {"vagas": []}  # type: ignore[var-annotated]
         mock_api = MagicMock()
         mock_api.get_vagas_escolas.return_value = payload_invalido
-        with patch(
-            "exporta_arquivo.services.exportacao_vagas_processo.ApiEscolhasService",
-            return_value=mock_api,
+        with (
+            patch(
+                "exporta_arquivo.services.exportacao_vagas_processo.ApiEscolhasService",
+                return_value=mock_api,
+            ),
+            pytest.raises(ValidationError),
         ):
-            with pytest.raises(ValidationError):
-                buscar_vagas_escolas("processo-uuid", 100)
+            buscar_vagas_escolas("processo-uuid", 100)

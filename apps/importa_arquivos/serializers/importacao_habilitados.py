@@ -14,6 +14,7 @@ class ImportacaoArquivoHabilitadosCreateSerializer(
     serializers.ModelSerializer
 ):
     """Serializer para criação de importações de arquivos habilitados."""
+
     mandado_judicial = serializers.BooleanField(
         required=False, default=False, write_only=True
     )

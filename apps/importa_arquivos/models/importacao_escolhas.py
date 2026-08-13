@@ -6,9 +6,8 @@ from typing import Any
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
-from django.db import models
-
 from core.models import BaseModel
+from django.db import models
 
 from .base import CHOICES_STATUS_IMPORTACAO_ARQUIVO
 
@@ -46,7 +45,7 @@ class ImportacaoEscolhas(BaseModel):
 
     def __str__(self) -> Any:
         """Retorna o UUID do processo da importação."""
-        return f'Importação - {self.processo_uuid or 'N/A'}'
+        return f"Importação - {self.processo_uuid or 'N/A'}"
 
 
 auditlog.register(ImportacaoEscolhas)

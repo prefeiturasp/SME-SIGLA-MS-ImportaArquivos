@@ -1,8 +1,7 @@
 """Módulo models/base."""
 
-from django.db import models
-
 from core.models import BaseModel
+from django.db import models
 
 CHOICES_TIPO_IMPORTACAO_ARQUIVO = [
     ("HABILITADOS", "Habilitados"),

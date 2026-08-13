@@ -14,8 +14,8 @@ from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
 from .exceptions import (
-    CandidatosNotFoundException,
-    CandidatosServiceUnavailableException,
+    CandidatosNotFoundError,
+    CandidatosServiceUnavailableError,
 )
 
 logger = logging.getLogger(__name__)
@@ -33,10 +33,10 @@ class ApiCandidatosService:
             base_url: URL base do serviço remoto.
             timeout_seconds: Tempo máximo de espera pela resposta, em segundos.
         """
-        self.base_url = (
+        self.base_url = str(
             base_url
             or getattr(settings, "CANDIDATOS_API_URL", "http://localhost:8000")
-        ).rstrip("/")  # type: ignore[union-attr]
+        ).rstrip("/")
         self.timeout_seconds = timeout_seconds or getattr(
             settings, "CANDIDATOS_API_TIMEOUT", 30
         )
@@ -55,8 +55,8 @@ class ApiCandidatosService:
             Lista com os registros obtidos.
 
         Raises:
-            CandidatosNotFoundException: Registros não encontrados.
-            CandidatosServiceUnavailableException: Serviço indisponível.
+            CandidatosNotFoundError: Registros não encontrados.
+            CandidatosServiceUnavailableError: Serviço indisponível.
         """
         url = f"{self.base_url}/api/v1/habilitados/"
         params = {k: str(v) for k, v in kwargs.items() if v is not None}
@@ -69,12 +69,12 @@ class ApiCandidatosService:
             )
         except RequestException as exc:
             logger.exception("Erro ao chamar API de habilitados: %s", exc)
-            raise CandidatosServiceUnavailableException(
+            raise CandidatosServiceUnavailableError(
                 mensagem="Serviço de candidatos (habilitados) indisponível.",
                 detalhes=str(exc),
             ) from exc
         if response.status_code == 404:
-            raise CandidatosNotFoundException(
+            raise CandidatosNotFoundError(
                 mensagem="Recurso de habilitados não encontrado.",
                 detalhes="Habilitados não encontrado.",
             )
@@ -84,12 +84,12 @@ class ApiCandidatosService:
                 response.status_code,
                 response.text[:500],
             )
-            raise CandidatosServiceUnavailableException(
+            raise CandidatosServiceUnavailableError(
                 mensagem="Serviço de candidatos (habilitados) indisponível.",
                 detalhes=f"Status {response.status_code}",
             )
         if response.status_code != 200:
-            raise CandidatosServiceUnavailableException(
+            raise CandidatosServiceUnavailableError(
                 mensagem="Erro ao obter habilitados.",
                 detalhes=f"Status {response.status_code}",
             )
@@ -99,7 +99,7 @@ class ApiCandidatosService:
             logger.exception(
                 "Resposta da API de habilitados não é JSON válido."
             )
-            raise CandidatosServiceUnavailableException(
+            raise CandidatosServiceUnavailableError(
                 mensagem="Resposta inválida do serviço de candidatos.",
                 detalhes=str(exc),
             ) from exc

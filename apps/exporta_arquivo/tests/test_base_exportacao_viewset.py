@@ -18,9 +18,9 @@ from django.http import HttpResponse
 
 from exporta_arquivo.models import ExportacaoVagasSigpec
 from exporta_arquivo.services.exceptions import (
-    ExportacaoBadRequestException,
-    ExportacaoNotFoundException,
-    ExportacaoServiceUnavailableException,
+    ExportacaoBadRequestError,
+    ExportacaoNotFoundError,
+    ExportacaoServiceUnavailableError,
 )
 
 pytestmark = [
@@ -37,7 +37,7 @@ def _uuid() -> Any:
 
 @pytest.fixture
 def api_client() -> Any:
-    """Api client."""
+    """Cria client de API para testes."""
     from rest_framework.test import APIClient
 
     return APIClient()
@@ -45,7 +45,7 @@ def api_client() -> Any:
 
 @pytest.fixture
 def registro_com_arquivo() -> Any:
-    """Registro no banco com conteudo_arquivo e nome_arquivo preenchidos (para."""
+    """Registro no banco com conteudo_arquivo e nome_arquivo."""
     return ExportacaoVagasSigpec.objects.create(
         processo_uuid=uuid.uuid4(),
         cargo_uuid=uuid.uuid4(),
@@ -76,7 +76,7 @@ class TestBaseExportacaoList:
     def test_list_com_processo_e_cargo_uuid_sem_cargo_codigo_retorna_400(
         self, api_client: Any
     ) -> None:
-        """Verifica list com processo e cargo uuid sem cargo codigo retorna 400."""
+        """Verifica list com processo/cargo uuid sem cargo codigo -> 400."""
         response = api_client.get(
             LIST_URL, {"processo_uuid": _uuid(), "cargo_uuid": _uuid()}
         )
@@ -188,7 +188,7 @@ class TestBaseExportacaoCreate:
     def test_create_com_dados_validos_mock_executar_retorna_200_arquivo(
         self, api_client: Any
     ) -> None:
-        """Verifica create com dados validos mock executar retorna 200 arquivo."""
+        """Verifica create com dados validos mock executar -> 200 arquivo."""
         with (
             patch(
                 "exporta_arquivo.api.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao"
@@ -218,7 +218,7 @@ class TestBaseExportacaoCreate:
         """Verifica create executar levanta bad request retorna 400."""
         with patch(
             "exporta_arquivo.api.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao",
-            side_effect=ExportacaoBadRequestException(
+            side_effect=ExportacaoBadRequestError(
                 mensagem="cargo_codigo inválido."
             ),
         ):
@@ -245,7 +245,7 @@ class TestBaseExportacaoCreate:
         """Verifica create executar levanta not found retorna 404."""
         with patch(
             "exporta_arquivo.api.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao",
-            side_effect=ExportacaoNotFoundException(
+            side_effect=ExportacaoNotFoundError(
                 mensagem="Processo não encontrado."
             ),
         ):
@@ -268,7 +268,7 @@ class TestBaseExportacaoCreate:
         """Verifica create executar levanta service unavailable retorna 502."""
         with patch(
             "exporta_arquivo.api.views.exportacao_vagas_sigpec.ExportacaoVagasSigpecViewSet.executar_exportacao",
-            side_effect=ExportacaoServiceUnavailableException(
+            side_effect=ExportacaoServiceUnavailableError(
                 mensagem="API indisponível."
             ),
         ):
@@ -294,7 +294,7 @@ class TestBaseExportacaoDownload:
         self, api_client: Any, registro_com_arquivo: Any
     ) -> None:
         """Verifica download com registro com arquivo retorna 200 e corpo."""
-        url = f'{LIST_URL.rstrip('/')}/{str(registro_com_arquivo.uuid)}/download/'  # noqa: E501
+        url = f"{LIST_URL.rstrip('/')}/{str(registro_com_arquivo.uuid)}/download/"  # noqa: E501
         response = api_client.get(url)
         assert response.status_code == 200
         assert b"conteudo" in response.content

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 
-class BaseImportacaoException(Exception):
-    """Erro de negócio relacionado a BaseImportacaoException."""
+class BaseImportacaoError(Exception):
+    """Erro de negócio relacionado a BaseImportacaoError."""
 
     def __init__(self, mensagem: str, detalhes: str | None = None) -> None:
         """Inicializa a instância com os parâmetros informados.
@@ -22,43 +22,43 @@ class BaseImportacaoException(Exception):
         return self.mensagem
 
 
-class ColunaCSVInvalidaException(BaseImportacaoException):
-    """Erro de negócio relacionado a ColunaCSVInvalidaException."""
+class ColunaCSVInvalidaError(BaseImportacaoError):
+    """Erro de negócio relacionado a ColunaCSVInvalidaError."""
 
     pass
 
 
-class CamposObrigatoriosNaoPreenchidosException(BaseImportacaoException):
+class CamposObrigatoriosNaoPreenchidosError(BaseImportacaoError):
     """Campos obrigatórios ausentes ou inválidos na importação."""
 
     pass
 
 
-class LayoutNaoConfiguradoException(BaseImportacaoException):
-    """Erro de negócio relacionado a LayoutNaoConfiguradoException."""
+class LayoutNaoConfiguradoError(BaseImportacaoError):
+    """Erro de negócio relacionado a LayoutNaoConfiguradoError."""
 
     pass
 
 
-class LeituraCSVException(BaseImportacaoException):
-    """Erro de negócio relacionado a LeituraCSVException."""
+class LeituraCSVError(BaseImportacaoError):
+    """Erro de negócio relacionado a LeituraCSVError."""
 
     pass
 
 
-class EmailFormatoInvalidoException(BaseImportacaoException):
-    """Erro de negócio relacionado a EmailFormatoInvalidoException."""
+class EmailFormatoInvalidoError(BaseImportacaoError):
+    """Erro de negócio relacionado a EmailFormatoInvalidoError."""
 
     pass
 
 
-class TipoUEDesabilitadoException(BaseImportacaoException):
+class TipoUEDesabilitadoError(BaseImportacaoError):
     """Erro retornado pela API de Escolhas quando o tipo_ue da escola está."""
 
     pass
 
 
-class ApiCandidatosException(BaseImportacaoException):
+class ApiCandidatosError(BaseImportacaoError):
     """Erro de integração com o MS-Candidatos."""
 
     def __init__(
@@ -81,7 +81,7 @@ class ApiCandidatosException(BaseImportacaoException):
         self.code = code
 
 
-class ApiEscolhasException(BaseImportacaoException):
+class ApiEscolhasError(BaseImportacaoError):
     """Erro de integração com o MS-Escolhas."""
 
     def __init__(
@@ -104,31 +104,31 @@ class ApiEscolhasException(BaseImportacaoException):
         self.code = code
 
 
-class ImportacaoBadRequestException(BaseImportacaoException):
-    """Erro de negócio relacionado a ImportacaoBadRequestException."""
+class ImportacaoBadRequestError(BaseImportacaoError):
+    """Erro de negócio relacionado a ImportacaoBadRequestError."""
 
     pass
 
 
-class ImportacaoServiceUnavailableException(BaseImportacaoException):
-    """Erro de negócio relacionado a ImportacaoServiceUnavailableException."""
+class ImportacaoServiceUnavailableError(BaseImportacaoError):
+    """Erro de negócio relacionado a ImportacaoServiceUnavailableError."""
 
     pass
 
 
-class ArquivoLotesVazioException(BaseImportacaoException):
+class ArquivoLotesVazioError(BaseImportacaoError):
     """Arquivo de lotes vazio ou sem dados validos."""
 
 
-class ErrosValidacaoLotesException(BaseImportacaoException):
+class ErrosValidacaoLotesError(BaseImportacaoError):
     """Arquivo de lotes contém erros de validação por linha."""
 
 
-class MultiplosLotesException(BaseImportacaoException):
+class MultiplosLotesError(BaseImportacaoError):
     """Arquivo de lotes contem mais de um valor na coluna LOTE."""
 
 
-class CargoConcursoInvalidoException(BaseImportacaoException):
+class CargoConcursoInvalidoError(BaseImportacaoError):
     """Erro quando Codigo_do_Cargo não pertence ao concurso selecionado ou."""
 
     pass

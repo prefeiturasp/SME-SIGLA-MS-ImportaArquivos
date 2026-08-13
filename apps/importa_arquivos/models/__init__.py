@@ -7,3 +7,13 @@ from .importacao_lotes import ImportacaoLotes
 from .importacao_vagas import ImportacaoArquivoVagas
 from .layout import LayoutArquivoImportacao
 from .log_request_http import LogRequestHttp
+
+__all__ = [
+    "ImportacaoArquivoHabilitado",
+    "ImportacaoArquivoVagas",
+    "ImportacaoErro",
+    "ImportacaoEscolhas",
+    "ImportacaoLotes",
+    "LayoutArquivoImportacao",
+    "LogRequestHttp",
+]

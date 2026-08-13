@@ -11,7 +11,7 @@ from typing import Any
 from django.db import transaction
 
 from importa_arquivos.models import ImportacaoErro
-from importa_arquivos.services.exceptions import BaseImportacaoException
+from importa_arquivos.services.exceptions import BaseImportacaoError
 
 
 def _repositorio_para_instancia(importacao_obj: Any) -> Any:
@@ -70,7 +70,7 @@ def registrar_erro(
     if importacao_obj is None:
         raise ValueError("importacao_obj é obrigatório para registrar erro")
     if exc is not None:
-        if isinstance(exc, BaseImportacaoException):
+        if isinstance(exc, BaseImportacaoError):
             mensagem = mensagem or exc.mensagem
             detalhes = detalhes or exc.detalhes
         else:
@@ -94,7 +94,7 @@ def registrar_erro(
 def captura_erros_importacao(
     param_nome_obj: str = "importacao_obj",
 ) -> Callable:
-    """Decorator para funções de serviço de importação.
+    """Decora funções de serviço de importação.
 
     Args:
         param_nome_obj: Nome do parâmetro que recebe o objeto de importação.
@@ -104,11 +104,11 @@ def captura_erros_importacao(
     """
 
     def decorator(func: Callable) -> Callable:
-        """Decorator para registrar erros de importação."""
+        """Decora a função para registrar erros de importação."""
 
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            """Wrapper para capturar erros de importação."""
+            """Captura erros de importação durante a execução."""
             importacao_obj = kwargs.get(param_nome_obj)
             try:
                 return func(*args, **kwargs)

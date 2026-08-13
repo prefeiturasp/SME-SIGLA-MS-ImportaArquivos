@@ -22,7 +22,8 @@ from exporta_arquivo.serializers import (
     ExportacaoLoteListSerializer,
 )
 from exporta_arquivo.services.exceptions import (
-    ExportacaoLoteIncompletaException,
+    BaseExportacaoError,
+    ExportacaoLoteIncompletaError,
 )
 from exporta_arquivo.services.exportacao_lote import exportar_lote
 from importa_arquivos.utils import CustomPagination
@@ -70,7 +71,7 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
         instance = serializer.save()
         try:
             conteudo = exportar_lote(instance)
-        except ExportacaoLoteIncompletaException as exc:
+        except ExportacaoLoteIncompletaError as exc:
             logger.warning(
                 "Exportação incompleta (422) para o lote %s: %s",
                 instance.uuid,
@@ -99,17 +100,17 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
                 f'attachment; filename="{nome_arquivo_erro}"'
             )
             return response
-        except Exception as exc:
+        except BaseExportacaoError as exc:
             logger.warning(
                 f"Exportação: {instance.uuid} | {exc.mensagem} | {exc.detalhes}"  # noqa: E501
-            )  # type: ignore[attr-defined]
+            )
             ExportacaoLoteRepository.atualizar(
                 instance, status=StatusExportacao.ERRO
             )
             return Response(
                 {"mensagem": exc.mensagem, "detail": exc.detalhes},
                 status=status.HTTP_400_BAD_REQUEST,
-            )  # type: ignore[attr-defined]
+            )
         lote_id = (
             instance.numero_lote
             if instance.numero_lote is not None

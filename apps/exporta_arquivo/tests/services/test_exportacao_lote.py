@@ -17,7 +17,7 @@ from unittest.mock import patch
 import pytest
 
 from exporta_arquivo.services.exceptions import (
-    ExportacaoLoteIncompletaException,
+    ExportacaoLoteIncompletaError,
 )
 from exporta_arquivo.services.exportacao_lote import (
     _data_para_ddmmyyyy,
@@ -119,9 +119,9 @@ class TestGerarConteudoLote:
         """Verifica lista vazia retorna so cabecalho."""
         out = gerar_conteudo_lote([], {})
         linhas_dados = [
-            l
-            for l in out.strip().split("\n")
-            if not l.strip().startswith("@") and l.strip()
+            linha
+            for linha in out.strip().split("\n")
+            if not linha.strip().startswith("@") and linha.strip()
         ]
         assert linhas_dados == []
 
@@ -248,13 +248,13 @@ class TestExportarLote:
         with (
             patch(
                 "exporta_arquivo.services.exportacao_lote.ApiCandidatosService"
-            ) as MockCand,
+            ) as mock_cand,
             patch(
                 "exporta_arquivo.services.exportacao_lote.ApiEscolhasService"
-            ) as MockEsc,
+            ) as mock_esc,
         ):
-            MockCand.return_value.get_habilitados.return_value = candidatos
-            MockEsc.return_value.get_escolhas.return_value = escolhas
+            mock_cand.return_value.get_habilitados.return_value = candidatos
+            mock_esc.return_value.get_escolhas.return_value = escolhas
             resultado = exportar_lote(instance)
         assert "@TABELA=" in resultado
         assert ";S;SCL01;" in resultado
@@ -268,17 +268,17 @@ class TestExportarLote:
         with (
             patch(
                 "exporta_arquivo.services.exportacao_lote.ApiCandidatosService"
-            ) as MockCand,
+            ) as mock_cand,
             patch(
                 "exporta_arquivo.services.exportacao_lote.ApiEscolhasService"
-            ) as MockEsc,
+            ) as mock_esc,
         ):
-            MockCand.return_value.get_habilitados.return_value = candidatos
-            MockEsc.return_value.get_escolhas.return_value = [
+            mock_cand.return_value.get_habilitados.return_value = candidatos
+            mock_esc.return_value.get_escolhas.return_value = [
                 _escolha(cand_uuid)
             ]
             exportar_lote(instance)
-        MockCand.return_value.get_habilitados.assert_called_once_with(
+        mock_cand.return_value.get_habilitados.assert_called_once_with(
             concurso_uuid=str(instance.concurso_uuid),
             numero_lote=instance.numero_lote,
         )
@@ -292,17 +292,17 @@ class TestExportarLote:
         with (
             patch(
                 "exporta_arquivo.services.exportacao_lote.ApiCandidatosService"
-            ) as MockCand,
+            ) as mock_cand,
             patch(
                 "exporta_arquivo.services.exportacao_lote.ApiEscolhasService"
-            ) as MockEsc,
+            ) as mock_esc,
         ):
-            MockCand.return_value.get_habilitados.return_value = candidatos
-            MockEsc.return_value.get_escolhas.return_value = [
+            mock_cand.return_value.get_habilitados.return_value = candidatos
+            mock_esc.return_value.get_escolhas.return_value = [
                 _escolha(cand_uuid)
             ]
             exportar_lote(instance)
-        MockEsc.return_value.get_escolhas.assert_called_once_with(
+        mock_esc.return_value.get_escolhas.assert_called_once_with(
             candidato_uuids=[cand_uuid],
             concurso_uuid=str(instance.concurso_uuid),
         )
@@ -316,21 +316,24 @@ class TestExportarLote:
         with (
             patch(
                 "exporta_arquivo.services.exportacao_lote.ApiCandidatosService"
-            ) as MockCand,
+            ) as mock_cand,
             patch(
                 "exporta_arquivo.services.exportacao_lote.ApiEscolhasService"
-            ) as MockEsc,
+            ) as mock_esc,
         ):
-            MockCand.return_value.get_habilitados.return_value = candidatos
-            MockEsc.return_value.get_escolhas.return_value = []
-            with pytest.raises(ExportacaoLoteIncompletaException) as exc_info:
+            mock_cand.return_value.get_habilitados.return_value = candidatos
+            mock_esc.return_value.get_escolhas.return_value = []
+            with pytest.raises(ExportacaoLoteIncompletaError) as exc_info:
                 exportar_lote(instance)
         assert "Maria" in exc_info.value.candidatos_sem_escolha
 
     def test_candidato_sem_uuid_nao_incluido_na_lista_enviada_a_api_escolhas(
         self, instance: Any
     ) -> None:
-        """Verifica candidato sem uuid nao incluido na lista enviada a api escolhas."""
+        """Verifica candidato sem uuid nao incluido na lista.
+
+        Enviada a api escolhas.
+        """
         cand_uuid = _uuid()
         candidatos = [
             {
@@ -346,18 +349,18 @@ class TestExportarLote:
         with (
             patch(
                 "exporta_arquivo.services.exportacao_lote.ApiCandidatosService"
-            ) as MockCand,
+            ) as mock_cand,
             patch(
                 "exporta_arquivo.services.exportacao_lote.ApiEscolhasService"
-            ) as MockEsc,
+            ) as mock_esc,
         ):
-            MockCand.return_value.get_habilitados.return_value = candidatos
-            MockEsc.return_value.get_escolhas.return_value = [
+            mock_cand.return_value.get_habilitados.return_value = candidatos
+            mock_esc.return_value.get_escolhas.return_value = [
                 _escolha(cand_uuid)
             ]
-            with contextlib.suppress(ExportacaoLoteIncompletaException):
+            with contextlib.suppress(ExportacaoLoteIncompletaError):
                 exportar_lote(instance)
-        chamada = MockEsc.return_value.get_escolhas.call_args
+        chamada = mock_esc.return_value.get_escolhas.call_args
         uuids_enviados = chamada.kwargs.get("candidato_uuids") or chamada[
             1
         ].get("candidato_uuids", [])
@@ -385,13 +388,13 @@ class TestExportarLote:
         with (
             patch(
                 "exporta_arquivo.services.exportacao_lote.ApiCandidatosService"
-            ) as MockCand,
+            ) as mock_cand,
             patch(
                 "exporta_arquivo.services.exportacao_lote.ApiEscolhasService"
-            ) as MockEsc,
+            ) as mock_esc,
         ):
-            MockCand.return_value.get_habilitados.return_value = candidatos
-            MockEsc.return_value.get_escolhas.return_value = [
+            mock_cand.return_value.get_habilitados.return_value = candidatos
+            mock_esc.return_value.get_escolhas.return_value = [
                 escolha_recente,
                 escolha_antiga,
             ]

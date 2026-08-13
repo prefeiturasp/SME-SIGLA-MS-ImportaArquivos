@@ -12,7 +12,7 @@ from django.urls import reverse
 from requests import RequestException
 
 from importa_arquivos.models import ImportacaoErro, ImportacaoEscolhas
-from importa_arquivos.services.exceptions import ApiEscolhasException
+from importa_arquivos.services.exceptions import ApiEscolhasError
 
 pytestmark = pytest.mark.django_db
 
@@ -52,7 +52,10 @@ class TestImportacaoEscolhasViewSet:
             ) as mock_escolhas,
         ):
             mock_prodam_instance = Mock()
-            mock_prodam_instance.consultar_resultado_convocacao_ingresso.return_value = resposta_prodam  # noqa: E501
+            mock_metodo = (
+                mock_prodam_instance.consultar_resultado_convocacao_ingresso
+            )
+            mock_metodo.return_value = resposta_prodam
             mock_prodam.return_value = mock_prodam_instance
             mock_escolhas_instance = Mock()
             mock_escolhas_instance.enviar_escolhas_prodam.return_value = Mock()
@@ -98,7 +101,10 @@ class TestImportacaoEscolhasViewSet:
             "importa_arquivos.api.views.importacao_escolhas.ApiProdamService"
         ) as mock_prodam:
             mock_prodam_instance = Mock()
-            mock_prodam_instance.consultar_resultado_convocacao_ingresso.return_value = resposta_prodam  # noqa: E501
+            mock_metodo = (
+                mock_prodam_instance.consultar_resultado_convocacao_ingresso
+            )
+            mock_metodo.return_value = resposta_prodam
             mock_prodam.return_value = mock_prodam_instance
             url = reverse("importacao-escolhas-list")
             resp = api_client.post(
@@ -138,7 +144,10 @@ class TestImportacaoEscolhasViewSet:
             "importa_arquivos.api.views.importacao_escolhas.ApiProdamService"
         ) as mock_prodam:
             mock_prodam_instance = Mock()
-            mock_prodam_instance.consultar_resultado_convocacao_ingresso.return_value = resposta_prodam  # noqa: E501
+            mock_metodo = (
+                mock_prodam_instance.consultar_resultado_convocacao_ingresso
+            )
+            mock_metodo.return_value = resposta_prodam
             mock_prodam.return_value = mock_prodam_instance
             url = reverse("importacao-escolhas-list")
             resp = api_client.post(
@@ -234,7 +243,10 @@ class TestImportacaoEscolhasViewSet:
             ) as mock_escolhas,
         ):
             mock_prodam_instance = Mock()
-            mock_prodam_instance.consultar_resultado_convocacao_ingresso.return_value = resposta_prodam  # noqa: E501
+            mock_metodo = (
+                mock_prodam_instance.consultar_resultado_convocacao_ingresso
+            )
+            mock_metodo.return_value = resposta_prodam
             mock_prodam.return_value = mock_prodam_instance
             mock_escolhas_instance = Mock()
             mock_escolhas_instance.enviar_escolhas_prodam.side_effect = (
@@ -261,7 +273,7 @@ class TestImportacaoEscolhasViewSet:
     def test_create_erro_ao_enviar_para_ms_escolhas_com_payload_estruturado_retorna_400(  # noqa: E501
         self, api_client: Any, settings: Any
     ) -> None:
-        """Verifica create erro ao enviar para ms escolhas com payload estruturado retorna 400."""
+        """Verifica create erro ao enviar p/ ms-escolhas (payload) -> 400."""
         settings.ESCOLHA_API_URL = "https://api.exemplo"
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
@@ -290,11 +302,14 @@ class TestImportacaoEscolhasViewSet:
             ) as mock_escolhas,
         ):
             mock_prodam_instance = Mock()
-            mock_prodam_instance.consultar_resultado_convocacao_ingresso.return_value = resposta_prodam  # noqa: E501
+            mock_metodo = (
+                mock_prodam_instance.consultar_resultado_convocacao_ingresso
+            )
+            mock_metodo.return_value = resposta_prodam
             mock_prodam.return_value = mock_prodam_instance
             mock_escolhas_instance = Mock()
             mock_escolhas_instance.enviar_escolhas_prodam.side_effect = (
-                ApiEscolhasException(
+                ApiEscolhasError(
                     mensagem="Falha ao enviar escolhas para API externa",
                     detalhes="Candidato não encontrado",
                     status_code=400,
@@ -484,7 +499,10 @@ class TestImportacaoEscolhasViewSet:
             "importa_arquivos.api.views.importacao_escolhas.ApiProdamService"
         ) as mock_prodam:
             mock_prodam_instance = Mock()
-            mock_prodam_instance.consultar_resultado_convocacao_ingresso.return_value = resposta_prodam  # noqa: E501
+            mock_metodo = (
+                mock_prodam_instance.consultar_resultado_convocacao_ingresso
+            )
+            mock_metodo.return_value = resposta_prodam
             mock_prodam.return_value = mock_prodam_instance
             url = reverse("importacao-escolhas-list")
             resp = api_client.post(
@@ -531,7 +549,10 @@ class TestImportacaoEscolhasViewSet:
             ) as mock_escolhas,
         ):
             mock_prodam_instance = Mock()
-            mock_prodam_instance.consultar_resultado_convocacao_ingresso.return_value = resposta_prodam  # noqa: E501
+            mock_metodo = (
+                mock_prodam_instance.consultar_resultado_convocacao_ingresso
+            )
+            mock_metodo.return_value = resposta_prodam
             mock_prodam.return_value = mock_prodam_instance
             mock_escolhas_instance = Mock()
             mock_escolhas_instance.enviar_escolhas_prodam.return_value = Mock()

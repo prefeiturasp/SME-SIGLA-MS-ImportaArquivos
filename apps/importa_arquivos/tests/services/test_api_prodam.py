@@ -191,7 +191,7 @@ class TestApiProdamService:
     def test_consultar_resultado_convocacao_ingresso_request_exception(
         self, settings: Any
     ) -> None:
-        """Verifica consultar resultado convocacao ingresso request exception."""
+        """Verifica consultar resultado convocacao ingresso: request exc."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -211,7 +211,7 @@ class TestApiProdamService:
     def test_consultar_resultado_convocacao_ingresso_resposta_invalida(
         self, settings: Any
     ) -> None:
-        """Verifica consultar resultado convocacao ingresso resposta invalida."""
+        """Verifica consultar resultado convocacao ingresso: resposta ruim."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -239,7 +239,7 @@ class TestApiProdamService:
     def test_consultar_resultado_convocacao_ingresso_resposta_com_erro_validacao(  # noqa: E501
         self, settings: Any
     ) -> None:
-        """Verifica consultar resultado convocacao ingresso resposta com erro validacao."""
+        """Verifica consultar resultado convocacao ingresso: erro validação."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"
@@ -273,7 +273,7 @@ class TestApiProdamService:
     def test_consultar_resultado_convocacao_ingresso_nao_quebra_quando_log_falha(  # noqa: E501
         self, settings: Any
     ) -> None:
-        """Verifica consultar resultado convocacao ingresso nao quebra quando log falha."""
+        """Verifica consultar resultado convocacao não quebra no log."""
         settings.PRODAM_ESCOLHAS_API_URL = "https://api.prodam.com/endpoint"
         settings.PRODAM_API_TOKEN = "token123"
         settings.PRODAM_API_USUARIO = "usuario"

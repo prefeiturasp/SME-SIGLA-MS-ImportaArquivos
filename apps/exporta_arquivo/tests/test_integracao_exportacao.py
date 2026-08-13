@@ -54,7 +54,7 @@ class TestIntegracaoCreateCandidatosProcesso:
     def test_create_mockando_apenas_api_externa_retorna_200_e_arquivo_txt(
         self,
     ) -> Any:
-        """Verifica executar_exportacao mockando api externa persiste arquivo."""
+        """Verifica executar_exportacao mockando api externa e arquivo."""
         concurso_uuid = _uuid()
         mock_concursos = MagicMock()
         mock_concursos.status_code = 200

@@ -14,10 +14,10 @@ from unittest.mock import MagicMock
 import pytest
 
 from importa_arquivos.services.exceptions import (
-    ArquivoLotesVazioException,
-    ColunaCSVInvalidaException,
-    ErrosValidacaoLotesException,
-    LeituraCSVException,
+    ArquivoLotesVazioError,
+    ColunaCSVInvalidaError,
+    ErrosValidacaoLotesError,
+    LeituraCSVError,
 )
 from importa_arquivos.services.importacao_lotes import (
     _validar_linha_lote,
@@ -157,17 +157,17 @@ class TestValidarTxtLotes:
 
     def test_arquivo_vazio_levanta_excecao(self) -> None:
         """Verifica arquivo vazio levanta excecao."""
-        with pytest.raises(ArquivoLotesVazioException):
+        with pytest.raises(ArquivoLotesVazioError):
             validar_txt_lotes(_arquivo_txt(""), importacao_obj=None)
 
     def test_arquivo_so_espacos_levanta_excecao(self) -> None:
         """Verifica arquivo so espacos levanta excecao."""
-        with pytest.raises(ArquivoLotesVazioException):
+        with pytest.raises(ArquivoLotesVazioError):
             validar_txt_lotes(_arquivo_txt("   \n\n"), importacao_obj=None)
 
     def test_somente_cabecalho_sem_dados_levanta_excecao_vazio(self) -> None:
         """Verifica somente cabecalho sem dados levanta excecao vazio."""
-        with pytest.raises(ArquivoLotesVazioException):
+        with pytest.raises(ArquivoLotesVazioError):
             validar_txt_lotes(_arquivo_txt(HEADER), importacao_obj=None)
 
     def test_coluna_faltando_levanta_coluna_invalida(self) -> None:
@@ -176,7 +176,7 @@ class TestValidarTxtLotes:
             "LOTE;EMPRESA;VAGA;IDENTIFICACAO;CHAVE_INSCRITO;NUMFUNC\n"
         )
         conteudo = header_incompleto + "1;EMP;VAG;100;CH;999\n"
-        with pytest.raises(ColunaCSVInvalidaException) as exc_info:
+        with pytest.raises(ColunaCSVInvalidaError) as exc_info:
             validar_txt_lotes(_arquivo_txt(conteudo), importacao_obj=None)
         assert "NUMVINC" in exc_info.value.detalhes
 
@@ -187,7 +187,7 @@ class TestValidarTxtLotes:
             + _linha(lote=1, identificacao=10)
             + _linha(lote=2, identificacao=11)
         )
-        with pytest.raises(ErrosValidacaoLotesException) as exc_info:
+        with pytest.raises(ErrosValidacaoLotesError) as exc_info:
             validar_txt_lotes(_arquivo_txt(conteudo), importacao_obj=None)
         assert "diverge" in exc_info.value.detalhes.lower()
 
@@ -195,7 +195,7 @@ class TestValidarTxtLotes:
         """Verifica leitura falha levanta leitura csv."""
         arquivo = MagicMock()
         arquivo.read.side_effect = OSError("disk error")
-        with pytest.raises(LeituraCSVException):
+        with pytest.raises(LeituraCSVError):
             validar_txt_lotes(arquivo, importacao_obj=None)
 
     def test_linha_completamente_vazia_ignorada(self) -> None:

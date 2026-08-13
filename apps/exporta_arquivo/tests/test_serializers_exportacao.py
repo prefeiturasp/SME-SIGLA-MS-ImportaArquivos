@@ -10,7 +10,6 @@ from typing import Any
 
 import pytest
 
-pytestmark = pytest.mark.django_db
 from exporta_arquivo.models import (
     ExportacaoCandidatosProcesso,
     ExportacaoVagasProcesso,
@@ -29,6 +28,8 @@ from exporta_arquivo.serializers.exportacao_vagas_sigpec import (
     ExportacaoVagasSigpecListSerializer,
 )
 
+pytestmark = pytest.mark.django_db
+
 
 def _uuid() -> Any:
     """Uuid."""
@@ -41,7 +42,7 @@ class TestExportacaoCandidatosProcessoCreateSerializer:
     def test_campos_obrigatorios_processo_uuid_cargo_uuid_cargo_codigo(
         self,
     ) -> None:
-        """Verifica campos obrigatorios processo uuid cargo uuid cargo codigo."""
+        """Verifica campos obrigatorios: processo/cargo uuid e codigo."""
         base = {
             "processo_uuid": _uuid(),
             "cargo_uuid": _uuid(),

@@ -11,11 +11,12 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from importa_arquivos.models import LayoutArquivoImportacao
 from importa_arquivos.services.exceptions import (
-    CargoConcursoInvalidoException,
-    ColunaCSVInvalidaException,
-    LayoutNaoConfiguradoException,
+    CargoConcursoInvalidoError,
+    ColunaCSVInvalidaError,
+    LayoutNaoConfiguradoError,
 )
 from importa_arquivos.services.validacao_habilitados import (
+    _validar_codigo_cargo,
     validar_csv_habilitados,
 )
 
@@ -61,7 +62,7 @@ def test_validar_csv_habilitados_sem_layout() -> None:
     arquivo = SimpleUploadedFile(
         "h.csv", b"CPF\n123\n", content_type="text/csv"
     )
-    with pytest.raises(LayoutNaoConfiguradoException):
+    with pytest.raises(LayoutNaoConfiguradoError):
         validar_csv_habilitados(arquivo)
 
 
@@ -104,7 +105,7 @@ def test_obrigatorios_agrupados_mesma_linha() -> None:
     """Verifica obrigatorios agrupados mesma linha."""
     _criar_layout_minimo()
     csv_text = "Inscricao,Nome,DataNascimento,CPF,Email\n,,05/29/1990,,valid@example.com\n"  # noqa: E501
-    with pytest.raises(ColunaCSVInvalidaException) as exc:
+    with pytest.raises(ColunaCSVInvalidaError) as exc:
         validar_csv_habilitados(_csv_bytes(csv_text))
     assert "Linha 2" in exc.value.detalhes
     assert "Campos obrigatórios vazios" in exc.value.detalhes
@@ -115,7 +116,7 @@ def test_email_invalido_agregado() -> None:
     """Verifica email invalido agregado."""
     _criar_layout_minimo()
     csv_text = "Inscricao,Nome,DataNascimento,CPF,Email\n1,Fulano,05/29/1990,39053344705,foo@bar\n"  # noqa: E501
-    with pytest.raises(ColunaCSVInvalidaException) as exc:
+    with pytest.raises(ColunaCSVInvalidaError) as exc:
         validar_csv_habilitados(_csv_bytes(csv_text))
     assert (
         "Linha 2" in exc.value.detalhes
@@ -127,7 +128,7 @@ def test_cpf_invalido_agregado() -> None:
     """Verifica cpf invalido agregado."""
     _criar_layout_minimo()
     csv_text = "Inscricao,Nome,DataNascimento,CPF,Email\n1,Fulano,05/29/1990,12345678900,fulano@example.com\n"  # noqa: E501
-    with pytest.raises(ColunaCSVInvalidaException) as exc:
+    with pytest.raises(ColunaCSVInvalidaError) as exc:
         validar_csv_habilitados(_csv_bytes(csv_text))
     assert (
         "Linha 2" in exc.value.detalhes
@@ -139,7 +140,7 @@ def test_data_nascimento_invalida_agregada() -> None:
     """Verifica data nascimento invalida agregada."""
     _criar_layout_minimo()
     csv_text = "Inscricao,Nome,DataNascimento,CPF,Email\n1,Fulano,29/05/1990,39053344705,fulano@example.com\n"  # noqa: E501
-    with pytest.raises(ColunaCSVInvalidaException) as exc:
+    with pytest.raises(ColunaCSVInvalidaError) as exc:
         validar_csv_habilitados(_csv_bytes(csv_text))
     assert (
         "Linha 2" in exc.value.detalhes
@@ -151,7 +152,7 @@ def test_erros_agregados_mesma_linha() -> None:
     """Verifica erros agregados mesma linha."""
     _criar_layout_minimo()
     csv_text = "Inscricao,Nome,DataNascimento,CPF,Email\n1,,05/29/1990,12345678900,foo@bar\n"  # noqa: E501
-    with pytest.raises(ColunaCSVInvalidaException) as exc:
+    with pytest.raises(ColunaCSVInvalidaError) as exc:
         validar_csv_habilitados(_csv_bytes(csv_text))
     detalhes = exc.value.detalhes
     assert "Linha 2" in detalhes
@@ -173,7 +174,7 @@ def test_email_duplicado_com_cpfs_diferentes_erro_mensagem_linhas_divergentes() 
     """Verifica email duplicado com cpfs diferentes erro mensagem linhas."""
     _criar_layout_minimo()
     csv_text = "Inscricao,Nome,DataNascimento,CPF,Email\n1,Fulano,05/29/1990,39053344705,dup@example.com\n2,Ciclano,05/29/1990,17888214088,dup@example.com\n"  # noqa: E501
-    with pytest.raises(ColunaCSVInvalidaException) as exc:
+    with pytest.raises(ColunaCSVInvalidaError) as exc:
         validar_csv_habilitados(_csv_bytes(csv_text))
     detalhes = exc.value.detalhes
     assert "Linha 3" in detalhes
@@ -182,10 +183,6 @@ def test_email_duplicado_com_cpfs_diferentes_erro_mensagem_linhas_divergentes() 
         in detalhes
     )
 
-
-from importa_arquivos.services.validacao_habilitados import (
-    _validar_codigo_cargo,
-)
 
 COLUNAS_COM_CARGO = {
     "email_col": None,
@@ -333,11 +330,13 @@ def test_validar_csv_habilitados_codigo_cargo_vazio_lanca_excecao(
 ) -> None:
     """Verifica validar csv habilitados codigo cargo vazio lanca excecao."""
     csv_text = "Inscricao,Nome,CPF,Codigo_do_Cargo\n1,Fulano,39053344705,\n"
-    with _mock_concursos_service({10, 20}):
-        with pytest.raises(ColunaCSVInvalidaException) as exc:
-            validar_csv_habilitados(
-                _csv_bytes(csv_text), importacao_obj=_FakeImportacaoObj()
-            )
+    with (
+        _mock_concursos_service({10, 20}),
+        pytest.raises(ColunaCSVInvalidaError) as exc,
+    ):
+        validar_csv_habilitados(
+            _csv_bytes(csv_text), importacao_obj=_FakeImportacaoObj()
+        )
     assert "não pode estar em branco" in exc.value.detalhes
 
 
@@ -345,13 +344,15 @@ def test_validar_csv_habilitados_codigo_cargo_vazio_lanca_excecao(
 def test_validar_csv_habilitados_codigo_cargo_sem_relacao_lanca_excecao(
     layout_com_cargo: Any,
 ) -> None:
-    """Verifica validar csv habilitados codigo cargo sem relacao lanca excecao."""
+    """Verifica validar csv habilitados: cargo sem relação lança exc."""
     csv_text = "Inscricao,Nome,CPF,Codigo_do_Cargo\n1,Fulano,39053344705,999\n"
-    with _mock_concursos_service({10, 20}):
-        with pytest.raises(ColunaCSVInvalidaException) as exc:
-            validar_csv_habilitados(
-                _csv_bytes(csv_text), importacao_obj=_FakeImportacaoObj()
-            )
+    with (
+        _mock_concursos_service({10, 20}),
+        pytest.raises(ColunaCSVInvalidaError) as exc,
+    ):
+        validar_csv_habilitados(
+            _csv_bytes(csv_text), importacao_obj=_FakeImportacaoObj()
+        )
     assert (
         "não possui relação com o concurso selecionado" in exc.value.detalhes
     )
@@ -380,7 +381,7 @@ def test_validar_csv_habilitados_api_concursos_indisponivel_lanca_excecao(
     csv_text = "Inscricao,Nome,CPF,Codigo_do_Cargo\n1,Fulano,39053344705,10\n"
     mock_service = MagicMock()
     mock_service.obter_codigos_cargo_do_concurso.side_effect = (
-        CargoConcursoInvalidoException(
+        CargoConcursoInvalidoError(
             mensagem="Serviço de concursos indisponível.", detalhes="timeout"
         )
     )
@@ -389,7 +390,7 @@ def test_validar_csv_habilitados_api_concursos_indisponivel_lanca_excecao(
             "importa_arquivos.services.validacao_habilitados.ApiConcursosService",
             return_value=mock_service,
         ),
-        pytest.raises(CargoConcursoInvalidoException),
+        pytest.raises(CargoConcursoInvalidoError),
     ):
         validar_csv_habilitados(
             _csv_bytes(csv_text), importacao_obj=_FakeImportacaoObj()

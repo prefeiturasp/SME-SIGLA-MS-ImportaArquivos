@@ -87,7 +87,7 @@ class TestBuscarVagasEscolasSigpec:
     def test_payload_valido_retorna_lista_com_codigo_integracao_e_vagas(
         self,
     ) -> None:
-        """Verifica payload valido retorna lista com codigo integracao e vagas."""
+        """Verifica payload valido retorna lista com codigo e vagas."""
         payload_valido = {
             "vagas": [
                 {
@@ -123,9 +123,11 @@ class TestBuscarVagasEscolasSigpec:
         payload_invalido = {"vagas": []}  # type: ignore[var-annotated]
         mock_api = MagicMock()
         mock_api.get_vagas_escolas.return_value = payload_invalido
-        with patch(
-            "exporta_arquivo.services.exportacao_vagas_sigpec.ApiEscolhasService",
-            return_value=mock_api,
+        with (
+            patch(
+                "exporta_arquivo.services.exportacao_vagas_sigpec.ApiEscolhasService",
+                return_value=mock_api,
+            ),
+            pytest.raises(ValidationError),
         ):
-            with pytest.raises(ValidationError):
-                buscar_vagas_escolas("processo-uuid", 100)
+            buscar_vagas_escolas("processo-uuid", 100)

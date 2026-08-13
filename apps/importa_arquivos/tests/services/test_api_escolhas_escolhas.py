@@ -9,7 +9,7 @@ from requests import RequestException
 
 from importa_arquivos.models import ImportacaoErro, ImportacaoEscolhas
 from importa_arquivos.services.api_escolhas import ApiEscolhasService
-from importa_arquivos.services.exceptions import ApiEscolhasException
+from importa_arquivos.services.exceptions import ApiEscolhasError
 
 pytestmark = pytest.mark.django_db
 
@@ -42,7 +42,7 @@ class TestApiEscolhasServiceEscolhasProdam:
     def test_transformar_escolhas_prodam_mapeamento_status_desistente(
         self,
     ) -> None:
-        """Verifica transformar escolhas prodam mapeamento status desistente."""
+        """Verifica transformar escolhas prodam: status desistente."""
         service = ApiEscolhasService(base_url="https://api.exemplo")
         dados_prodam = [
             {
@@ -215,7 +215,7 @@ class TestApiEscolhasServiceEscolhasProdam:
     def test_enviar_escolhas_prodam_erro_http_levanta_excecao_especifica(
         self,
     ) -> None:
-        """Verifica enviar escolhas prodam erro http levanta excecao especifica."""
+        """Verifica enviar escolhas prodam: erro http levanta exceção."""
         service = ApiEscolhasService(base_url="https://api.exemplo")
         dados_prodam = [
             {
@@ -234,7 +234,7 @@ class TestApiEscolhasServiceEscolhasProdam:
         mock_response.text = '{"detail":"Erro externo de escolhas","code":"ERRO_ESCOLHAS","detalhes":"Payload inválido"}'  # noqa: E501
         with patch("sigla_sdk.http.api_client.http_client.post") as mock_post:
             mock_post.return_value = mock_response
-            with pytest.raises(ApiEscolhasException) as exc_info:
+            with pytest.raises(ApiEscolhasError) as exc_info:
                 service.enviar_escolhas_prodam(
                     processo_uuid="123e4567-e89b-12d3-a456-426614174000",
                     concurso_uuid="223e4567-e89b-12d3-a456-426614174000",
@@ -248,7 +248,7 @@ class TestApiEscolhasServiceEscolhasProdam:
     def test_enviar_escolhas_prodam_registra_erro_quando_importacao_obj_fornecido(  # noqa: E501
         self,
     ) -> None:
-        """Verifica enviar escolhas prodam registra erro quando importacao obj fornecido."""
+        """Verifica enviar escolhas prodam registra erro com importacao_obj."""
         importacao = ImportacaoEscolhas.objects.create(
             processo_id=123, status="PROCESSANDO"
         )
@@ -283,7 +283,7 @@ class TestApiEscolhasServiceEscolhasProdam:
     def test_enviar_escolhas_prodam_nao_quebra_quando_registrar_erro_falha(
         self,
     ) -> None:
-        """Verifica enviar escolhas prodam nao quebra quando registrar erro falha."""
+        """Verifica enviar escolhas prodam nao quebra se registrar falhar."""
         importacao = ImportacaoEscolhas.objects.create(
             processo_id=123, status="PROCESSANDO"
         )
