@@ -109,25 +109,22 @@ else:
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": (
-            "django.contrib.auth.password_validation."
-            "UserAttributeSimilarityValidator"
+            "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
         ),
     },
     {
         "NAME": (
-            "django.contrib.auth.password_validation." "MinimumLengthValidator"
+            "django.contrib.auth.password_validation.MinimumLengthValidator"  # noqa: E501
         ),
     },
     {
         "NAME": (
-            "django.contrib.auth.password_validation."
-            "CommonPasswordValidator"
+            "django.contrib.auth.password_validation.CommonPasswordValidator"  # noqa: E501
         ),
     },
     {
         "NAME": (
-            "django.contrib.auth.password_validation."
-            "NumericPasswordValidator"
+            "django.contrib.auth.password_validation.NumericPasswordValidator"  # noqa: E501
         ),
     },
 ]
@@ -201,8 +198,7 @@ LOGGING = {
         "json": {
             "()": "sigla_sdk.logging.json_formatter.CustomJsonFormatter",
             "format": (
-                "%(levelname)s %(asctime)s %(module)s %(filename)s "
-                "%(lineno)d %(funcName)s %(message)s"
+                "%(levelname)s %(asctime)s %(module)s %(filename)s %(lineno)d %(funcName)s %(message)s"  # noqa: E501
             ),
         },
     },
