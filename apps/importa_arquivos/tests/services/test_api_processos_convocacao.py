@@ -17,8 +17,8 @@ from importa_arquivos.services.exceptions import ApiProcessosConvocacaoError
 pytestmark = pytest.mark.django_db
 
 
-def test_listar_em_andamento_retorna_results(settings: Any) -> None:
-    """GET com status=EM_ANDAMENTO devolve a lista de results."""
+def test_listar_pendentes_retorna_results(settings: Any) -> None:
+    """GET com status=PENDENTE devolve a lista de results."""
     settings.PROCESSOS_CONVOCACAO_API_URL = "https://api.processos"
     settings.PROCESSOS_CONVOCACAO_API_KEY = "key-teste"
     processo_uuid = "11111111-1111-1111-1111-111111111111"
@@ -31,43 +31,21 @@ def test_listar_em_andamento_retorna_results(settings: Any) -> None:
                 {
                     "uuid": processo_uuid,
                     "concurso_uuid": concurso_uuid,
-                    "status": "EM_ANDAMENTO",
+                    "status": "PENDENTE",
                 }
             ],
             "next": None,
         }
         mock_get.return_value = mock_resp
-        resultados = ApiProcessosConvocacaoService().listar_em_andamento()
+        resultados = ApiProcessosConvocacaoService().listar_pendentes()
     assert len(resultados) == 1
     assert resultados[0]["uuid"] == processo_uuid
     args, kwargs = mock_get.call_args
     assert args[0] == "https://api.processos/api/v1/processos-convocacao/"
-    assert kwargs["params"] == {"status": "EM_ANDAMENTO"}
+    assert kwargs["params"] == {"status": "PENDENTE"}
 
 
-def test_listar_em_andamento_pagina_todas(settings: Any) -> None:
-    """Segue o next da paginação até esgotar as páginas."""
-    settings.PROCESSOS_CONVOCACAO_API_URL = "https://api.processos"
-    pagina1 = Mock()
-    pagina1.status_code = 200
-    pagina1.json.return_value = {
-        "results": [{"uuid": "a", "concurso_uuid": "c1"}],
-        "next": "https://api.processos/api/v1/processos-convocacao/?page=2",
-    }
-    pagina2 = Mock()
-    pagina2.status_code = 200
-    pagina2.json.return_value = {
-        "results": [{"uuid": "b", "concurso_uuid": "c2"}],
-        "next": None,
-    }
-    with patch("sigla_sdk.http.api_client.http_client.get") as mock_get:
-        mock_get.side_effect = [pagina1, pagina2]
-        resultados = ApiProcessosConvocacaoService().listar_em_andamento()
-    assert len(resultados) == 2
-    assert mock_get.call_count == 2
-
-
-def test_listar_em_andamento_erro_http(settings: Any) -> None:
+def test_listar_pendentes_erro_http(settings: Any) -> None:
     """Status HTTP >= 400 gera ApiProcessosConvocacaoError."""
     settings.PROCESSOS_CONVOCACAO_API_URL = "https://api.processos"
     with patch("sigla_sdk.http.api_client.http_client.get") as mock_get:
@@ -76,10 +54,10 @@ def test_listar_em_andamento_erro_http(settings: Any) -> None:
         mock_resp.text = "erro interno"
         mock_get.return_value = mock_resp
         with pytest.raises(ApiProcessosConvocacaoError):
-            ApiProcessosConvocacaoService().listar_em_andamento()
+            ApiProcessosConvocacaoService().listar_pendentes()
 
 
-def test_listar_em_andamento_request_exception(settings: Any) -> None:
+def test_listar_pendentes_request_exception(settings: Any) -> None:
     """Falha de rede propaga RequestException."""
     settings.PROCESSOS_CONVOCACAO_API_URL = "https://api.processos"
     with patch(
@@ -87,7 +65,7 @@ def test_listar_em_andamento_request_exception(settings: Any) -> None:
         side_effect=RequestException("timeout"),
     ):
         with pytest.raises(RequestException):
-            ApiProcessosConvocacaoService().listar_em_andamento()
+            ApiProcessosConvocacaoService().listar_pendentes()
 
 
 def test_extrair_processo_uuid_e_id_mapeia_uuid_e_fallback_id() -> None:

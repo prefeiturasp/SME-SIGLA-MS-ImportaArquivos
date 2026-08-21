@@ -88,7 +88,6 @@ class ApiProcessosConvocacaoService:
                     "params": params,
                     "status": response.status_code,
                     "response": response.text,
-                    "error": exc,
                 })
             raise ApiProcessosConvocacaoError(
                 mensagem="Falha ao listar processos de convocação pendentes",
