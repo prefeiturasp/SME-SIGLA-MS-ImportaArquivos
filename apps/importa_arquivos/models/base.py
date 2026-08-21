@@ -3,19 +3,10 @@
 from core.models import BaseModel
 from django.db import models
 
-CHOICES_TIPO_IMPORTACAO_ARQUIVO = [
-    ("HABILITADOS", "Habilitados"),
-    ("VAGAS", "Vagas"),
-    ("LOTES", "Lotes"),
-]
-
-
-CHOICES_STATUS_IMPORTACAO_ARQUIVO = [
-    ("PENDENTE", "Pendente"),
-    ("PROCESSANDO", "Processando"),
-    ("CONCLUIDO", "Concluído"),
-    ("ERRO", "Erro"),
-]
+from .constants import (
+    CHOICES_STATUS_IMPORTACAO_ARQUIVO,
+    CHOICES_TIPO_IMPORTACAO_ARQUIVO,
+)
 
 
 class BaseModelArquivoImportacao(BaseModel):

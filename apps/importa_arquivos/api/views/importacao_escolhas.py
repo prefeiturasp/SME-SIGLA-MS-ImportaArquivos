@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import contextlib
 import logging
 from datetime import datetime
 from typing import Any
@@ -17,18 +16,19 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from importa_arquivos.models import ImportacaoEscolhas
-from importa_arquivos.repository import (
-    ImportacaoErroRepository,
-    ImportacaoEscolhasRepository,
-)
+from importa_arquivos.models.constants import MODO_IMPORTACAO_MANUAL
+from importa_arquivos.repository import ImportacaoErroRepository
 from importa_arquivos.serializers import (
     ImportacaoEscolhasCreateSerializer,
     ImportacaoEscolhasListSerializer,
 )
-from importa_arquivos.services.api_escolhas import ApiEscolhasService
-from importa_arquivos.services.api_prodam import ApiProdamService
-from importa_arquivos.services.erros import registrar_erro
-from importa_arquivos.services.exceptions import ApiEscolhasError
+from importa_arquivos.services.exceptions import (
+    ApiEscolhasError,
+    ApiProdamError,
+)
+from importa_arquivos.services.importacao_escolhas_service import (
+    ImportacaoEscolhasService,
+)
 from importa_arquivos.utils import CustomPagination
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
     queryset = ImportacaoEscolhas.objects.all()
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["processo_uuid", "status", "processo_id"]
+    filterset_fields = ["processo_uuid", "status", "processo_id", "modo"]
     search_fields = ["processo_uuid"]
     ordering_fields = ["status", "criado_em"]
     ordering = ["-criado_em"]
@@ -78,80 +78,19 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
             logger.info(
                 f"Usando processo_id fixo (819) para processo_uuid={processo_uuid}"  # noqa: E501
             )
-        instance = ImportacaoEscolhasRepository.criar(
-            processo_uuid=processo_uuid,
-            processo_id=processo_id,
-            concurso_uuid=concurso_uuid,
-            status="PROCESSANDO",
-        )
         try:
-            logger.info(f"Consultando API externa: processo_id={processo_id}")
-            resposta_api = (
-                ApiProdamService().consultar_resultado_convocacao_ingresso(
-                    processo_id=processo_id
-                )
-            )
-            if resposta_api.get("retorno") != "TRUE":
-                mensagem_erro = resposta_api.get(
-                    "mensagem", "Erro desconhecido na API PRODAM"
-                )
-                logger.error(f"API PRODAM retornou erro: {mensagem_erro}")
-                ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
-                registrar_erro(
-                    instance,
-                    mensagem="Erro na resposta da API PRODAM",
-                    detalhes=mensagem_erro,
-                )
-                return Response(
-                    {"detail": f"Erro na API PRODAM: {mensagem_erro}"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            dados_prodam = resposta_api.get(
-                "lstDadosResultadoConvocacaoIngresso", []
-            )
-            ImportacaoEscolhasRepository.atualizar(
-                instance, dados_prodam=dados_prodam
-            )
-            if not dados_prodam:
-                logger.warning("API PRODAM retornou lista vazia")
-                ImportacaoEscolhasRepository.atualizar(
-                    instance, status="CONCLUIDO"
-                )
-                serializer_response = ImportacaoEscolhasListSerializer(
-                    instance
-                )
-                return Response(
-                    serializer_response.data, status=status.HTTP_201_CREATED
-                )
-            logger.info(
-                f"Enviando {len(dados_prodam)} registros para MS-Escolhas"
-            )
-            api_escolhas_service = ApiEscolhasService()
-            api_escolhas_service.enviar_escolhas_prodam(
+            instance = ImportacaoEscolhasService.processar(
                 processo_uuid=processo_uuid,
+                processo_id=processo_id,
                 concurso_uuid=concurso_uuid,
-                dados_prodam=dados_prodam,
-                importacao_obj=instance,
+                modo=MODO_IMPORTACAO_MANUAL,
             )
-            ImportacaoEscolhasRepository.atualizar(
-                instance, status="CONCLUIDO"
-            )
-            logger.info(
-                f"Importação concluída com sucesso: {len(dados_prodam)} registros"  # noqa: E501
+        except ApiProdamError as exc:
+            return Response(
+                {"detail": exc.mensagem},
+                status=exc.status_code or status.HTTP_400_BAD_REQUEST,
             )
         except ApiEscolhasError as exc:
-            logger.error(
-                f"Erro da API de escolhas durante importação: {exc}",
-                exc_info=True,
-            )
-            ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
-            with contextlib.suppress(Exception):
-                registrar_erro(
-                    instance,
-                    mensagem="Erro durante importação de escolhas",
-                    detalhes=exc.detalhes or str(exc),
-                    exc=exc,
-                )
             resposta = {
                 "detail": exc.mensagem
                 or "Falha ao processar importação de escolhas",
@@ -163,39 +102,15 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
                 resposta, status=exc.status_code or status.HTTP_400_BAD_REQUEST
             )
         except RequestException as exc:
-            logger.error(
-                f"Erro de request durante importação de escolhas: {exc}",
-                exc_info=True,
-            )
-            ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
-            with contextlib.suppress(Exception):
-                registrar_erro(
-                    instance,
-                    mensagem="Erro durante importação de escolhas",
-                    detalhes=str(exc),
-                    exc=exc,
-                )
             return Response(
                 {"detail": f"Erro ao processar importação: {str(exc)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except Exception as exc:
-            logger.error(
-                f"Erro durante importação de escolhas: {exc}", exc_info=True
-            )
-            ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
-            with contextlib.suppress(Exception):
-                registrar_erro(
-                    instance,
-                    mensagem="Erro durante importação de escolhas",
-                    detalhes=str(exc),
-                    exc=exc,
-                )
             return Response(
                 {"detail": f"Erro ao processar importação: {str(exc)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        ImportacaoEscolhasRepository.recarregar(instance)
         serializer_response = ImportacaoEscolhasListSerializer(instance)
         headers = self.get_success_headers(serializer_response.data)
         return Response(

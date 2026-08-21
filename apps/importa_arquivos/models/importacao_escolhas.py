@@ -9,7 +9,11 @@ from auditlog.registry import auditlog
 from core.models import BaseModel
 from django.db import models
 
-from .base import CHOICES_STATUS_IMPORTACAO_ARQUIVO
+from .constants import (
+    CHOICES_MODO_IMPORTACAO_ESCOLHAS,
+    CHOICES_STATUS_IMPORTACAO_ARQUIVO,
+    MODO_IMPORTACAO_MANUAL,
+)
 
 
 class ImportacaoEscolhas(BaseModel):
@@ -33,6 +37,12 @@ class ImportacaoEscolhas(BaseModel):
         choices=CHOICES_STATUS_IMPORTACAO_ARQUIVO,
         default=CHOICES_STATUS_IMPORTACAO_ARQUIVO[2][0],
         verbose_name="Status",
+    )
+    modo = models.CharField(
+        max_length=20,
+        choices=CHOICES_MODO_IMPORTACAO_ESCOLHAS,
+        default=MODO_IMPORTACAO_MANUAL,
+        verbose_name="Modo",
     )
 
     class Meta:

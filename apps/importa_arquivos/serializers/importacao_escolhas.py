@@ -35,6 +35,7 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
             "processo_id",
             "dados_prodam",
             "status",
+            "modo",
             "criado_em",
             "atualizado_em",
             "erros",
