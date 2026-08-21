@@ -99,6 +99,8 @@ class TestImportacaoEscolhasListSerializer:
         assert "concurso_uuid" in data
         assert "dados_prodam" in data
         assert "status" in data
+        assert "modo" in data
+        assert data["modo"] == "MANUAL"
         assert "criado_em" in data
         assert "atualizado_em" in data
         assert "erros" in data

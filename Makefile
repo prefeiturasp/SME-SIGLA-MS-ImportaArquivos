@@ -2,7 +2,7 @@
 # Makefile para o projeto SME-SIGLA-MS-Escolha
 # Comandos úteis para desenvolvimento Django
 
-.PHONY: help pep257 pep484 pep-check makemigrations migrate runserver coverage test clean install format lint check docs
+.PHONY: help pep257 pep484 pep-check makemigrations migrate runserver coverage test clean install format lint check docs celery-worker celery-beat
 
 PEP_APP_DIRS = apps/importa_arquivos apps/exporta_arquivo
 
@@ -17,6 +17,8 @@ help:
 	@echo "  make clean           - Remove arquivos temporários"
 	@echo "  make install         - Instala dependências"
 	@echo "  make docs            - Gera documentação HTML (Sphinx)"
+	@echo "  make celery-worker   - Sobe o worker Celery (consome a fila)"
+	@echo "  make celery-beat     - Sobe o Celery Beat (enfileira as tasks)"
 
 # Cria migrações do Django
 makemigrations:
@@ -100,3 +102,13 @@ pre-commit:
 docs:
 	@echo "Gerando documentação Sphinx..."
 	sphinx-build -b html docs/ docs/_build/html
+
+# Worker Celery (consome a fila importa_arquivos)
+celery-worker:
+	@echo "Iniciando Celery worker..."
+	celery -A config worker --loglevel=info --concurrency=2 -Q importa_arquivos
+
+# Celery Beat (agenda e enfileira importar_escolhas)
+celery-beat:
+	@echo "Iniciando Celery beat..."
+	celery -A config beat --loglevel=info

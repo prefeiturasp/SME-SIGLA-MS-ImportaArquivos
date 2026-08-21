@@ -8,7 +8,10 @@ import uuid
 import pytest
 
 from importa_arquivos.models import ImportacaoEscolhas
-from importa_arquivos.models.base import CHOICES_STATUS_IMPORTACAO_ARQUIVO
+from importa_arquivos.models.constants import (
+    CHOICES_MODO_IMPORTACAO_ESCOLHAS,
+    CHOICES_STATUS_IMPORTACAO_ARQUIVO,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -28,6 +31,7 @@ class TestImportacaoEscolhasModel:
         assert importacao.processo_id == processo_id
         assert importacao.status == "CONCLUIDO"
         assert importacao.dados_prodam is None
+        assert importacao.modo == "MANUAL"
         assert importacao.criado_em is not None
         assert importacao.atualizado_em is not None
 
@@ -83,6 +87,17 @@ class TestImportacaoEscolhasModel:
                 status=status_code,
             )
             assert importacao.status == status_code
+
+    def test_importacao_escolhas_modo_choices(self) -> None:
+        """Verifica importacao escolhas modo choices."""
+        processo_uuid = uuid.uuid4()
+        for modo_code, _modo_label in CHOICES_MODO_IMPORTACAO_ESCOLHAS:
+            importacao = ImportacaoEscolhas.objects.create(
+                processo_uuid=processo_uuid,
+                processo_id=123,
+                modo=modo_code,
+            )
+            assert importacao.modo == modo_code
 
     def test_importacao_escolhas_ordering(self) -> None:
         """Verifica importacao escolhas ordering."""
