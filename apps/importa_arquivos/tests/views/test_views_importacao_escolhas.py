@@ -45,10 +45,10 @@ class TestImportacaoEscolhasViewSet:
         }
         with (
             patch(
-                "importa_arquivos.api.views.importacao_escolhas.ApiProdamService"
+                "importa_arquivos.services.importacao_escolhas_service.ApiProdamService"
             ) as mock_prodam,
             patch(
-                "importa_arquivos.api.views.importacao_escolhas.ApiEscolhasService"
+                "importa_arquivos.services.importacao_escolhas_service.ApiEscolhasService"
             ) as mock_escolhas,
         ):
             mock_prodam_instance = Mock()
@@ -74,10 +74,12 @@ class TestImportacaoEscolhasViewSet:
             assert resp.data["processo_uuid"] == str(processo_uuid)
             assert resp.data["processo_id"] == processo_id
             assert resp.data["status"] == "CONCLUIDO"
+            assert resp.data["modo"] == "MANUAL"
             importacao = ImportacaoEscolhas.objects.get(
                 processo_uuid=processo_uuid
             )
             assert importacao.status == "CONCLUIDO"
+            assert importacao.modo == "MANUAL"
             assert len(importacao.dados_prodam) == 1  # type: ignore[arg-type]
 
     def test_create_sucesso_com_lista_vazia(
@@ -98,7 +100,7 @@ class TestImportacaoEscolhasViewSet:
             "lstDadosResultadoConvocacaoIngresso": [],
         }
         with patch(
-            "importa_arquivos.api.views.importacao_escolhas.ApiProdamService"
+            "importa_arquivos.services.importacao_escolhas_service.ApiProdamService"
         ) as mock_prodam:
             mock_prodam_instance = Mock()
             mock_metodo = (
@@ -141,7 +143,7 @@ class TestImportacaoEscolhasViewSet:
             "lstDadosResultadoConvocacaoIngresso": [],
         }
         with patch(
-            "importa_arquivos.api.views.importacao_escolhas.ApiProdamService"
+            "importa_arquivos.services.importacao_escolhas_service.ApiProdamService"
         ) as mock_prodam:
             mock_prodam_instance = Mock()
             mock_metodo = (
@@ -187,7 +189,7 @@ class TestImportacaoEscolhasViewSet:
         processo_id = 123
         concurso_uuid = uuid.uuid4()
         with patch(
-            "importa_arquivos.api.views.importacao_escolhas.ApiProdamService"
+            "importa_arquivos.services.importacao_escolhas_service.ApiProdamService"
         ) as mock_prodam:
             mock_prodam_instance = Mock()
             mock_prodam_instance.consultar_resultado_convocacao_ingresso.side_effect = RequestException(  # noqa: E501
@@ -236,10 +238,10 @@ class TestImportacaoEscolhasViewSet:
         }
         with (
             patch(
-                "importa_arquivos.api.views.importacao_escolhas.ApiProdamService"
+                "importa_arquivos.services.importacao_escolhas_service.ApiProdamService"
             ) as mock_prodam,
             patch(
-                "importa_arquivos.api.views.importacao_escolhas.ApiEscolhasService"
+                "importa_arquivos.services.importacao_escolhas_service.ApiEscolhasService"
             ) as mock_escolhas,
         ):
             mock_prodam_instance = Mock()
@@ -295,10 +297,10 @@ class TestImportacaoEscolhasViewSet:
         }
         with (
             patch(
-                "importa_arquivos.api.views.importacao_escolhas.ApiProdamService"
+                "importa_arquivos.services.importacao_escolhas_service.ApiProdamService"
             ) as mock_prodam,
             patch(
-                "importa_arquivos.api.views.importacao_escolhas.ApiEscolhasService"
+                "importa_arquivos.services.importacao_escolhas_service.ApiEscolhasService"
             ) as mock_escolhas,
         ):
             mock_prodam_instance = Mock()
@@ -419,6 +421,24 @@ class TestImportacaoEscolhasViewSet:
         assert len(resp.data["results"]) == 1
         assert resp.data["results"][0]["status"] == "CONCLUIDO"
 
+    def test_filterset_modo(self, api_client: Any) -> None:
+        """Verifica filterset modo."""
+        ImportacaoEscolhas.objects.create(
+            processo_uuid=uuid.uuid4(),
+            processo_id=123,
+            modo="MANUAL",
+        )
+        ImportacaoEscolhas.objects.create(
+            processo_uuid=uuid.uuid4(),
+            processo_id=456,
+            modo="AUTOMATICA",
+        )
+        url = reverse("importacao-escolhas-list")
+        resp = api_client.get(url, {"modo": "AUTOMATICA"})
+        assert resp.status_code == 200
+        assert len(resp.data["results"]) == 1
+        assert resp.data["results"][0]["modo"] == "AUTOMATICA"
+
     def test_filterset_processo_id(self, api_client: Any) -> None:
         """Verifica filterset processo id."""
         processo_uuid1 = uuid.uuid4()
@@ -496,7 +516,7 @@ class TestImportacaoEscolhasViewSet:
             "lstDadosResultadoConvocacaoIngresso": [],
         }
         with patch(
-            "importa_arquivos.api.views.importacao_escolhas.ApiProdamService"
+            "importa_arquivos.services.importacao_escolhas_service.ApiProdamService"
         ) as mock_prodam:
             mock_prodam_instance = Mock()
             mock_metodo = (
@@ -542,10 +562,10 @@ class TestImportacaoEscolhasViewSet:
         }
         with (
             patch(
-                "importa_arquivos.api.views.importacao_escolhas.ApiProdamService"
+                "importa_arquivos.services.importacao_escolhas_service.ApiProdamService"
             ) as mock_prodam,
             patch(
-                "importa_arquivos.api.views.importacao_escolhas.ApiEscolhasService"
+                "importa_arquivos.services.importacao_escolhas_service.ApiEscolhasService"
             ) as mock_escolhas,
         ):
             mock_prodam_instance = Mock()

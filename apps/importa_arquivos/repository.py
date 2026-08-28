@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 from uuid import UUID
 
@@ -22,6 +23,8 @@ from importa_arquivos.serializers.importacao_erros import (
 from importa_arquivos.serializers.layout import (
     LayoutArquivoImportacaoSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ImportacaoArquivoHabilitadoRepository:
@@ -103,11 +106,24 @@ class ImportacaoEscolhasRepository:
     @staticmethod
     def criar(**dados: Any) -> ImportacaoEscolhas:
         """Cria uma importação de escolhas."""
+        logger.info(
+            f"Criando importação de escolhas:",
+            extra={
+                "dados": dados,
+            }
+        )
         return ImportacaoEscolhas.objects.create(**dados)
 
     @classmethod
     def atualizar(cls, instancia: ImportacaoEscolhas, **campos: Any) -> None:
         """Atualiza os campos informados na instância e persiste."""
+        logger.info(
+            f"Atualizando importação de escolhas:",
+            extra={
+                "instancia": instancia,
+                "campos": campos,
+            }
+        )
         for campo, valor in campos.items():
             setattr(instancia, campo, valor)
         instancia.save(update_fields=list(campos.keys()))
@@ -117,6 +133,60 @@ class ImportacaoEscolhasRepository:
         """Recarrega a instância a partir do banco."""
         instancia.refresh_from_db()
         return instancia
+
+    @staticmethod
+    def listar_processos_distintos() -> list[dict[str, Any]]:
+        """Retorna processo/concurso distintos já importados.
+
+        Returns:
+            Lista de dicionários com processo_uuid, processo_id e
+            concurso_uuid.
+        """
+        vistos: set[tuple[Any, Any, Any]] = set()
+        processos: list[dict[str, Any]] = []
+        queryset = (
+            ImportacaoEscolhas.objects.exclude(processo_uuid__isnull=True)
+            .exclude(concurso_uuid__isnull=True)
+            .values("processo_uuid", "processo_id", "concurso_uuid")
+        )
+        for item in queryset:
+            chave = (
+                item["processo_uuid"],
+                item["processo_id"],
+                item["concurso_uuid"],
+            )
+            if chave in vistos:
+                continue
+            vistos.add(chave)
+            processos.append(item)
+        return processos
+
+    @staticmethod
+    def existe_sucesso(
+        processo_uuid: Any,
+        processo_id: Any,
+    ) -> bool:
+        """Indica se já existe importação concluída para o processo.
+
+        Args:
+            processo_uuid: UUID do processo de convocação.
+            processo_id: Identificador numérico usado na API PRODAM.
+
+        Returns:
+            ``True`` se houver registro com status ``CONCLUIDO``.
+        """
+        logger.info(
+            f"Verificando se já existe importação concluída para o processo:",
+            extra={
+                "processo_uuid": processo_uuid,
+                "processo_id": processo_id,
+            }
+        )
+        return ImportacaoEscolhas.objects.filter(
+            processo_uuid=processo_uuid,
+            processo_id=processo_id,
+            status="CONCLUIDO",
+        ).exists()
 
 
 class LayoutArquivoImportacaoRepository:

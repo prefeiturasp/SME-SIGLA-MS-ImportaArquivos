@@ -81,6 +81,26 @@ class ApiCandidatosError(BaseImportacaoError):
         self.code = code
 
 
+class ApiProdamError(BaseImportacaoError):
+    """Erro de integração com a API PRODAM."""
+
+    def __init__(
+        self,
+        mensagem: str,
+        detalhes: str | None = None,
+        status_code: int = 400,
+    ) -> None:
+        """Inicializa a instância com os parâmetros informados.
+
+        Args:
+            mensagem: Mensagem principal do erro.
+            detalhes: Detalhes complementares do erro.
+            status_code: Código HTTP retornado pelo serviço externo.
+        """
+        super().__init__(mensagem=mensagem, detalhes=detalhes)
+        self.status_code = status_code
+
+
 class ApiEscolhasError(BaseImportacaoError):
     """Erro de integração com o MS-Escolhas."""
 
@@ -102,6 +122,46 @@ class ApiEscolhasError(BaseImportacaoError):
         super().__init__(mensagem=mensagem, detalhes=detalhes)
         self.status_code = status_code
         self.code = code
+
+
+class ApiProcessosConvocacaoError(BaseImportacaoError):
+    """Erro de integração com o MS-Processos de Convocação."""
+
+    def __init__(
+        self,
+        mensagem: str,
+        detalhes: str | None = None,
+        status_code: int = 400,
+    ) -> None:
+        """Inicializa a instância com os parâmetros informados.
+
+        Args:
+            mensagem: Mensagem principal do erro.
+            detalhes: Detalhes complementares do erro.
+            status_code: Código HTTP retornado pelo serviço externo.
+        """
+        super().__init__(mensagem=mensagem, detalhes=detalhes)
+        self.status_code = status_code
+
+
+class ApiAgendasError(BaseImportacaoError):
+    """Erro de integração com o MS-Agenda."""
+
+    def __init__(
+        self,
+        mensagem: str,
+        detalhes: str | None = None,
+        status_code: int = 400,
+    ) -> None:
+        """Inicializa a instância com os parâmetros informados.
+
+        Args:
+            mensagem: Mensagem principal do erro.
+            detalhes: Detalhes complementares do erro.
+            status_code: Código HTTP retornado pelo serviço externo.
+        """
+        super().__init__(mensagem=mensagem, detalhes=detalhes)
+        self.status_code = status_code
 
 
 class ImportacaoBadRequestError(BaseImportacaoError):

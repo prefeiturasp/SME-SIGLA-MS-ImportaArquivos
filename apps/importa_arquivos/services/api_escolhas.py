@@ -167,7 +167,7 @@ class ApiEscolhasService:
         dados_prodam = [
             item
             for item in dados_prodam
-            if item.get("descricaoStatus") == "ALOCADO"
+            if item.get("descricaoStatus") in ["ALOCADO", "OPTOU PELA RECONVOCAÇÃO"]
         ]
         for item in dados_prodam:
             escolha = {
@@ -175,7 +175,7 @@ class ApiEscolhasService:
                 "codigo_cargo": item.get("codigoCargo", ""),
                 "codigo_eol": item.get("codigoUnidadeAlocacao") or "",
                 "tipo_vaga": item.get("tipoVaga") or "",
-                "situacao": "ESCOLHA",
+                "situacao": "ESCOLHA" if item.get("descricaoStatus") == "ALOCADO" else "RECONVOCACAO",
             }
             escolhas.append(escolha)
         return escolhas

@@ -9,7 +9,7 @@ from auditlog.registry import auditlog
 from core.models import BaseModel
 from django.db import models
 
-from .base import CHOICES_TIPO_IMPORTACAO_ARQUIVO
+from .constants import CHOICES_TIPO_IMPORTACAO_ARQUIVO
 
 
 class LayoutArquivoImportacao(BaseModel):

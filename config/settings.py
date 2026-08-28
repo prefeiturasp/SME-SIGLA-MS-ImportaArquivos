@@ -255,9 +255,16 @@ ESCOLHA_API_KEY = os.environ.get("ESCOLHA_API_KEY", "api-key-escolha")
 PROCESSOS_CONVOCACAO_API_URL = os.environ.get(
     "PROCESSOS_CONVOCACAO_API_URL", "http://localhost:8000"
 )
+PROCESSOS_CONVOCACAO_API_KEY = os.environ.get(
+    "PROCESSOS_CONVOCACAO_API_KEY", "api-key-processos-convocacao"
+)
 PROCESSOS_CONVOCACAO_API_TIMEOUT = int(
     os.environ.get("PROCESSOS_CONVOCACAO_API_TIMEOUT", 30)
 )
+
+AGENDAS_API_URL = os.environ.get("AGENDAS_API_URL", "http://localhost:8007")
+AGENDAS_API_KEY = os.environ.get("AGENDAS_API_KEY", "api-key-agenda")
+AGENDAS_API_TIMEOUT = int(os.environ.get("AGENDAS_API_TIMEOUT", 30))
 
 # API Key (autenticação entre microsserviços)
 API_KEY = os.environ.get("API_KEY", "api-key-importa-arquivos")
@@ -280,3 +287,28 @@ PRODAM_ESCOLHAS_API_URL = os.environ.get("PRODAM_ESCOLHAS_API_URL")
 PRODAM_API_TOKEN = os.environ.get("PRODAM_API_TOKEN")
 PRODAM_API_USUARIO = os.environ.get("PRODAM_API_USUARIO")
 PRODAM_API_SENHA = os.environ.get("PRODAM_API_SENHA")
+
+# Celery (broker, result backend e beat)
+_celery_redis_url = os.environ.get("CELERY_REDIS_URL", "").strip()
+CELERY_BROKER_URL = _celery_redis_url
+CELERY_RESULT_BACKEND = _celery_redis_url
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+# A consulta PRODAM usa timeout de 300s; o limite da task precisa ser maior.
+CELERY_TASK_SOFT_TIME_LIMIT = int(
+    os.environ.get("CELERY_TASK_SOFT_TIME_LIMIT", 300)
+)
+CELERY_TASK_TIME_LIMIT = int(os.environ.get("CELERY_TASK_TIME_LIMIT", 360))
+# Fila dedicada no Redis compartilhado (outros MS usam a fila "celery")
+CELERY_TASK_DEFAULT_QUEUE = "importa_arquivos"
+
+_beat_minutes = int(os.environ.get("IMPORTACAO_ESCOLHAS_BEAT_MINUTES", "1"))
+CELERY_BEAT_SCHEDULE = {
+    "enfileirar-importacao-escolhas": {
+        "task": "importa_arquivos.tasks.enfileirar_importacoes_escolhas",
+        "schedule": timedelta(minutes=_beat_minutes),
+    },
+}
