@@ -75,7 +75,7 @@ class ApiProdamService:
         }
         response = None
         try:
-            logger.info(f"Consultando API externa: processo_id={processo_id}")
+            logger.info(f"Consultando API externa | processo_id={processo_id}")
             response = requests.post(
                 url,
                 json=payload,
@@ -91,25 +91,31 @@ class ApiProdamService:
                         resposta_raw=response.text,
                     )  # type: ignore[misc]
                 except Exception as log_exc:
-                    logger.warning(f"Erro ao salvar log da chamada: {log_exc}")
+                    logger.warning(
+                        f"Erro ao salvar log da chamada | erro={log_exc}"
+                    )
             response.raise_for_status()
             data = json.loads(response.text)
             serializer = ResponseSerializer(data=data)
             serializer.is_valid(raise_exception=True)
+            retorno = data.get("retorno")
+            registros = len(
+                data.get("lstDadosResultadoConvocacaoIngresso", [])
+            )
             logger.info(
-                "Resposta API externa recebida: retorno=%s, registros=%s.",
-                data.get("retorno"),
-                len(data.get("lstDadosResultadoConvocacaoIngresso", [])),
+                f"Resposta API externa recebida | retorno={retorno} "
+                f"registros={registros}"
             )
             return serializer.validated_data  # type: ignore[no-any-return]
         except RequestException as exc:
-            logger.error(f"Erro ao consultar API externa: {exc}")
+            logger.error(f"Erro ao consultar API externa | erro={exc}")
             raise RequestException(
                 f"Erro ao consultar API externa: {exc}"
             ) from exc
         except Exception as exc:
             logger.error(
-                f"Erro inesperado ao processar resposta da API externa: {exc}"
+                f"Erro inesperado ao processar resposta da API externa | "
+                f"erro={exc}"
             )
             raise ValueError(
                 f"Erro ao processar resposta da API externa: {exc}"

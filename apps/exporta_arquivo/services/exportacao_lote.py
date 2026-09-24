@@ -108,9 +108,9 @@ def gerar_conteudo_lote(
 
         if situacao not in mapa_escolheu:
             logger.warning(
-                "Situacao inesperada na exportacao de lote: candidato_uuid=%s situacao=%s",  # noqa: E501
-                candidato_uuid or candidato_uuid_real,
-                situacao,
+                f"Situacao inesperada na exportacao de lote | "
+                f"candidato_uuid={candidato_uuid or candidato_uuid_real} "
+                f"situacao={situacao}"
             )
 
         linha = f"{numero_lote};{codigo_sigpec};{chave_inscrito};{data_escolha};{escolheu};{codigo_integracao};"  # noqa: E501

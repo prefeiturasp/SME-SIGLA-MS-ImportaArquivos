@@ -63,7 +63,7 @@ def validar_csv_vagas(
         ) from exc
     headers_csv = set(reader.fieldnames or [])
     if headers_csv != colunas_esperadas:
-        logger.warning(f"Colunas inválidas no CSV: {headers_csv}")
+        logger.warning(f"Colunas inválidas no CSV | headers_csv={headers_csv}")
         colunas_sobrando = headers_csv - colunas_esperadas
         mensagem_erro = "Colunas inválidas no arquivo CSV"
         detalhes_lista = []

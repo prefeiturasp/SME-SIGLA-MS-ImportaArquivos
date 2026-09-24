@@ -73,9 +73,8 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
             conteudo = exportar_lote(instance)
         except ExportacaoLoteIncompletaError as exc:
             logger.warning(
-                "Exportação incompleta (422) para o lote %s: %s",
-                instance.uuid,
-                exc.mensagem,
+                f"Exportação incompleta (422) para o lote | "
+                f"uuid={instance.uuid} erro={exc.mensagem}"
             )
             nomes = exc.candidatos_sem_escolha
             conteudo_erro = self._gerar_conteudo_erro(nomes, instance)
@@ -102,7 +101,8 @@ class ExportacaoLoteViewSet(viewsets.ModelViewSet):
             return response
         except BaseExportacaoError as exc:
             logger.warning(
-                f"Exportação: {instance.uuid} | {exc.mensagem} | {exc.detalhes}"  # noqa: E501
+                f"Exportação | uuid={instance.uuid} erro={exc.mensagem} "
+                f"detalhes={exc.detalhes}"
             )
             ExportacaoLoteRepository.atualizar(
                 instance, status=StatusExportacao.ERRO

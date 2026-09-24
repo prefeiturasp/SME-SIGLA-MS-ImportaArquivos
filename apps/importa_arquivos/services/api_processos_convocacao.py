@@ -34,9 +34,8 @@ class ApiProcessosConvocacaoService:
         self.base_url = (
             base_url or settings.PROCESSOS_CONVOCACAO_API_URL
         ).rstrip("/")
-        self.timeout_seconds = (
-            timeout_seconds
-            or getattr(settings, "PROCESSOS_CONVOCACAO_API_TIMEOUT", 30)
+        self.timeout_seconds = timeout_seconds or getattr(
+            settings, "PROCESSOS_CONVOCACAO_API_TIMEOUT", 30
         )
         self._default_headers = {
             "Accept": "application/json",
@@ -57,60 +56,61 @@ class ApiProcessosConvocacaoService:
             ApiProcessosConvocacaoError: Quando a API falha ou retorna erro.
             RequestException: Quando a chamada HTTP falha.
         """
-        url = f"{self.base_url}/api/v1/processos-convocacao/"
+        url: str | None = f"{self.base_url}/api/v1/processos-convocacao/"
         params: dict[str, Any] = {"status": STATUS_PENDENTE}
         resultados: list[dict[str, Any]] = []
-        logger.info(f"Listando processos de convocação pendentes",
-            extra={
-                "url": url,
-                "method": "GET",
-                "params": params,
-                "headers": self._default_headers,
-                "timeout": self.timeout_seconds,
-            })
-        try:
-            response = http_client.get(
-                url,
-                params=params,
-                headers=self._default_headers,
-                timeout=self.timeout_seconds,
+        while url:
+            logger.info(
+                f"Listando processos de convocação pendentes | method=GET "
+                f"url={url} params={params} "
+                f"timeout={self.timeout_seconds}"
             )
-        except RequestException as exc:
-            logger.error(
-                "Erro ao listar processos de convocação pendentes: %s", exc
-            )
-            raise
-        if response.status_code >= 400:
-            logger.error(f"Erro ao listar processos de convocação pendentes:",
-                extra={
-                    "url": url,
-                    "method": "GET",
-                    "params": params,
-                    "status": response.status_code,
-                    "response": response.text,
-                })
-            raise ApiProcessosConvocacaoError(
-                mensagem="Falha ao listar processos de convocação pendentes",
-                detalhes=response.text
-                or f"Status {response.status_code}",
-                status_code=response.status_code,
-            )
-        payload = response.json()
-        if isinstance(payload, dict):
-            pagina = payload.get("results") or []
-            if isinstance(pagina, list):
-                resultados.extend(
-                    item for item in pagina if isinstance(item, dict)
+            try:
+                response = http_client.get(
+                    url,
+                    params=params,
+                    headers=self._default_headers,
+                    timeout=self.timeout_seconds,
                 )
-            url = payload.get("next")
-            params = {}
-        elif isinstance(payload, list):
-            resultados.extend(
-                item for item in payload if isinstance(item, dict)
-            )
+            except RequestException as exc:
+                logger.error(
+                    f"Erro ao listar processos de convocação pendentes | "
+                    f"erro={exc}"
+                )
+                raise
+            if response.status_code >= 400:
+                logger.error(
+                    f"Erro ao listar processos de convocação pendentes | "
+                    f"method=GET url={url} params={params} "
+                    f"status_code={response.status_code} "
+                    f"response={response.text}"
+                )
+                raise ApiProcessosConvocacaoError(
+                    mensagem=(
+                        "Falha ao listar processos de convocação pendentes"
+                    ),
+                    detalhes=response.text or f"Status {response.status_code}",
+                    status_code=response.status_code,
+                )
+            payload = response.json()
+            if isinstance(payload, dict):
+                pagina = payload.get("results") or []
+                if isinstance(pagina, list):
+                    resultados.extend(
+                        item for item in pagina if isinstance(item, dict)
+                    )
+                proxima = payload.get("next")
+                url = proxima if isinstance(proxima, str) else None
+                params = {}
+            else:
+                if isinstance(payload, list):
+                    resultados.extend(
+                        item for item in payload if isinstance(item, dict)
+                    )
+                url = None
 
         logger.info(
-            "Processos PENDENTES encontrados: %s", len(resultados)
+            f"Processos PENDENTES encontrados | total={len(resultados)}"
         )
         return resultados
 

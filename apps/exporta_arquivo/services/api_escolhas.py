@@ -70,7 +70,7 @@ class ApiEscolhasService:
             )
         except RequestException as exc:
             logger.exception(
-                "Erro ao chamar API de escolha (vagas-escolas): %s", exc
+                f"Erro ao chamar API de escolha (vagas-escolas) | erro={exc}"
             )
             raise EscolhasServiceUnavailableError(
                 mensagem="Serviço de vagas por escola indisponível.",
@@ -78,9 +78,9 @@ class ApiEscolhasService:
             ) from exc
         if response.status_code >= 500:
             logger.error(
-                "API escolha retornou status %s: %s",
-                response.status_code,
-                response.text[:500],
+                f"API escolha retornou erro | "
+                f"status_code={response.status_code} "
+                f"response={response.text[:500]}"
             )
             raise EscolhasServiceUnavailableError(
                 mensagem="Serviço de vagas por escola indisponível.",
@@ -135,16 +135,16 @@ class ApiEscolhasService:
             )
         except RequestException as exc:
             logger.exception(
-                "Erro ao chamar API de escolhas (busca lote): %s", exc
+                f"Erro ao chamar API de escolhas (busca lote) | erro={exc}"
             )
             raise EscolhasServiceUnavailableError(
                 mensagem="Serviço de escolhas indisponível.", detalhes=str(exc)
             ) from exc
         if response.status_code >= 500:
             logger.error(
-                "API escolhas retornou status %s: %s",
-                response.status_code,
-                response.text[:500],
+                f"API escolhas retornou erro | "
+                f"status_code={response.status_code} "
+                f"response={response.text[:500]}"
             )
             raise EscolhasServiceUnavailableError(
                 mensagem="Serviço de escolhas indisponível.",
