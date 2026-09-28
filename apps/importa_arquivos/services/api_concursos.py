@@ -55,7 +55,7 @@ class ApiConcursosService:
                 timeout=self.timeout_seconds,
             )
         except RequestException as exc:
-            logger.error("Erro ao consultar concursos API: %s", exc)
+            logger.error(f"Erro ao consultar concursos API | erro={exc}")
             raise CargoConcursoInvalidoError(
                 mensagem="Serviço de concursos indisponível.",
                 detalhes=str(exc),

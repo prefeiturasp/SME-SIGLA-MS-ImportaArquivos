@@ -62,7 +62,7 @@ class ApiConcursosService:
         """
         url = f"{self.base_url}/api/v1/concursos/{concurso_uuid}/"
 
-        logger.info(f"Chamando API de concursos: {url}")
+        logger.info(f"Chamando API de concursos | method=GET url={url}")
 
         try:
             response = http_client.get(
@@ -71,14 +71,16 @@ class ApiConcursosService:
                 timeout=self.timeout_seconds,
             )
         except RequestException as exc:
-            logger.exception("Erro ao chamar API de concursos: %s", exc)
+            logger.exception(
+                f"Erro ao chamar API de concursos | url={url} erro={exc}"
+            )
             raise ExportacaoServiceUnavailableError(
                 mensagem="Serviço de concursos indisponível.",
                 detalhes=str(exc),
             ) from exc
 
         if response.status_code == 404:
-            logger.error(f"Concurso não encontrado: {url}")
+            logger.error(f"Concurso não encontrado | url={url}")
             raise ExportacaoNotFoundError(
                 mensagem="Concurso não encontrado.",
                 detalhes=f"concurso_uuid={concurso_uuid}",
@@ -86,9 +88,9 @@ class ApiConcursosService:
 
         if response.status_code >= 500:
             logger.error(
-                "API concursos retornou status %s: %s",
-                response.status_code,
-                response.text[:500],
+                f"API concursos retornou erro | "
+                f"status_code={response.status_code} "
+                f"response={response.text[:500]}"
             )
             raise ExportacaoServiceUnavailableError(
                 mensagem="Serviço de concursos indisponível.",
@@ -96,7 +98,7 @@ class ApiConcursosService:
             )
 
         if response.status_code != 200:
-            logger.error(f"Erro ao obter dados do concurso: {url}")
+            logger.error(f"Erro ao obter dados do concurso | url={url}")
             raise ExportacaoServiceUnavailableError(
                 mensagem="Erro ao obter dados do concurso.",
                 detalhes=f"Status {response.status_code}",

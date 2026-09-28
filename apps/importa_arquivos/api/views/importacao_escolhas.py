@@ -76,7 +76,8 @@ class ImportacaoEscolhasViewSet(viewsets.ModelViewSet):
         if not processo_id:
             processo_id = 819
             logger.info(
-                f"Usando processo_id fixo (819) para processo_uuid={processo_uuid}"  # noqa: E501
+                f"Usando processo_id fixo (819) | "
+                f"processo_uuid={processo_uuid}"
             )
         try:
             instance = ImportacaoEscolhasService.processar(

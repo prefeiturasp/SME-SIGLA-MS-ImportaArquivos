@@ -76,9 +76,8 @@ class ApiLoteCandidatosService:
             )
         except RequestException as exc:
             logger.exception(
-                "Erro ao chamar API de candidatos (%s): %s",
-                descricao_contexto,
-                exc,
+                f"Erro ao chamar API de candidatos | "
+                f"contexto={descricao_contexto} erro={exc}"
             )
             raise ExportacaoServiceUnavailableError(
                 mensagem="Serviço de candidatos indisponível.",
@@ -91,9 +90,9 @@ class ApiLoteCandidatosService:
             )
         if response.status_code >= 500:
             logger.error(
-                "API candidatos retornou status %s: %s",
-                response.status_code,
-                response.text[:500],
+                f"API candidatos retornou erro | "
+                f"status_code={response.status_code} "
+                f"response={response.text[:500]}"
             )
             raise ExportacaoServiceUnavailableError(
                 mensagem="Serviço de candidatos indisponível.",
@@ -208,16 +207,16 @@ class ApiLoteEscolhasService:
             )
         except RequestException as exc:
             logger.exception(
-                "Erro ao chamar API de escolhas (busca lote): %s", exc
+                f"Erro ao chamar API de escolhas (busca lote) | erro={exc}"
             )
             raise ExportacaoServiceUnavailableError(
                 mensagem="Serviço de escolhas indisponível.", detalhes=str(exc)
             ) from exc
         if response.status_code >= 500:
             logger.error(
-                "API escolhas retornou status %s: %s",
-                response.status_code,
-                response.text[:500],
+                f"API escolhas retornou erro | "
+                f"status_code={response.status_code} "
+                f"response={response.text[:500]}"
             )
             raise ExportacaoServiceUnavailableError(
                 mensagem="Serviço de escolhas indisponível.",

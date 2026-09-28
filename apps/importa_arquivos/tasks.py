@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from config.celery import app
 from importa_arquivos.models.constants import MODO_IMPORTACAO_AUTOMATICA
 from importa_arquivos.repository import ImportacaoEscolhasRepository
 from importa_arquivos.services.api_agendas import ApiAgendasService
@@ -14,8 +15,6 @@ from importa_arquivos.services.api_processos_convocacao import (
 from importa_arquivos.services.importacao_escolhas_service import (
     ImportacaoEscolhasService,
 )
-
-from config.celery import app
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +51,7 @@ def importar_escolhas(
         UUID da ``ImportacaoEscolhas`` processada, em string.
     """
     logger.info(
-        "Iniciando task de importação de escolhas: "
+        f"Iniciando task de importação de escolhas | "
         f"processo_uuid={processo_uuid} processo_id={processo_id}"
     )
     instance = ImportacaoEscolhasService.processar(
@@ -90,7 +89,7 @@ def enfileirar_importacoes_escolhas() -> int:
             processo_id=processo_id,
         ):
             logger.info(
-                "Processo já importado com sucesso, ignorado: "
+                f"Processo já importado com sucesso, ignorado | "
                 f"processo_uuid={processo_uuid} processo_id={processo_id}"
             )
             continue
@@ -100,7 +99,7 @@ def enfileirar_importacoes_escolhas() -> int:
         )
         if not agenda_unica_online(agendas):
             logger.info(
-                "Agenda não elegível para importação automática: "
+                f"Agenda não elegível para importação automática | "
                 f"processo_uuid={processo_uuid} qtd_agendas={len(agendas)}"
             )
             continue
@@ -112,8 +111,8 @@ def enfileirar_importacoes_escolhas() -> int:
         )
         enfileiradas += 1
         logger.info(
-            "Task importar_escolhas enfileirada: "
+            f"Task importar_escolhas enfileirada | "
             f"processo_uuid={processo_uuid} processo_id={processo_id}"
         )
-    logger.info("%s importações de escolhas enfileiradas", enfileiradas)
+    logger.info(f"Importações de escolhas enfileiradas | total={enfileiradas}")
     return enfileiradas

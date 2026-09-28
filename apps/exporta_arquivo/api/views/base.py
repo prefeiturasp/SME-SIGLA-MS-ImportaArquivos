@@ -168,9 +168,8 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
             self.executar_exportacao(instance)
         except ExportacaoBadRequestError as exc:
             logger.warning(
-                "Erro de validação (400) na exportação %s: %s",
-                instance.uuid,
-                exc.mensagem,
+                f"Erro de validação (400) na exportação | "
+                f"uuid={instance.uuid} erro={exc.mensagem}"
             )
             return Response(
                 {"mensagem": exc.mensagem, "detail": exc.detalhes},
@@ -178,9 +177,8 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
             )
         except ExportacaoNotFoundError as exc:
             logger.warning(
-                "Dados não encontrados (404) na exportação %s: %s",
-                instance.uuid,
-                exc.mensagem,
+                f"Dados não encontrados (404) na exportação | "
+                f"uuid={instance.uuid} erro={exc.mensagem}"
             )
             return Response(
                 {"mensagem": exc.mensagem, "detail": exc.detalhes},
@@ -188,9 +186,8 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
             )
         except ExportacaoServiceUnavailableError as exc:
             logger.error(
-                "Serviço indisponível (502) na exportação %s: %s",
-                instance.uuid,
-                exc.mensagem,
+                f"Serviço indisponível (502) na exportação | "
+                f"uuid={instance.uuid} erro={exc.mensagem}"
             )
             return Response(
                 {"mensagem": exc.mensagem, "detail": exc.detalhes},
@@ -198,9 +195,8 @@ class BaseExportacaoViewSet(viewsets.ModelViewSet):
             )
         except Exception as exc:
             logger.exception(
-                "Erro interno (500) inesperado na exportação %s: %s",
-                instance.uuid,
-                exc,
+                f"Erro interno (500) inesperado na exportação | "
+                f"uuid={instance.uuid} erro={exc}"
             )
             return Response(
                 {

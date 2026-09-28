@@ -34,6 +34,8 @@ from importa_arquivos.services.exceptions import (
 from importa_arquivos.services.validacao_vagas import validar_csv_vagas
 from importa_arquivos.utils import CustomPagination
 
+logger = logging.getLogger(__name__)
+
 
 class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
     """ViewSet para o recurso ImportacaoArquivoVagas."""
@@ -80,17 +82,16 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
         ) as exc:
             mensagem = getattr(exc, "mensagem", "Erro ao validar CSV.")
             detalhes = getattr(exc, "detalhes", str(exc))
-            logging.error(
-                "Erro na validação do CSV de Vagas: %s - %s",
-                mensagem,
-                detalhes,
+            logger.error(
+                f"Erro na validação do CSV de Vagas | mensagem={mensagem} "
+                f"detalhes={detalhes}"
             )
             return Response(
                 {"detail": mensagem, "detalhes": detalhes},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as exc:
-            logging.error("Erro inesperado na validação do CSV: %s", exc)
+            logger.error(f"Erro inesperado na validação do CSV | erro={exc}")
             return Response(
                 {"detail": "Erro ao validar CSV."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -117,7 +118,7 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
                 importacao_obj=instance,
             )
         except TipoUEDesabilitadoError as exc:
-            logging.error("Tipo UE desabilitado ao enviar dados: %s", exc)
+            logger.error(f"Tipo UE desabilitado ao enviar dados | erro={exc}")
             return Response(
                 {"detail": str(exc), "code": "TIPO_UE_DESABILITADO"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -131,7 +132,7 @@ class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
             }
             return Response(payload, status=status.HTTP_400_BAD_REQUEST)
         except Exception as exc:
-            logging.error("Erro inesperado ao enviar vagas: %s", exc)
+            logger.error(f"Erro inesperado ao enviar vagas | erro={exc}")
             return Response(
                 {"detail": "Erro ao enviar vagas para API externa."},
                 status=status.HTTP_400_BAD_REQUEST,
