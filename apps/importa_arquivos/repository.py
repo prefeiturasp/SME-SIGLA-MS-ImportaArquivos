@@ -106,23 +106,15 @@ class ImportacaoEscolhasRepository:
     @staticmethod
     def criar(**dados: Any) -> ImportacaoEscolhas:
         """Cria uma importação de escolhas."""
-        logger.info(
-            f"Criando importação de escolhas:",
-            extra={
-                "dados": dados,
-            }
-        )
+        logger.info(f"Criando importação de escolhas | dados={dados}")
         return ImportacaoEscolhas.objects.create(**dados)
 
     @classmethod
     def atualizar(cls, instancia: ImportacaoEscolhas, **campos: Any) -> None:
         """Atualiza os campos informados na instância e persiste."""
         logger.info(
-            f"Atualizando importação de escolhas:",
-            extra={
-                "instancia": instancia,
-                "campos": campos,
-            }
+            f"Atualizando importação de escolhas | instancia={instancia} "
+            f"campos={campos}"
         )
         for campo, valor in campos.items():
             setattr(instancia, campo, valor)
@@ -176,11 +168,8 @@ class ImportacaoEscolhasRepository:
             ``True`` se houver registro com status ``CONCLUIDO``.
         """
         logger.info(
-            f"Verificando se já existe importação concluída para o processo:",
-            extra={
-                "processo_uuid": processo_uuid,
-                "processo_id": processo_id,
-            }
+            f"Verificando se já existe importação concluída para o processo | "
+            f"processo_uuid={processo_uuid} processo_id={processo_id}"
         )
         return ImportacaoEscolhas.objects.filter(
             processo_uuid=processo_uuid,

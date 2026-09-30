@@ -141,5 +141,5 @@ def validar_txt_lotes(
             mensagem="Erro ao validar os dados do arquivo.",
             detalhes="\n".join(erros),
         )
-    logger.info("validar_txt_lotes: %d registros validos.", len(registros))
+    logger.info(f"validar_txt_lotes | registros_validos={len(registros)}")
     return registros

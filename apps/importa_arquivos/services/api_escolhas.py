@@ -146,10 +146,10 @@ class ApiEscolhasService:
                     detalhes=response.text or f"Status {response.status_code}",
                     status_code=response.status_code,
                 )
-            logger.info("Vagas enviadas: %s", len(dados))
+            logger.info(f"Vagas enviadas | total={len(dados)}")
             return response.json()  # type: ignore[no-any-return]
         except RequestException as exc:
-            logger.error("Erro ao enviar vagas: %s", exc)
+            logger.error(f"Erro ao enviar vagas | erro={exc}")
             raise
 
     def _transformar_escolhas_prodam_para_escolhas(
@@ -167,7 +167,8 @@ class ApiEscolhasService:
         dados_prodam = [
             item
             for item in dados_prodam
-            if item.get("descricaoStatus") in ["ALOCADO", "OPTOU PELA RECONVOCAÇÃO"]
+            if item.get("descricaoStatus")
+            in ["ALOCADO", "OPTOU PELA RECONVOCAÇÃO"]
         ]
         for item in dados_prodam:
             escolha = {
@@ -175,7 +176,11 @@ class ApiEscolhasService:
                 "codigo_cargo": item.get("codigoCargo", ""),
                 "codigo_eol": item.get("codigoUnidadeAlocacao") or "",
                 "tipo_vaga": item.get("tipoVaga") or "",
-                "situacao": "ESCOLHA" if item.get("descricaoStatus") == "ALOCADO" else "RECONVOCACAO",
+                "situacao": (
+                    "ESCOLHA"
+                    if item.get("descricaoStatus") == "ALOCADO"
+                    else "RECONVOCACAO"
+                ),
             }
             escolhas.append(escolha)
         return escolhas
@@ -217,7 +222,8 @@ class ApiEscolhasService:
         }
         try:
             logger.info(
-                f"Enviando {len(escolhas)} escolhas para MS-Escolhas (processo_uuid={processo_uuid})"  # noqa: E501
+                f"Enviando escolhas para MS-Escolhas | total={len(escolhas)} "
+                f"processo_uuid={processo_uuid}"
             )
             response = http_client.post(
                 url,
@@ -226,7 +232,9 @@ class ApiEscolhasService:
                 timeout=self.timeout_seconds,
             )
         except RequestException as exc:
-            logger.error(f"Erro ao enviar escolhas para MS-Escolhas: {exc}")
+            logger.error(
+                f"Erro ao enviar escolhas para MS-Escolhas | erro={exc}"
+            )
             raise
         if response.status_code >= 400:
             raise ApiEscolhasError(
@@ -234,5 +242,5 @@ class ApiEscolhasService:
                 detalhes=response.text or f"Status {response.status_code}",
                 status_code=response.status_code,
             )
-        logger.info(f"Escolhas enviadas com sucesso: {len(escolhas)}")
+        logger.info(f"Escolhas enviadas com sucesso | total={len(escolhas)}")
         return response.json()  # type: ignore[no-any-return]

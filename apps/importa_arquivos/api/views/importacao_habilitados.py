@@ -35,6 +35,8 @@ from importa_arquivos.services.validacao_habilitados import (
     validar_csv_habilitados,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
     """ViewSet para o recurso ImportacaoArquivoHabilitados."""
@@ -84,17 +86,16 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
                 exc, "mensagem", "Erro ao validar arquivo de Habilitados"
             )
             detalhes = getattr(exc, "detalhes", str(exc))
-            logging.error(
-                "Erro na validação do CSV de Habilitados: %s - %s",
-                mensagem,
-                detalhes,
+            logger.error(
+                f"Erro na validação do CSV de Habilitados | "
+                f"mensagem={mensagem} detalhes={detalhes}"
             )
             return Response(
                 {"detail": mensagem, "detalhes": detalhes},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as exc:
-            logging.error("Erro inesperado na validação do CSV: %s", exc)
+            logger.error(f"Erro inesperado na validação do CSV | erro={exc}")
             return Response(
                 {"detail": "Erro ao validar arquivo de Habilitados."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -125,7 +126,7 @@ class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
             }
             return Response(payload, status=status.HTTP_400_BAD_REQUEST)
         except Exception as exc:
-            logging.error("Erro inesperado ao enviar candidatos: %s", exc)
+            logger.error(f"Erro inesperado ao enviar candidatos | erro={exc}")
             return Response(
                 {"detail": "Erro ao enviar candidatos para API externa."},
                 status=status.HTTP_400_BAD_REQUEST,

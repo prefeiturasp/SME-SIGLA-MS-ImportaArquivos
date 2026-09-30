@@ -58,13 +58,8 @@ class ApiAgendasService:
         url = f"{self.base_url}/api/v1/agendas/"
         params = {"processo_convocacao_uuid": str(processo_convocacao_uuid)}
         logger.info(
-            "Buscando agendas por processo_convocacao_uuid=%s",
-            processo_convocacao_uuid,
-            extra={
-                "url": url,
-                "method": "GET",
-                "params": params,
-            },
+            f"Buscando agendas | method=GET url={url} params={params} "
+            f"processo_convocacao_uuid={processo_convocacao_uuid}"
         )
         try:
             response = http_client.get(
@@ -75,9 +70,9 @@ class ApiAgendasService:
             )
         except RequestException as exc:
             logger.error(
-                "Erro ao buscar agendas (processo_convocacao_uuid=%s): %s",
-                processo_convocacao_uuid,
-                exc,
+                f"Erro ao buscar agendas | "
+                f"processo_convocacao_uuid={processo_convocacao_uuid} "
+                f"erro={exc}"
             )
             raise
         if response.status_code >= 400:

@@ -285,7 +285,7 @@ def validar_csv_habilitados(
         ) from exc
     headers_csv = set(reader.fieldnames or [])
     if headers_csv != colunas_esperadas:
-        logger.warning(f"Colunas inválidas no CSV: {headers_csv}")
+        logger.warning(f"Colunas inválidas no CSV | headers_csv={headers_csv}")
         detalhes = f"Encontradas: {sorted(headers_csv)} | Esperadas: {sorted(colunas_esperadas)}"  # type: ignore[type-var]  # noqa: E501
         raise ColunaCSVInvalidaError(
             "Arquivo de Habilitados inválido", detalhes=detalhes
@@ -323,7 +323,9 @@ def validar_csv_habilitados(
             for linha, msgs in sorted(erros_agrupados.items())
         ]
         detalhes = " | ".join(mensagens)
-        logger.error("Erros de validação no CSV de Habilitados: %s", detalhes)
+        logger.error(
+            f"Erros de validação no CSV de Habilitados | detalhes={detalhes}"
+        )
         raise ColunaCSVInvalidaError(
             "Erros de validação encontrados", detalhes=detalhes
         )

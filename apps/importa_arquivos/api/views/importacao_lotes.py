@@ -81,7 +81,7 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
             )
         except Exception as exc:
             logger.error(
-                "Erro inesperado ao validar arquivo de lotes: %s", exc
+                f"Erro inesperado ao validar arquivo de lotes | erro={exc}"
             )
             return Response(
                 {
@@ -104,8 +104,8 @@ class ImportacaoLotesViewSet(viewsets.ModelViewSet):
             Exception,
         ) as exc:
             logger.error(
-                "Erro ao fazer request para salvar os lotes no serviço de candidatos: %s",  # noqa: E501
-                exc,
+                f"Erro ao fazer request para salvar os lotes no serviço de "
+                f"candidatos | erro={exc}"
             )
             return Response(
                 {

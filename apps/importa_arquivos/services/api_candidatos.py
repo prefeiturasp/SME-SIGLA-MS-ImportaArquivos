@@ -120,7 +120,7 @@ class ApiCandidatosService:
                 timeout=self.timeout_seconds,
             )
         except RequestException as exc:
-            logger.error("Erro ao enviar candidatos: %s", exc)
+            logger.error(f"Erro ao enviar candidatos | erro={exc}")
             raise
         if response.status_code >= 400:
             raise ApiCandidatosError(
@@ -129,9 +129,8 @@ class ApiCandidatosService:
                 status_code=response.status_code,
             )
         logger.info(
-            "Candidatos enviados: %s (concurso=%s)",
-            len(dados_transformados),
-            concurso_uuid,
+            f"Candidatos enviados | total={len(dados_transformados)} "
+            f"concurso_uuid={concurso_uuid}"
         )
         return response.json()  # type: ignore[no-any-return]
 
@@ -163,16 +162,15 @@ class ApiCandidatosService:
                 timeout=self.timeout_seconds,
             )
         except RequestException as exc:
-            logger.exception("Erro ao chamar API salvar-lotes: %s", exc)
+            logger.exception(f"Erro ao chamar API salvar-lotes | erro={exc}")
             raise ImportacaoServiceUnavailableError(
                 mensagem="Serviço de candidatos (salvar-lotes) indisponível.",
                 detalhes=str(exc),
             ) from exc
         if response.status_code == 400:
             logger.error(
-                "API salvar-lotes retornou status %s: %s",
-                response.status_code,
-                response.text,
+                f"API salvar-lotes retornou erro | "
+                f"status_code={response.status_code} response={response.text}"
             )
             mensagem = "Erro na requisição ao salvar lotes."
             detail = mensagem
@@ -185,9 +183,8 @@ class ApiCandidatosService:
             raise ImportacaoBadRequestError(mensagem=mensagem, detalhes=detail)
         if response.status_code >= 500:
             logger.error(
-                "API salvar-lotes retornou status %s: %s",
-                response.status_code,
-                response.text,
+                f"API salvar-lotes retornou erro | "
+                f"status_code={response.status_code} response={response.text}"
             )
             raise ImportacaoServiceUnavailableError(
                 mensagem="Serviço de candidatos (salvar-lotes) indisponível.",
@@ -195,9 +192,8 @@ class ApiCandidatosService:
             )
         if response.status_code not in (200, 201):
             logger.error(
-                "API salvar-lotes retornou status %s: %s",
-                response.status_code,
-                response.text,
+                f"API salvar-lotes retornou erro | "
+                f"status_code={response.status_code} response={response.text}"
             )
             raise ImportacaoServiceUnavailableError(
                 mensagem="Erro ao salvar lotes.",

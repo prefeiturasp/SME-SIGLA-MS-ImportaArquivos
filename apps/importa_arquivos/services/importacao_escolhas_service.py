@@ -85,7 +85,7 @@ class ImportacaoEscolhasService:
     ) -> None:
         """Consulta a PRODAM, persiste os dados e envia ao MS-Escolhas."""
         logger.info(
-            f"Consultando API externa: processo_id={instance.processo_id}"
+            f"Consultando API externa | processo_id={instance.processo_id}"
         )
         resposta_api = (
             ApiProdamService().consultar_resultado_convocacao_ingresso(
@@ -96,7 +96,7 @@ class ImportacaoEscolhasService:
             mensagem_erro = resposta_api.get(
                 "mensagem", "Erro desconhecido na API PRODAM"
             )
-            logger.error(f"API PRODAM retornou erro: {mensagem_erro}")
+            logger.error(f"API PRODAM retornou erro | erro={mensagem_erro}")
             ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
             registrar_erro(
                 instance,
@@ -120,10 +120,8 @@ class ImportacaoEscolhasService:
             )
             return
         logger.info(
-            "Enviando %s registros para MS-Escolhas", len(dados_prodam),
-            extra={
-                "dados_prodam": dados_prodam,
-            }
+            f"Enviando registros para MS-Escolhas | total={len(dados_prodam)} "
+            f"dados_prodam={dados_prodam}"
         )
         ApiEscolhasService().enviar_escolhas_prodam(
             processo_uuid=processo_uuid,
@@ -133,7 +131,7 @@ class ImportacaoEscolhasService:
         )
         ImportacaoEscolhasRepository.atualizar(instance, status="CONCLUIDO")
         logger.info(
-            f"Importação concluída com sucesso: {len(dados_prodam)} registros"  # noqa: E501
+            f"Importação concluída com sucesso | registros={len(dados_prodam)}"
         )
 
     @staticmethod
@@ -144,7 +142,7 @@ class ImportacaoEscolhasService:
     ) -> None:
         """Marca a importação como erro e registra o detalhe."""
         logger.error(
-            f"Erro durante importação de escolhas: {exc}", exc_info=True
+            f"Erro durante importação de escolhas | erro={exc}", exc_info=True
         )
         ImportacaoEscolhasRepository.atualizar(instance, status="ERRO")
         with contextlib.suppress(Exception):

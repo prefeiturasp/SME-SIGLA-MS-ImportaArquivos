@@ -473,7 +473,7 @@ class TestImportacaoVagasErrorHandling:
                 "importa_arquivos.api.views.importacao_vagas.validar_csv_vagas"
             ) as mock_validar,
             patch(
-                "importa_arquivos.api.views.importacao_vagas.logging"
+                "importa_arquivos.api.views.importacao_vagas.logger"
             ) as mock_logging,
         ):
             mock_validar.side_effect = Exception("erro inesperado")
@@ -506,7 +506,7 @@ class TestImportacaoVagasErrorHandling:
             patch(
                 "importa_arquivos.api.views.importacao_vagas.ApiEscolhasService"
             ) as mock_api,
-            patch("importa_arquivos.api.views.importacao_vagas.logging"),
+            patch("importa_arquivos.api.views.importacao_vagas.logger"),
         ):
             mock_validar.return_value = (
                 [{"DataFechamentoModulo": "05/09/2025"}],

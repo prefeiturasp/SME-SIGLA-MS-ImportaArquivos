@@ -68,7 +68,7 @@ class ApiCandidatosService:
                 timeout=self.timeout_seconds,
             )
         except RequestException as exc:
-            logger.exception("Erro ao chamar API de habilitados: %s", exc)
+            logger.exception(f"Erro ao chamar API de habilitados | erro={exc}")
             raise CandidatosServiceUnavailableError(
                 mensagem="Serviço de candidatos (habilitados) indisponível.",
                 detalhes=str(exc),
@@ -80,9 +80,9 @@ class ApiCandidatosService:
             )
         if response.status_code >= 500:
             logger.error(
-                "API candidatos (habilitados) retornou status %s: %s",
-                response.status_code,
-                response.text[:500],
+                f"API candidatos (habilitados) retornou erro | "
+                f"status_code={response.status_code} "
+                f"response={response.text[:500]}"
             )
             raise CandidatosServiceUnavailableError(
                 mensagem="Serviço de candidatos (habilitados) indisponível.",
