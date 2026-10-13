@@ -5,18 +5,28 @@ from __future__ import annotations
 from typing import Any
 
 from django.contrib.contenttypes.models import ContentType
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from ..models import ImportacaoArquivoHabilitado, ImportacaoErro
+from .descricoes import DESCRICAO_ERROS, DESCRICOES_IMPORTACAO
+from .importacao_erros import ErroDaImportacaoSerializer
 
 
 class ImportacaoArquivoHabilitadosCreateSerializer(
     serializers.ModelSerializer
 ):
-    """Serializer para criação de importações de arquivos habilitados."""
+    """Dados enviados na importação de habilitados."""
 
     mandado_judicial = serializers.BooleanField(
-        required=False, default=False, write_only=True
+        required=False,
+        default=False,
+        write_only=True,
+        help_text=(
+            "Indica que os habilitados do arquivo entram por mandado "
+            "judicial. É repassado ao MS-Candidatos e não fica gravado na "
+            "importação."
+        ),
     )
 
     class Meta:
@@ -30,6 +40,15 @@ class ImportacaoArquivoHabilitadosCreateSerializer(
             "observacao",
             "mandado_judicial",
         ]
+        extra_kwargs = {
+            **DESCRICOES_IMPORTACAO,
+            "arquivo": {
+                "help_text": (
+                    "Arquivo CSV de habilitados, separado por vírgula e em "
+                    "UTF-8. Nas respostas, vem a URL do arquivo armazenado."
+                )
+            },
+        }
 
     def create(self, validated_data: Any) -> Any:
         """Cria e persiste o registro a partir dos dados validados."""
@@ -45,9 +64,9 @@ class ImportacaoArquivoHabilitadosCreateSerializer(
 
 
 class ImportacaoArquivoHabilitadosListSerializer(serializers.ModelSerializer):
-    """Serializer para listagem/detalhe com todos os campos do modelo."""
+    """Importação de habilitados, com o resultado do processamento."""
 
-    erros = serializers.SerializerMethodField()
+    erros = serializers.SerializerMethodField(help_text=DESCRICAO_ERROS)
     _content_type_cache = None
 
     class Meta:
@@ -74,7 +93,11 @@ class ImportacaoArquivoHabilitadosListSerializer(serializers.ModelSerializer):
             "atualizado_em",
             "erros",
         ]
+        extra_kwargs = DESCRICOES_IMPORTACAO
 
+    @extend_schema_field(
+        ErroDaImportacaoSerializer(many=True, allow_null=True)
+    )
     def get_erros(self, obj: Any) -> Any:
         """Obtém erros vinculados à importação de habilitados."""
         if (

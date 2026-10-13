@@ -1,12 +1,14 @@
 """Módulo serializers/exportacao_vagas_processo."""
 
+from core.serializers import PaginaSerializer
 from rest_framework import serializers
 
 from ..models import ExportacaoVagasProcesso
+from .descricoes import DESCRICOES_EXPORTACAO
 
 
 class ExportacaoVagasProcessoCreateSerializer(serializers.ModelSerializer):
-    """Serializer para criação de exportações de vagas processo."""
+    """Processo e cargo cujas vagas serão exportadas por unidade escolar."""
 
     class Meta:
         """Representa Meta."""
@@ -21,10 +23,11 @@ class ExportacaoVagasProcessoCreateSerializer(serializers.ModelSerializer):
             "cargo_nome",
             "cargo_codigo",
         ]
+        extra_kwargs = DESCRICOES_EXPORTACAO
 
 
 class ExportacaoVagasProcessoListSerializer(serializers.ModelSerializer):
-    """Serializer para listagem e detalhe. cargo_nome e concurso_nome."""
+    """Exportação de vagas por processo já registrada."""
 
     class Meta:
         """Representa Meta."""
@@ -54,3 +57,12 @@ class ExportacaoVagasProcessoListSerializer(serializers.ModelSerializer):
             "cargo_nome",
             "cargo_codigo",
         ]
+        extra_kwargs = DESCRICOES_EXPORTACAO
+
+
+class ExportacaoVagasProcessoPaginadoSerializer(PaginaSerializer):
+    """Página da listagem de exportações de vagas por processo."""
+
+    results = ExportacaoVagasProcessoListSerializer(
+        many=True, help_text="Exportações da página."
+    )

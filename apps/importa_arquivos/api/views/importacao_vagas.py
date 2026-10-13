@@ -8,12 +8,17 @@ from typing import Any
 
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from importa_arquivos.api.schemas.importacao_vagas import (
+    OPERACOES_IMPORTACAO_VAGAS,
+    TAG_IMPORTACAO_VAGAS,
+)
 from importa_arquivos.models import ImportacaoArquivoVagas
 from importa_arquivos.repository import (
     ImportacaoArquivoVagasRepository,
@@ -37,6 +42,8 @@ from importa_arquivos.utils import CustomPagination
 logger = logging.getLogger(__name__)
 
 
+@extend_schema(tags=[TAG_IMPORTACAO_VAGAS])
+@extend_schema_view(**OPERACOES_IMPORTACAO_VAGAS)
 class ImportacaoArquivoVagasViewSet(viewsets.ModelViewSet):
     """ViewSet para o recurso ImportacaoArquivoVagas."""
 
