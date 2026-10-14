@@ -1,12 +1,14 @@
 """Módulo serializers/exportacao_lote."""
 
+from core.serializers import PaginaPadraoSerializer, PaginaSerializer
 from rest_framework import serializers
 
 from ..models import CabecalhoExportacaoLote, ExportacaoLote
+from .descricoes import DESCRICOES_CABECALHO, DESCRICOES_EXPORTACAO
 
 
 class ExportacaoLoteCreateSerializer(serializers.ModelSerializer):
-    """Serializer para criação de exportação de lote."""
+    """Lote de candidatos a exportar."""
 
     class Meta:
         """Representa Meta."""
@@ -18,10 +20,11 @@ class ExportacaoLoteCreateSerializer(serializers.ModelSerializer):
             "numero_lote",
             "lote_uuid",
         ]
+        extra_kwargs = DESCRICOES_EXPORTACAO
 
 
 class ExportacaoLoteListSerializer(serializers.ModelSerializer):
-    """Serializer para listagem e detalhe de exportações de lote."""
+    """Exportação de lote, com a situação do arquivo gerado."""
 
     class Meta:
         """Representa Meta."""
@@ -39,10 +42,11 @@ class ExportacaoLoteListSerializer(serializers.ModelSerializer):
             "status",
         ]
         read_only_fields = fields
+        extra_kwargs = DESCRICOES_EXPORTACAO
 
 
 class CabecalhoExportacaoLoteSerializer(serializers.ModelSerializer):
-    """Serializer para leitura e edição do cabeçalho de exportação de lote."""
+    """Cabeçalho cadastrado para o arquivo de exportação de lote."""
 
     class Meta:
         """Representa Meta."""
@@ -62,3 +66,20 @@ class CabecalhoExportacaoLoteSerializer(serializers.ModelSerializer):
             "ativo",
         ]
         read_only_fields = ["uuid", "criado_em", "atualizado_em"]
+        extra_kwargs = DESCRICOES_CABECALHO
+
+
+class ExportacaoLotePaginadoSerializer(PaginaSerializer):
+    """Página da listagem de exportações de lote."""
+
+    results = ExportacaoLoteListSerializer(
+        many=True, help_text="Exportações de lote da página."
+    )
+
+
+class CabecalhoExportacaoLotePaginadoSerializer(PaginaPadraoSerializer):
+    """Página da listagem de cabeçalhos de exportação de lote."""
+
+    results = CabecalhoExportacaoLoteSerializer(
+        many=True, help_text="Cabeçalhos da página."
+    )

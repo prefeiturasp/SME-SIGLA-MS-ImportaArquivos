@@ -4,25 +4,46 @@ from __future__ import annotations
 
 from typing import Any
 
+from core.serializers import PaginaSerializer
 from django.contrib.contenttypes.models import ContentType
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from ..models import ImportacaoErro, ImportacaoEscolhas
+from .descricoes import DESCRICAO_ERROS, DESCRICOES_IMPORTACAO
+from .importacao_erros import ErroDaImportacaoSerializer
 
 
 class ImportacaoEscolhasCreateSerializer(serializers.Serializer):
-    """Serializer de criação para importações de escolhas."""
+    """Processo de convocação cujas escolhas serão buscadas na PRODAM."""
 
-    processo_uuid = serializers.UUIDField(required=True)
-    processo_id = serializers.IntegerField(required=False, allow_null=True)
-    concurso_uuid = serializers.UUIDField(required=True)
+    processo_uuid = serializers.UUIDField(
+        required=True,
+        help_text=(
+            "UUID do processo de convocação (MS-ProcessosConvocacao) que "
+            "receberá as escolhas."
+        ),
+    )
+    processo_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text=(
+            "Identificador do processo de convocação na PRODAM. Quando não "
+            "é enviado, o serviço usa 819."
+        ),
+    )
+    concurso_uuid = serializers.UUIDField(
+        required=True, help_text="UUID do concurso (MS-Concursos)."
+    )
 
 
 class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
-    """Serializer de listagem/detalhe para importações de escolhas."""
+    """Importação de escolhas, com os dados da PRODAM e o resultado."""
 
-    erros = serializers.SerializerMethodField()
-    processo_nome = serializers.SerializerMethodField()
+    erros = serializers.SerializerMethodField(help_text=DESCRICAO_ERROS)
+    processo_nome = serializers.SerializerMethodField(
+        help_text="Nome do processo de convocação. Hoje vem sempre nulo."
+    )
     _content_type_cache = None
 
     class Meta:
@@ -49,7 +70,11 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
             "erros",
             "processo_nome",
         ]
+        extra_kwargs = DESCRICOES_IMPORTACAO
 
+    @extend_schema_field(
+        ErroDaImportacaoSerializer(many=True, allow_null=True)
+    )
     def get_erros(self, obj: Any) -> Any:
         """Obtém erros vinculados à importação de escolhas."""
         if ImportacaoEscolhasListSerializer._content_type_cache is None:
@@ -73,9 +98,18 @@ class ImportacaoEscolhasListSerializer(serializers.ModelSerializer):
             )
         return erros_list
 
+    @extend_schema_field({"type": "string", "nullable": True})
     def get_processo_nome(self, obj: Any) -> Any:
         """Obtém nome do processo associado à importação de escolhas."""
         return None
+
+
+class ImportacaoEscolhasPaginadoSerializer(PaginaSerializer):
+    """Página da listagem de importações de escolhas."""
+
+    results = ImportacaoEscolhasListSerializer(
+        many=True, help_text="Importações de escolhas da página."
+    )
 
 
 class ResponseSerializer(serializers.Serializer):

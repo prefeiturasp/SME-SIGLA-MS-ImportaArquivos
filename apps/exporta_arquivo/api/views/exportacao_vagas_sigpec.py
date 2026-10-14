@@ -5,7 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 from django.http import HttpResponse
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
+from exporta_arquivo.api.schemas.exportacao_processo import (
+    OPERACOES_EXPORTACAO_VAGAS_SIGPEC,
+    TAG_EXPORTACAO_VAGAS_SIGPEC,
+)
 from exporta_arquivo.api.views.base import BaseExportacaoViewSet
 from exporta_arquivo.models import ExportacaoVagasSigpec
 from exporta_arquivo.repository import ExportacaoVagasSigpecRepository
@@ -21,6 +26,8 @@ from exporta_arquivo.services.exportacao_vagas_sigpec import (
 )
 
 
+@extend_schema(tags=[TAG_EXPORTACAO_VAGAS_SIGPEC])
+@extend_schema_view(**OPERACOES_EXPORTACAO_VAGAS_SIGPEC)
 class ExportacaoVagasSigpecViewSet(BaseExportacaoViewSet):
     """ViewSet para exportação de vagas SIGPEC.
 

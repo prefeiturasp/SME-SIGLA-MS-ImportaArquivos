@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from core.serializers import PaginaSerializer
 from rest_framework import serializers
 
 from ..models import ExportacaoVagasSigpec
+from .descricoes import DESCRICOES_EXPORTACAO
 
 
 class EscolaParaVagaSerializer(serializers.Serializer):
@@ -50,7 +52,7 @@ class VagasPayloadSerializer(serializers.Serializer):
 
 
 class ExportacaoVagasSigpecCreateSerializer(serializers.ModelSerializer):
-    """Serializer para criação de exportações de vagas SIGPEC."""
+    """Processo e cargo cujas vagas serão exportadas no formato SIGPEC."""
 
     class Meta:
         """Representa Meta."""
@@ -65,10 +67,11 @@ class ExportacaoVagasSigpecCreateSerializer(serializers.ModelSerializer):
             "cargo_nome",
             "cargo_codigo",
         ]
+        extra_kwargs = DESCRICOES_EXPORTACAO
 
 
 class ExportacaoVagasSigpecListSerializer(serializers.ModelSerializer):
-    """Serializer para listagem e detalhe. cargo_nome e concurso_nome."""
+    """Exportação de vagas SIGPEC já registrada."""
 
     class Meta:
         """Representa Meta."""
@@ -98,3 +101,12 @@ class ExportacaoVagasSigpecListSerializer(serializers.ModelSerializer):
             "cargo_nome",
             "cargo_codigo",
         ]
+        extra_kwargs = DESCRICOES_EXPORTACAO
+
+
+class ExportacaoVagasSigpecPaginadoSerializer(PaginaSerializer):
+    """Página da listagem de exportações de vagas SIGPEC."""
+
+    results = ExportacaoVagasSigpecListSerializer(
+        many=True, help_text="Exportações da página."
+    )

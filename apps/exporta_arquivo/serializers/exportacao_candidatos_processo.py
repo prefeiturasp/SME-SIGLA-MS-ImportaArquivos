@@ -1,14 +1,16 @@
 """Módulo serializers/exportacao_candidatos_processo."""
 
+from core.serializers import PaginaSerializer
 from rest_framework import serializers
 
 from ..models import ExportacaoCandidatosProcesso
+from .descricoes import DESCRICOES_EXPORTACAO
 
 
 class ExportacaoCandidatosProcessoCreateSerializer(
     serializers.ModelSerializer
 ):
-    """Serializer para criação de exportações de candidatos por processo."""
+    """Processo e cargo cujos candidatos habilitados serão exportados."""
 
     class Meta:
         """Representa Meta."""
@@ -25,10 +27,11 @@ class ExportacaoCandidatosProcessoCreateSerializer(
             "concurso_codigo",
             "concurso_data_criacao",
         ]
+        extra_kwargs = DESCRICOES_EXPORTACAO
 
 
 class ExportacaoCandidatosProcessoListSerializer(serializers.ModelSerializer):
-    """Serializer para listagem e detalhe. cargo_nome e concurso_nome."""
+    """Exportação de candidatos por processo já registrada."""
 
     class Meta:
         """Representa Meta."""
@@ -62,3 +65,12 @@ class ExportacaoCandidatosProcessoListSerializer(serializers.ModelSerializer):
             "concurso_codigo",
             "concurso_data_criacao",
         ]
+        extra_kwargs = DESCRICOES_EXPORTACAO
+
+
+class ExportacaoCandidatosProcessoPaginadoSerializer(PaginaSerializer):
+    """Página da listagem de exportações de candidatos por processo."""
+
+    results = ExportacaoCandidatosProcessoListSerializer(
+        many=True, help_text="Exportações da página."
+    )

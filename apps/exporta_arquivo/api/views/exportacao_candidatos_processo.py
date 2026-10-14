@@ -5,7 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 from django.http import HttpResponse
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
+from exporta_arquivo.api.schemas.exportacao_processo import (
+    OPERACOES_EXPORTACAO_CANDIDATOS_PROCESSO,
+    TAG_EXPORTACAO_CANDIDATOS_PROCESSO,
+)
 from exporta_arquivo.api.views.base import BaseExportacaoViewSet
 from exporta_arquivo.models import ExportacaoCandidatosProcesso
 from exporta_arquivo.repository import ExportacaoCandidatosProcessoRepository
@@ -18,6 +23,8 @@ from exporta_arquivo.services.exportacao_candidatos_processo import (
 )
 
 
+@extend_schema(tags=[TAG_EXPORTACAO_CANDIDATOS_PROCESSO])
+@extend_schema_view(**OPERACOES_EXPORTACAO_CANDIDATOS_PROCESSO)
 class ExportacaoCandidatosProcessoViewSet(BaseExportacaoViewSet):
     """ViewSet para exportação de candidatos por processo.
 

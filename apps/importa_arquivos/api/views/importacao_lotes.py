@@ -6,11 +6,16 @@ import logging
 from typing import Any
 
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from importa_arquivos.api.schemas.importacao_lotes import (
+    OPERACOES_IMPORTACAO_LOTES,
+    TAG_IMPORTACAO_LOTES,
+)
 from importa_arquivos.models import ImportacaoLotes
 from importa_arquivos.repository import ImportacaoLotesRepository
 from importa_arquivos.serializers import (
@@ -30,6 +35,8 @@ from importa_arquivos.utils import CustomPagination
 logger = logging.getLogger(__name__)
 
 
+@extend_schema(tags=[TAG_IMPORTACAO_LOTES])
+@extend_schema_view(**OPERACOES_IMPORTACAO_LOTES)
 class ImportacaoLotesViewSet(viewsets.ModelViewSet):
     """ViewSet para importação de arquivos de lotes de classificação.
 
