@@ -8,14 +8,14 @@ from typing import Any
 
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from importa_arquivos.models.constants import CHOICES_TIPO_IMPORTACAO_ARQUIVO
+from importa_arquivos.api.schemas.layout import OPERACOES_LAYOUTS, TAG_LAYOUTS
 from importa_arquivos.models.layout import LayoutArquivoImportacao
 from importa_arquivos.repository import LayoutArquivoImportacaoRepository
 from importa_arquivos.serializers.layout import (
@@ -23,6 +23,8 @@ from importa_arquivos.serializers.layout import (
 )
 
 
+@extend_schema(tags=[TAG_LAYOUTS])
+@extend_schema_view(**OPERACOES_LAYOUTS)
 class LayoutArquivoImportacaoViewSet(viewsets.ModelViewSet):
     """ViewSet para o recurso LayoutArquivoImportacao."""
 
@@ -35,20 +37,6 @@ class LayoutArquivoImportacaoViewSet(viewsets.ModelViewSet):
     ordering_fields = ["tipo", "criado_em"]
     ordering = ["-criado_em"]
 
-    @extend_schema(
-        description="Faz o download de um arquivo CSV contendo apenas o cabeçalho definido no layout do tipo informado.",  # noqa: E501
-        parameters=[
-            OpenApiParameter(
-                name="tipo",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY,
-                required=True,
-                description="Tipo de layout",
-                enum=[opcao[0] for opcao in CHOICES_TIPO_IMPORTACAO_ARQUIVO],
-            )
-        ],
-        responses={200: "text/csv"},
-    )
     @action(detail=False, methods=["get"], url_path="download")
     def download(self, request: Any) -> Any:
         """Download do layout de importação de arquivos em formato CSV."""

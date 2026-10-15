@@ -4,14 +4,18 @@ from __future__ import annotations
 
 from typing import Any
 
+from core.serializers import PaginaSerializer
 from django.contrib.contenttypes.models import ContentType
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from ..models import ImportacaoArquivoVagas, ImportacaoErro
+from .descricoes import DESCRICAO_ERROS, DESCRICOES_IMPORTACAO
+from .importacao_erros import ErroDaImportacaoSerializer
 
 
 class ImportacaoArquivoVagasCreateSerializer(serializers.ModelSerializer):
-    """Serializer de criação para importações de vagas."""
+    """Dados enviados na importação de vagas."""
 
     class Meta:
         """Representa Meta."""
@@ -23,6 +27,16 @@ class ImportacaoArquivoVagasCreateSerializer(serializers.ModelSerializer):
             "processo_nome",
             "concurso_uuid",
         ]
+        extra_kwargs = {
+            **DESCRICOES_IMPORTACAO,
+            "arquivo": {
+                "help_text": (
+                    "Arquivo CSV de vagas, separado por ponto e vírgula e "
+                    "em UTF-8. Nas respostas, vem a URL do arquivo "
+                    "armazenado."
+                )
+            },
+        }
 
     def create(self, validated_data: Any) -> Any:
         """Cria e persiste o registro a partir dos dados validados."""
@@ -35,9 +49,9 @@ class ImportacaoArquivoVagasCreateSerializer(serializers.ModelSerializer):
 
 
 class ImportacaoArquivoVagasListSerializer(serializers.ModelSerializer):
-    """Serializer de listagem e detalhe para importações de vagas."""
+    """Importação de vagas, com o resultado do processamento."""
 
-    erros = serializers.SerializerMethodField()
+    erros = serializers.SerializerMethodField(help_text=DESCRICAO_ERROS)
     _content_type_cache = None
 
     class Meta:
@@ -57,7 +71,11 @@ class ImportacaoArquivoVagasListSerializer(serializers.ModelSerializer):
             "erros",
         ]
         read_only_fields = ["uuid", "criado_em", "atualizado_em", "erros"]
+        extra_kwargs = DESCRICOES_IMPORTACAO
 
+    @extend_schema_field(
+        ErroDaImportacaoSerializer(many=True, allow_null=True)
+    )
     def get_erros(self, obj: Any) -> Any:
         """Obtém erros vinculados à importação de vagas."""
         if ImportacaoArquivoVagasListSerializer._content_type_cache is None:
@@ -80,3 +98,11 @@ class ImportacaoArquivoVagasListSerializer(serializers.ModelSerializer):
                 }
             )
         return erros_list
+
+
+class ImportacaoArquivoVagasPaginadoSerializer(PaginaSerializer):
+    """Página da listagem de importações de vagas."""
+
+    results = ImportacaoArquivoVagasListSerializer(
+        many=True, help_text="Importações de vagas da página."
+    )

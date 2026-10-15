@@ -8,12 +8,17 @@ from typing import Any
 
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from importa_arquivos.api.schemas.importacao_habilitados import (
+    OPERACOES_IMPORTACAO_HABILITADOS,
+    TAG_IMPORTACAO_HABILITADOS,
+)
 from importa_arquivos.models import ImportacaoArquivoHabilitado
 from importa_arquivos.repository import (
     ImportacaoArquivoHabilitadoRepository,
@@ -38,6 +43,8 @@ from importa_arquivos.services.validacao_habilitados import (
 logger = logging.getLogger(__name__)
 
 
+@extend_schema(tags=[TAG_IMPORTACAO_HABILITADOS])
+@extend_schema_view(**OPERACOES_IMPORTACAO_HABILITADOS)
 class ImportacaoArquivoHabilitadosViewSet(viewsets.ModelViewSet):
     """ViewSet para o recurso ImportacaoArquivoHabilitados."""
 

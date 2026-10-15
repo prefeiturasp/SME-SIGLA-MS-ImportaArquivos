@@ -160,11 +160,158 @@ CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_EXPOSE_HEADERS = ["Content-Disposition"]
 
+DESCRICAO_API = """
+API do microsserviço de **importação e exportação de arquivos** do SIGLA
+(SME-SP). Recebe os arquivos de habilitados, vagas e lotes, busca as
+escolhas na PRODAM e repassa os dados aos microsserviços de candidatos e de
+escolhas. No sentido inverso, gera os arquivos de vagas, candidatos e lotes
+enviados ao SIGPEC.
+
+## Autenticação
+
+Envie o token **JWT** emitido pelo microsserviço de usuários no header
+`Authorization: Bearer <token>`. Também são aceitos HTTP Basic e a sessão
+do Django Admin. As rotas atendem chamadas sem credencial, mas uma
+credencial **inválida** é recusada com **403**: o serviço não responde 401.
+
+## Arquivos
+
+Os uploads usam `multipart/form-data`, com o arquivo no campo `arquivo`.
+As respostas que são arquivo vêm em `text/plain` ou `text/csv`, com o nome
+no header `Content-Disposition`.
+
+## Erros
+
+- **400** com `{"<campo>": ["..."]}`: dados ou filtros inválidos.
+- **400** com `{"detail": "...", "detalhes": "..."}`: arquivo recusado ou
+  falha ao enviar os dados a outro serviço, nas importações de habilitados,
+  vagas e escolhas. `detalhes` nem sempre vem.
+- **400**, **404** ou **502** com `{"mensagem": "...", "detail": "..."}`:
+  arquivo de lotes recusado ou falha ao gerar uma exportação.
+- **403** com `{"detail": "...", "code": "..."}`: credencial recusada.
+- **404** com `{"detail": "..."}`: registro ou página não encontrados.
+- **422** com um arquivo de texto: exportação de lote em que há candidatos
+  sem escolha.
+- **500**: erro inesperado. Só a importação de escolhas e as exportações de
+  vagas e de candidatos devolvem corpo JSON nesse caso.
+
+## Paginação
+
+A listagem de importações de habilitados retorna um array simples. As de
+layouts e de cabeçalhos usam `page`, com 10 itens por página, e respondem
+com `count`, `next`, `previous` e `results`. As demais usam `page` e
+`page_size` (padrão 10) e respondem com `links`, `count`, `page`,
+`page_size` e `results`.
+"""
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "Importa Arquivo Sigla API",
-    "DESCRIPTION": "API para o sistema de importação de arquivos de sigla",
+    "DESCRIPTION": DESCRICAO_API,
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "TAGS": [
+        {
+            "name": "Importação de habilitados",
+            "description": (
+                "Upload do CSV de candidatos habilitados de um concurso, "
+                "enviado ao MS-Candidatos."
+            ),
+        },
+        {
+            "name": "Importação de vagas",
+            "description": (
+                "Upload do CSV de vagas por unidade escolar, enviado ao "
+                "MS-Escolhas."
+            ),
+        },
+        {
+            "name": "Importação de escolhas",
+            "description": (
+                "Busca do resultado de convocação na PRODAM e envio das "
+                "escolhas ao MS-Escolhas."
+            ),
+        },
+        {
+            "name": "Importação de lotes",
+            "description": (
+                "Upload do TXT de lotes do SIGPEC, que atualiza os "
+                "habilitados no MS-Candidatos."
+            ),
+        },
+        {
+            "name": "Layouts de importação",
+            "description": (
+                "Colunas esperadas nos arquivos de habilitados e de vagas."
+            ),
+        },
+        {
+            "name": "Exportação de vagas SIGPEC",
+            "description": (
+                "Arquivo de vagas de um processo e cargo no formato do "
+                "SIGPEC."
+            ),
+        },
+        {
+            "name": "Exportação de vagas por processo",
+            "description": (
+                "Arquivo de vagas de um processo e cargo, por unidade "
+                "escolar."
+            ),
+        },
+        {
+            "name": "Exportação de candidatos por processo",
+            "description": (
+                "Arquivo com os dados cadastrais dos habilitados de um "
+                "processo e cargo."
+            ),
+        },
+        {
+            "name": "Exportação de lotes",
+            "description": (
+                "Arquivo de um lote com a escolha de cada candidato, para "
+                "o SIGPEC."
+            ),
+        },
+        {
+            "name": "Cabeçalho da exportação de lotes",
+            "description": (
+                "Cadastro das linhas de cabeçalho do arquivo de lote. Hoje "
+                "a exportação grava um cabeçalho fixo e não consulta este "
+                "cadastro."
+            ),
+        },
+    ],
+    "ENUM_NAME_OVERRIDES": {
+        "StatusImportacaoEnum": (
+            "importa_arquivos.models.constants."
+            "CHOICES_STATUS_IMPORTACAO_ARQUIVO"
+        ),
+        "TipoImportacaoEnum": (
+            "importa_arquivos.models.constants."
+            "CHOICES_TIPO_IMPORTACAO_ARQUIVO"
+        ),
+        "ModoImportacaoEscolhasEnum": (
+            "importa_arquivos.models.constants."
+            "CHOICES_MODO_IMPORTACAO_ESCOLHAS"
+        ),
+        "StatusExportacaoEnum": (
+            "exporta_arquivo.models.exportacao_lote.StatusExportacao"
+        ),
+    },
+    "APPEND_COMPONENTS": {
+        "securitySchemes": {
+            "jwtAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": (
+                    "Token JWT emitido pelo microsserviço de usuários do "
+                    "SIGLA, enviado em `Authorization: Bearer <token>`."
+                ),
+            },
+        }
+    },
 }
 
 # DRF settings

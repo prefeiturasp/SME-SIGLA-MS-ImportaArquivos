@@ -4,20 +4,34 @@ from __future__ import annotations
 
 from typing import Any
 
+from core.serializers import PaginaSerializer
 from django.contrib.contenttypes.models import ContentType
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from ..models import ImportacaoErro, ImportacaoLotes
+from .descricoes import DESCRICAO_ERROS, DESCRICOES_IMPORTACAO
+from .importacao_erros import ErroDaImportacaoSerializer
 
 
 class ImportacaoLotesCreateSerializer(serializers.ModelSerializer):
-    """Serializer para criação de importações de lotes."""
+    """Dados enviados na importação de lotes."""
 
     class Meta:
         """Representa Meta."""
 
         model = ImportacaoLotes
         fields = ["arquivo", "concurso_uuid", "concurso_nome"]
+        extra_kwargs = {
+            **DESCRICOES_IMPORTACAO,
+            "arquivo": {
+                "help_text": (
+                    "Arquivo TXT de lotes do SIGPEC, separado por ponto e "
+                    "vírgula. Nas respostas, vem a URL do arquivo "
+                    "armazenado."
+                )
+            },
+        }
 
     def create(self, validated_data: Any) -> Any:
         """Cria e persiste o registro a partir dos dados validados."""
@@ -33,9 +47,9 @@ class ImportacaoLotesCreateSerializer(serializers.ModelSerializer):
 
 
 class ImportacaoLotesListSerializer(serializers.ModelSerializer):
-    """Serializer para listagem e detalhe de importações de lotes."""
+    """Importação de lotes, com o resultado do processamento."""
 
-    erros = serializers.SerializerMethodField()
+    erros = serializers.SerializerMethodField(help_text=DESCRICAO_ERROS)
     _content_type_cache = None
 
     class Meta:
@@ -65,7 +79,11 @@ class ImportacaoLotesListSerializer(serializers.ModelSerializer):
             "total_atualizados",
             "detalhes",
         ]
+        extra_kwargs = DESCRICOES_IMPORTACAO
 
+    @extend_schema_field(
+        ErroDaImportacaoSerializer(many=True, allow_null=True)
+    )
     def get_erros(self, obj: Any) -> Any:
         """Obtém erros vinculados à importação de lotes."""
         if ImportacaoLotesListSerializer._content_type_cache is None:
@@ -86,3 +104,11 @@ class ImportacaoLotesListSerializer(serializers.ModelSerializer):
             }
             for e in erros_qs
         ]
+
+
+class ImportacaoLotesPaginadoSerializer(PaginaSerializer):
+    """Página da listagem de importações de lotes."""
+
+    results = ImportacaoLotesListSerializer(
+        many=True, help_text="Importações de lotes da página."
+    )
