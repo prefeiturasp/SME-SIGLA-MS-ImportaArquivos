@@ -21,6 +21,7 @@ from .exceptions import (
     ExportacaoNotFoundError,
     ExportacaoServiceUnavailableError,
 )
+from .http_log import mascarar_headers
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +68,12 @@ class ApiLoteCandidatosService:
                 a API está indisponível.
             ExportacaoServiceUnavailableError: Serviço indisponível.
         """
+        logger.info(
+            f"Chamando API de candidatos | method=GET url={url} "
+            f"params={params} contexto={descricao_contexto} "
+            f"headers={mascarar_headers(self._default_headers)} "
+            f"timeout_seconds={self.timeout_seconds}"
+        )
         try:
             response = http_client.get(
                 url,
@@ -99,6 +106,11 @@ class ApiLoteCandidatosService:
                 detalhes=f"Status {response.status_code}",
             )
         if response.status_code != 200:
+            logger.error(
+                f"Erro ao obter dados: {descricao_contexto}. | "
+                f"status_code={response.status_code} "
+                f"response={response.text[:500]}"
+            )
             raise ExportacaoServiceUnavailableError(
                 mensagem=f"Erro ao obter dados: {descricao_contexto}.",
                 detalhes=f"Status {response.status_code}",
@@ -107,7 +119,8 @@ class ApiLoteCandidatosService:
             data = response.json()
         except ValueError as exc:
             logger.exception(
-                "Resposta da API de candidatos não é JSON válido."
+                f"Resposta da API de candidatos não é JSON válido. | "
+                f"erro={str(exc)}"
             )
             raise ExportacaoServiceUnavailableError(
                 mensagem="Resposta inválida do serviço de candidatos.",
@@ -198,6 +211,11 @@ class ApiLoteEscolhasService:
             "candidato_uuid": [str(u) for u in candidato_uuids],
             "concurso_uuid": str(concurso_uuid),
         }
+        logger.info(
+            f"Chamando API de escolhas (busca lote) | method=POST url={url} "
+            f"headers={mascarar_headers(self._default_headers)} "
+            f"timeout_seconds={self.timeout_seconds}"
+        )
         try:
             response = http_client.post(
                 url,
@@ -223,6 +241,11 @@ class ApiLoteEscolhasService:
                 detalhes=f"Status {response.status_code}",
             )
         if response.status_code != 200:
+            logger.error(
+                f"Erro ao obter escolhas do lote. | "
+                f"status_code={response.status_code} "
+                f"response={response.text[:500]}"
+            )
             raise ExportacaoServiceUnavailableError(
                 mensagem="Erro ao obter escolhas do lote.",
                 detalhes=f"Status {response.status_code}",
@@ -230,7 +253,10 @@ class ApiLoteEscolhasService:
         try:
             data = response.json()
         except ValueError as exc:
-            logger.exception("Resposta da API de escolhas não é JSON válido.")
+            logger.exception(
+                f"Resposta da API de escolhas não é JSON válido. | "
+                f"erro={str(exc)}"
+            )
             raise ExportacaoServiceUnavailableError(
                 mensagem="Resposta inválida do serviço de escolhas.",
                 detalhes=str(exc),

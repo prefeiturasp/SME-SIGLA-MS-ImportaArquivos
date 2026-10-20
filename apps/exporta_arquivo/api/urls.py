@@ -11,6 +11,7 @@ from .views import (
 )
 
 router = DefaultRouter()
+router.include_format_suffixes = False
 router.register(
     r"exportacao/vagas-sigpec",
     ExportacaoVagasSigpecViewSet,

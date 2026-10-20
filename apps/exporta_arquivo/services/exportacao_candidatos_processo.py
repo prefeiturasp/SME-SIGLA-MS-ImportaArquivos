@@ -11,13 +11,33 @@ formata o arquivo .txt (pipe, DD/MM/YYYY, CPF só dígitos).
 from __future__ import annotations
 
 import re
+from datetime import datetime, timezone as dt_timezone
 from typing import Any
+
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from exporta_arquivo.models import ExportacaoCandidatosProcesso
 from exporta_arquivo.repository import ExportacaoCandidatosProcessoRepository
 from exporta_arquivo.services import ApiCandidatosService, ApiConcursosService
 
 SEP = "|"
+
+
+def _datetime_aware(valor: Any) -> Any:
+    """Converte string/datetime naive em datetime aware (UTC)."""
+    if valor is None:
+        return None
+    if isinstance(valor, str):
+        parsed = parse_datetime(valor)
+        if parsed is None:
+            return valor
+        valor = parsed
+    if isinstance(valor, datetime) and timezone.is_naive(valor):
+        return timezone.make_aware(valor, dt_timezone.utc)
+    return valor
+
+
 COLUNAS_LINHA = [
     "codigo",
     "data_criacao",
@@ -183,7 +203,9 @@ def exportar_candidatos_processo(
     ExportacaoCandidatosProcessoRepository.atualizar(
         instance,
         concurso_codigo=dados_concurso.get("codigo"),
-        concurso_data_criacao=dados_concurso.get("criado_em"),
+        concurso_data_criacao=_datetime_aware(
+            dados_concurso.get("criado_em")
+        ),
     )
     lista_habilitados = ApiCandidatosService().get_habilitados(
         processo_uuid=instance.processo_uuid,

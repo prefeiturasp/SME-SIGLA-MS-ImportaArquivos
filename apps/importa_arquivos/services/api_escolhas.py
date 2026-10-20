@@ -15,6 +15,7 @@ from importa_arquivos.services.exceptions import (
     ApiEscolhasError,
     TipoUEDesabilitadoError,
 )
+from importa_arquivos.services.http_log import mascarar_headers
 
 from .erros import captura_erros_importacao
 
@@ -118,6 +119,12 @@ class ApiEscolhasService:
             "processo_nome": processo_nome,
             "concurso_uuid": concurso_uuid,
         }
+        logger.info(
+            f"Enviando vagas | method=POST url={url} total={len(dados)} "
+            f"processo_uuid={processo_uuid} "
+            f"headers={mascarar_headers(merged_headers)} "
+            f"timeout_seconds={self.timeout_seconds}"
+        )
         try:
             response = http_client.post(
                 url,
@@ -149,7 +156,11 @@ class ApiEscolhasService:
             logger.info(f"Vagas enviadas | total={len(dados)}")
             return response.json()  # type: ignore[no-any-return]
         except RequestException as exc:
-            logger.error(f"Erro ao enviar vagas | erro={exc}")
+            logger.error(
+                f"Erro ao enviar vagas | erro={exc} "
+                f"headers={mascarar_headers(merged_headers)} "
+                f"timeout_seconds={self.timeout_seconds}"
+            )
             raise
 
     def _transformar_escolhas_prodam_para_escolhas(
@@ -222,8 +233,10 @@ class ApiEscolhasService:
         }
         try:
             logger.info(
-                f"Enviando escolhas para MS-Escolhas | total={len(escolhas)} "
-                f"processo_uuid={processo_uuid}"
+                f"Enviando escolhas para MS-Escolhas | method=POST url={url} "
+                f"total={len(escolhas)} processo_uuid={processo_uuid} "
+                f"headers={mascarar_headers(merged_headers)} "
+                f"timeout_seconds={self.timeout_seconds}"
             )
             response = http_client.post(
                 url,
@@ -233,7 +246,9 @@ class ApiEscolhasService:
             )
         except RequestException as exc:
             logger.error(
-                f"Erro ao enviar escolhas para MS-Escolhas | erro={exc}"
+                f"Erro ao enviar escolhas para MS-Escolhas | erro={exc} "
+                f"headers={mascarar_headers(merged_headers)} "
+                f"timeout_seconds={self.timeout_seconds}"
             )
             raise
         if response.status_code >= 400:

@@ -9,6 +9,7 @@ from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
 from importa_arquivos.services.exceptions import CargoConcursoInvalidoError
+from importa_arquivos.services.http_log import mascarar_headers
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,11 @@ class ApiConcursosService:
                 a API está indisponível.
         """
         url = f"{self.base_url}/api/v1/concursos/{concurso_uuid}/"
+        logger.info(
+            f"Consultando concursos API | method=GET url={url} "
+            f"headers={mascarar_headers(self._default_headers)} "
+            f"timeout_seconds={self.timeout_seconds}"
+        )
         try:
             response = http_client.get(
                 url,
@@ -55,7 +61,11 @@ class ApiConcursosService:
                 timeout=self.timeout_seconds,
             )
         except RequestException as exc:
-            logger.error(f"Erro ao consultar concursos API | erro={exc}")
+            logger.error(
+                f"Erro ao consultar concursos API | erro={exc} "
+                f"headers={mascarar_headers(self._default_headers)} "
+                f"timeout_seconds={self.timeout_seconds}"
+            )
             raise CargoConcursoInvalidoError(
                 mensagem="Serviço de concursos indisponível.",
                 detalhes=str(exc),
