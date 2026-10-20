@@ -16,6 +16,7 @@ from importa_arquivos.services.exceptions import (
     ImportacaoBadRequestError,
     ImportacaoServiceUnavailableError,
 )
+from importa_arquivos.services.http_log import mascarar_headers
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +113,12 @@ class ApiCandidatosService:
             "candidatos": dados_transformados,
             "mandado_judicial": bool(mandado_judicial),
         }
+        logger.info(
+            f"Enviando candidatos | method=POST url={url} "
+            f"total={len(dados_transformados)} concurso_uuid={concurso_uuid} "
+            f"headers={mascarar_headers(merged_headers)} "
+            f"timeout_seconds={self.timeout_seconds}"
+        )
         try:
             response = http_client.post(
                 url,
@@ -120,7 +127,11 @@ class ApiCandidatosService:
                 timeout=self.timeout_seconds,
             )
         except RequestException as exc:
-            logger.error(f"Erro ao enviar candidatos | erro={exc}")
+            logger.error(
+                f"Erro ao enviar candidatos | erro={exc} "
+                f"headers={mascarar_headers(merged_headers)} "
+                f"timeout_seconds={self.timeout_seconds}"
+            )
             raise
         if response.status_code >= 400:
             raise ApiCandidatosError(
@@ -154,6 +165,12 @@ class ApiCandidatosService:
         """
         url = f"{self.base_url}/api/v1/habilitados/salvar-lotes/"
         payload = {"concurso_uuid": concurso_uuid, "lotes": lotes}
+        logger.info(
+            f"Chamando API salvar-lotes | method=POST url={url} "
+            f"concurso_uuid={concurso_uuid} "
+            f"headers={mascarar_headers(self._default_headers)} "
+            f"timeout_seconds={self.timeout_seconds}"
+        )
         try:
             response = http_client.post(
                 url,
@@ -162,7 +179,11 @@ class ApiCandidatosService:
                 timeout=self.timeout_seconds,
             )
         except RequestException as exc:
-            logger.exception(f"Erro ao chamar API salvar-lotes | erro={exc}")
+            logger.exception(
+                f"Erro ao chamar API salvar-lotes | erro={exc} "
+                f"headers={mascarar_headers(self._default_headers)} "
+                f"timeout_seconds={self.timeout_seconds}"
+            )
             raise ImportacaoServiceUnavailableError(
                 mensagem="Serviço de candidatos (salvar-lotes) indisponível.",
                 detalhes=str(exc),
@@ -170,7 +191,9 @@ class ApiCandidatosService:
         if response.status_code == 400:
             logger.error(
                 f"API salvar-lotes retornou erro | "
-                f"status_code={response.status_code} response={response.text}"
+                f"status_code={response.status_code} response={response.text} "
+                f"headers={mascarar_headers(self._default_headers)} "
+                f"timeout_seconds={self.timeout_seconds}"
             )
             mensagem = "Erro na requisição ao salvar lotes."
             detail = mensagem
@@ -184,7 +207,9 @@ class ApiCandidatosService:
         if response.status_code >= 500:
             logger.error(
                 f"API salvar-lotes retornou erro | "
-                f"status_code={response.status_code} response={response.text}"
+                f"status_code={response.status_code} response={response.text} "
+                f"headers={mascarar_headers(self._default_headers)} "
+                f"timeout_seconds={self.timeout_seconds}"
             )
             raise ImportacaoServiceUnavailableError(
                 mensagem="Serviço de candidatos (salvar-lotes) indisponível.",
@@ -193,7 +218,9 @@ class ApiCandidatosService:
         if response.status_code not in (200, 201):
             logger.error(
                 f"API salvar-lotes retornou erro | "
-                f"status_code={response.status_code} response={response.text}"
+                f"status_code={response.status_code} response={response.text} "
+                f"headers={mascarar_headers(self._default_headers)} "
+                f"timeout_seconds={self.timeout_seconds}"
             )
             raise ImportacaoServiceUnavailableError(
                 mensagem="Erro ao salvar lotes.",

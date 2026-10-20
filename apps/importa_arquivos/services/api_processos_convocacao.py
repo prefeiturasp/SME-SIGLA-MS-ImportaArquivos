@@ -10,6 +10,7 @@ from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
 from importa_arquivos.services.exceptions import ApiProcessosConvocacaoError
+from importa_arquivos.services.http_log import mascarar_headers
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +64,8 @@ class ApiProcessosConvocacaoService:
             logger.info(
                 f"Listando processos de convocação pendentes | method=GET "
                 f"url={url} params={params} "
-                f"timeout={self.timeout_seconds}"
+                f"headers={mascarar_headers(self._default_headers)} "
+                f"timeout_seconds={self.timeout_seconds}"
             )
             try:
                 response = http_client.get(
@@ -75,7 +77,9 @@ class ApiProcessosConvocacaoService:
             except RequestException as exc:
                 logger.error(
                     f"Erro ao listar processos de convocação pendentes | "
-                    f"erro={exc}"
+                    f"erro={exc} "
+                    f"headers={mascarar_headers(self._default_headers)} "
+                    f"timeout_seconds={self.timeout_seconds}"
                 )
                 raise
             if response.status_code >= 400:
@@ -83,7 +87,9 @@ class ApiProcessosConvocacaoService:
                     f"Erro ao listar processos de convocação pendentes | "
                     f"method=GET url={url} params={params} "
                     f"status_code={response.status_code} "
-                    f"response={response.text}"
+                    f"response={response.text} "
+                    f"headers={mascarar_headers(self._default_headers)} "
+                    f"timeout_seconds={self.timeout_seconds}"
                 )
                 raise ApiProcessosConvocacaoError(
                     mensagem=(

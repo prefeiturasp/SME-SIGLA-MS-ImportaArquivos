@@ -16,6 +16,7 @@ from .exceptions import (
     ExportacaoNotFoundError,
     ExportacaoServiceUnavailableError,
 )
+from .http_log import mascarar_headers
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,11 @@ class ApiConcursosService:
         """
         url = f"{self.base_url}/api/v1/concursos/{concurso_uuid}/"
 
-        logger.info(f"Chamando API de concursos | method=GET url={url}")
+        logger.info(
+            f"Chamando API de concursos | method=GET url={url} "
+            f"headers={mascarar_headers(self._default_headers)} "
+            f"timeout_seconds={self.timeout_seconds}"
+        )
 
         try:
             response = http_client.get(
@@ -98,7 +103,11 @@ class ApiConcursosService:
             )
 
         if response.status_code != 200:
-            logger.error(f"Erro ao obter dados do concurso | url={url}")
+            logger.error(
+                f"Erro ao obter dados do concurso | url={url} "
+                f"status_code={response.status_code} "
+                f"response={response.text[:500]}"
+            )
             raise ExportacaoServiceUnavailableError(
                 mensagem="Erro ao obter dados do concurso.",
                 detalhes=f"Status {response.status_code}",
@@ -107,13 +116,19 @@ class ApiConcursosService:
         try:
             data = response.json()
         except ValueError as exc:
-            logger.exception("Resposta da API de concursos não é JSON válido.")
+            logger.exception(
+                f"Resposta da API de concursos não é JSON válido. | "
+                f"erro={str(exc)}"
+            )
             raise ExportacaoServiceUnavailableError(
                 mensagem="Resposta inválida do serviço de concursos.",
                 detalhes=str(exc),
             ) from exc
 
         if not isinstance(data, dict):
+            logger.error(
+                f"Resposta da API de concursos não é JSON válido."
+            )
             raise ExportacaoServiceUnavailableError(
                 mensagem="Resposta inválida do serviço de concursos.",
                 detalhes="Esperado objeto JSON.",

@@ -12,6 +12,7 @@ from .views import (
 )
 
 router = DefaultRouter()
+router.include_format_suffixes = False
 router.register(
     r"importacao-arquivo/habilitados",
     ImportacaoArquivoHabilitadosViewSet,
