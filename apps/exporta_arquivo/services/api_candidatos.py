@@ -17,6 +17,7 @@ from .exceptions import (
     CandidatosNotFoundError,
     CandidatosServiceUnavailableError,
 )
+from .http_log import mascarar_headers
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,12 @@ class ApiCandidatosService:
         """
         url = f"{self.base_url}/api/v1/habilitados/"
         params = {k: str(v) for k, v in kwargs.items() if v is not None}
+        logger.info(
+            f"Chamando API de habilitados | method=GET url={url} "
+            f"params={params} "
+            f"headers={mascarar_headers(self._default_headers)} "
+            f"timeout_seconds={self.timeout_seconds}"
+        )
         try:
             response = http_client.get(
                 url,
@@ -89,6 +96,11 @@ class ApiCandidatosService:
                 detalhes=f"Status {response.status_code}",
             )
         if response.status_code != 200:
+            logger.error(
+                f"API candidatos (habilitados) retornou erro | "
+                f"status_code={response.status_code} "
+                f"response={response.text[:500]}"
+            )
             raise CandidatosServiceUnavailableError(
                 mensagem="Erro ao obter habilitados.",
                 detalhes=f"Status {response.status_code}",
@@ -97,7 +109,8 @@ class ApiCandidatosService:
             data = response.json()
         except ValueError as exc:
             logger.exception(
-                "Resposta da API de habilitados não é JSON válido."
+                "Resposta da API de habilitados não é JSON válido. | "
+                f"response={response.text[:500]}"
             )
             raise CandidatosServiceUnavailableError(
                 mensagem="Resposta inválida do serviço de candidatos.",

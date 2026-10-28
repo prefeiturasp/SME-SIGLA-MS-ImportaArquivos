@@ -8,6 +8,7 @@ Sem HTTP/DB; mocks no ponto de uso.
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 import pytest
@@ -302,7 +303,9 @@ class TestExportarCandidatosProcesso:
             out = exportar_candidatos_processo(instance)
         assert out == ""
         assert instance.concurso_codigo == 99
-        assert instance.concurso_data_criacao == "2024-06-01T00:00:00"
+        assert instance.concurso_data_criacao == datetime(
+            2024, 6, 1, 0, 0, tzinfo=timezone.utc
+        )
         instance.save.assert_called_once_with(
             update_fields=["concurso_codigo", "concurso_data_criacao"]
         )

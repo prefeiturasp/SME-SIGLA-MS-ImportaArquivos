@@ -10,6 +10,7 @@ from requests.exceptions import RequestException
 from sigla_sdk.http.api_client import http_client
 
 from importa_arquivos.services.exceptions import ApiAgendasError
+from importa_arquivos.services.http_log import mascarar_headers
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,9 @@ class ApiAgendasService:
         params = {"processo_convocacao_uuid": str(processo_convocacao_uuid)}
         logger.info(
             f"Buscando agendas | method=GET url={url} params={params} "
-            f"processo_convocacao_uuid={processo_convocacao_uuid}"
+            f"processo_convocacao_uuid={processo_convocacao_uuid} "
+            f"headers={mascarar_headers(self._default_headers)} "
+            f"timeout_seconds={self.timeout_seconds}"
         )
         try:
             response = http_client.get(
@@ -72,7 +75,9 @@ class ApiAgendasService:
             logger.error(
                 f"Erro ao buscar agendas | "
                 f"processo_convocacao_uuid={processo_convocacao_uuid} "
-                f"erro={exc}"
+                f"erro={exc} "
+                f"headers={mascarar_headers(self._default_headers)} "
+                f"timeout_seconds={self.timeout_seconds}"
             )
             raise
         if response.status_code >= 400:
